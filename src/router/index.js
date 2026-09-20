@@ -47,6 +47,11 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/admin',
+      name: 'admin-dashboard',
+      component: () => import('@/views/AdminDashboardView.vue'),
+    },
+    {
       path: '/:pathMatch(.*)*',
       redirect: '/login',
     },
