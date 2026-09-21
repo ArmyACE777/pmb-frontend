@@ -75,7 +75,7 @@
         </div>
         <div class="mt-3">
           <div class="font-sora font-extrabold text-xl sm:text-2xl text-[#1E3A8A]">
-            Rp {{ (adminStore.totalPaidRevenue / 1000000).toFixed(1) }} Jt
+            {{ formattedRevenue }}
           </div>
           <div class="text-[11px] text-emerald-600 font-medium mt-1">
             Formulir PMB & UKT Semester 1
@@ -98,7 +98,7 @@
             {{ adminStore.passedStudentsCount }} <span class="text-sm font-normal text-slate-500">Maba</span>
           </div>
           <div class="text-[11px] text-indigo-600 font-medium mt-1">
-            Tingkat Kelulusan CBT 88.4%
+            Tingkat Kelulusan Seleksi {{ passRatePercent }}%
           </div>
         </div>
       </div>
@@ -147,34 +147,19 @@
         </div>
 
         <div class="space-y-3 text-xs">
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
+          <div
+            v-for="(act, idx) in recentActivities"
+            :key="idx"
+            class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1"
+          >
             <div class="flex justify-between items-center">
-              <span class="font-bold text-slate-800">Verifikasi Dokumen</span>
-              <span class="text-[10px] text-slate-400">10 mnt lalu</span>
+              <span class="font-bold" :class="act.color">{{ act.title }}</span>
+              <span class="text-[10px] text-slate-400">{{ act.time }}</span>
             </div>
-            <p class="text-slate-600 leading-relaxed">
-              Panitia menyetujui berkas Ijazah & SKL milik <strong>Dimas Arya Pratama</strong>.
-            </p>
+            <p class="text-slate-600 leading-relaxed">{{ act.desc }}</p>
           </div>
-
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
-            <div class="flex justify-between items-center">
-              <span class="font-bold text-emerald-700">Pelunasan UKT Host-to-Host</span>
-              <span class="text-[10px] text-slate-400">28 mnt lalu</span>
-            </div>
-            <p class="text-slate-600 leading-relaxed">
-              Pelunasan UKT Semester 1 Rp 4.500.000 atas nama <strong>Nadia Putri Khairunnisa</strong> via BSI VA.
-            </p>
-          </div>
-
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
-            <div class="flex justify-between items-center">
-              <span class="font-bold text-indigo-700">Penerbitan NIM Mahasiswa</span>
-              <span class="text-[10px] text-slate-400">1 jam lalu</span>
-            </div>
-            <p class="text-slate-600 leading-relaxed">
-              NIM <strong class="font-mono">26010042</strong> resmi diterbitkan untuk calon mahasiswa S1 Farmasi.
-            </p>
+          <div v-if="!recentActivities.length" class="p-4 text-center text-slate-400 italic">
+            Belum ada aktivitas baru tercatat.
           </div>
         </div>
       </div>
@@ -183,9 +168,54 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import { useAdminStore } from '@/stores/admin';
 
 const adminStore = useAdminStore();
+
+const formattedRevenue = computed(() => {
+  const rev = adminStore.totalPaidRevenue;
+  if (rev >= 1000000) {
+    return `Rp ${(rev / 1000000).toFixed(1)} Jt`;
+  }
+  return `Rp ${rev.toLocaleString('id-ID')}`;
+});
+
+const passRatePercent = computed(() => {
+  if (!adminStore.applicants.length) return '0.0';
+  return ((adminStore.passedStudentsCount / adminStore.applicants.length) * 100).toFixed(1);
+});
+
+const recentActivities = computed(() => {
+  const list = [];
+  adminStore.applicants.forEach((a) => {
+    if (a.onboarding?.nim) {
+      list.push({
+        title: 'Penerbitan NIM Mahasiswa',
+        time: 'Terkini',
+        color: 'text-indigo-700',
+        desc: `NIM ${a.onboarding.nim} resmi diterbitkan untuk ${a.fullName} (${a.prodi1}).`,
+      });
+    }
+    if (a.payments?.uktFee?.status === 'paid') {
+      list.push({
+        title: 'Pelunasan UKT Mahasiswa',
+        time: a.payments.uktFee.paidAt || 'Terkini',
+        color: 'text-emerald-700',
+        desc: `Pelunasan UKT Semester 1 Rp ${a.payments.uktFee.amount?.toLocaleString('id-ID')} atas nama ${a.fullName}.`,
+      });
+    }
+    if (a.documentStatus === 'verified') {
+      list.push({
+        title: 'Verifikasi Dokumen',
+        time: 'Terverifikasi',
+        color: 'text-slate-800',
+        desc: `Berkas persyaratan PMB atas nama ${a.fullName} telah disetujui panitia.`,
+      });
+    }
+  });
+  return list.slice(0, 4);
+});
 
 const prodiQuotas = [
   { name: 'S1 Farmasi (Fakultas Farmasi)', enrolled: 120, quota: 150, color: 'bg-[#1E3A8A]' },

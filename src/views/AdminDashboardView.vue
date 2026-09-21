@@ -68,11 +68,14 @@
             </p>
           </div>
           <button
-            @click="resetAdminData"
-            class="text-[11px] text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
-            title="Reset data demo panitia"
+            @click="syncPortalData"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] text-slate-600 hover:text-[#1E3A8A] bg-slate-50 hover:bg-blue-50 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+            title="Sinkronkan data pendaftar aktif dari portal pendaftaran"
           >
-            Reset Data Panitia
+            <svg class="w-3.5 h-3.5 text-[#1E3A8A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>Sinkronkan Portal</span>
           </button>
         </div>
 
@@ -178,9 +181,7 @@ const desks = computed(() => [
   },
 ]);
 
-const resetAdminData = () => {
-  if (confirm('Kembalikan data seluruh pendaftar dan verifikasi panitia ke data awal bawaan BTH?')) {
-    adminStore.resetAdminData();
-  }
+const syncPortalData = () => {
+  adminStore.syncCurrentApplicant();
 };
 </script>

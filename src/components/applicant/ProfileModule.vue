@@ -126,6 +126,7 @@
               v-model="form.gender"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             >
+              <option value="" disabled>-- Pilih Jenis Kelamin --</option>
               <option value="Perempuan">Perempuan</option>
               <option value="Laki-laki">Laki-laki</option>
             </select>
@@ -262,6 +263,7 @@
               v-model="form.parentIncome"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             >
+              <option value="" disabled>-- Pilih Rentang Penghasilan --</option>
               <option value="< Rp 2.500.000">&lt; Rp 2.500.000</option>
               <option value="Rp 2.500.000 - Rp 5.000.000">Rp 2.500.000 - Rp 5.000.000</option>
               <option value="Rp 5.000.000 - Rp 10.000.000">Rp 5.000.000 - Rp 10.000.000</option>

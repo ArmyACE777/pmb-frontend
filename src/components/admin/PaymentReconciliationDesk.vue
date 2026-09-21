@@ -42,7 +42,7 @@
       <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
         <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Formulir Terbayar</div>
         <div class="font-sora font-extrabold text-2xl text-slate-900 mt-1">
-          {{ adminStore.applicants.length }} / {{ adminStore.applicants.length }} <span class="text-xs font-normal text-emerald-600 font-sans">Lunas 100%</span>
+          {{ paidRegFeeCount }} / {{ adminStore.applicants.length }} <span class="text-xs font-normal text-emerald-600 font-sans">Lunas {{ regFeePercent }}%</span>
         </div>
         <div class="text-xs text-slate-500 mt-1">Rp 250.000 / formulir pendaftaran</div>
       </div>
@@ -60,7 +60,7 @@
       <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
         <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Kanal Host-to-Host</div>
         <div class="font-sora font-extrabold text-lg text-slate-800 mt-1">
-          BSI (85%) • Mandiri (15%)
+          BSI ({{ bsiPercent }}%) • Mandiri ({{ mandiriPercent }}%)
         </div>
         <div class="text-xs text-emerald-600 font-medium mt-1">
           Sinkronisasi otomatis aktif
@@ -179,6 +179,15 @@ const paidUktCount = computed(() => {
   return adminStore.applicants.filter((a) => a.payments.uktFee.status === 'paid').length;
 });
 
+const paidRegFeeCount = computed(() => {
+  return adminStore.applicants.filter((a) => a.payments?.registrationFee?.status === 'paid').length;
+});
+
+const regFeePercent = computed(() => {
+  if (!adminStore.applicants.length) return 0;
+  return Math.round((paidRegFeeCount.value / adminStore.applicants.length) * 100);
+});
+
 const allTransactions = computed(() => {
   const list = [];
   adminStore.applicants.forEach((a) => {
@@ -211,6 +220,12 @@ const allTransactions = computed(() => {
   });
   return list;
 });
+
+const bsiCount = computed(() => allTransactions.value.filter((t) => t.method?.toLowerCase().includes('bsi') && t.status === 'paid').length);
+const mandiriCount = computed(() => allTransactions.value.filter((t) => t.method?.toLowerCase().includes('mandiri') && t.status === 'paid').length);
+const totalPaidTrx = computed(() => bsiCount.value + mandiriCount.value);
+const bsiPercent = computed(() => (totalPaidTrx.value ? Math.round((bsiCount.value / totalPaidTrx.value) * 100) : 75));
+const mandiriPercent = computed(() => (totalPaidTrx.value ? 100 - bsiPercent.value : 25));
 
 const confirmManual = (trx) => {
   adminStore.confirmPayment(trx.applicantId, trx.typeKey);

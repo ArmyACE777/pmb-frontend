@@ -6,49 +6,6 @@ const STORAGE_KEY = 'bth_admin_data_v1';
 
 const defaultApplicants = [
   {
-    id: 'BTH-2026-REG-08492',
-    nik: '3278015504060002',
-    nisn: '0068492014',
-    fullName: 'Siti Rahmawati',
-    gender: 'Perempuan',
-    email: 'siti.rahma@bth.ac.id',
-    phone: '082117100200',
-    schoolName: 'SMA Negeri 1 Tasikmalaya',
-    averageScore: '88.75',
-    track: 'Jalur Reguler Gelombang 1',
-    faculty: 'Fakultas Farmasi',
-    prodi1: 'S1 Farmasi',
-    prodi2: 'S1 Teknologi Informasi',
-    registrationDate: '12 Sep 2026',
-    documentStatus: 'pending', // 'verified' | 'pending' | 'revision'
-    pendingDocsCount: 1,
-    verifiedDocsCount: 4,
-    documents: [
-      { id: 'doc-1', title: 'Ijazah / SKL', filename: 'SKL_Siti_Rahmawati_SMAN1.pdf', status: 'verified', notes: 'Legalisir basah terverifikasi valid.' },
-      { id: 'doc-2', title: 'KTP / Kartu Pelajar', filename: 'KTP_Siti_Rahmawati.jpg', status: 'verified', notes: 'Identitas NIK sesuai database.' },
-      { id: 'doc-3', title: 'Kartu Keluarga', filename: 'Kartu_Keluarga_Terbaru.pdf', status: 'verified', notes: 'KK terbaru disetujui.' },
-      { id: 'doc-4', title: 'Pas Foto Resmi 4x6', filename: 'Pas_Foto_4x6_Siti.jpg', status: 'verified', notes: 'Latar merah formal pakaian berkerah.' },
-      { id: 'doc-5', title: 'Surat Keterangan Sehat & Bebas Buta Warna', filename: 'Surat_Kesehatan_Puskesmas.pdf', status: 'pending', notes: 'Sedang ditinjau panitia medis PMB.' },
-    ],
-    payments: {
-      registrationFee: { id: 'INV-REG-2026-08492', amount: 250000, status: 'paid', paidAt: '12 Sep 2026, 10:14 WIB', method: 'VA BSI' },
-      uktFee: { id: 'INV-UKT-2026-0042', amount: 6500000, status: 'pending', dueDate: '28 Okt 2026', method: 'VA BSI / Mandiri' },
-    },
-    selection: {
-      cbtScore: 85,
-      interviewScore: 88,
-      interviewer: 'apt. Dedi Mulyadi, M.Farm.',
-      interviewNotes: 'Komunikasi sangat baik, motivasi kuat di bidang farmasi klinik.',
-      passedStatus: 'passed', // 'passed' | 'failed' | 'evaluating'
-      decisionLetterNo: '082/SK-PMB/UBTH/X/2026',
-    },
-    onboarding: {
-      isEnrolled: true,
-      nim: '26010042',
-      pkkmbGroup: 'Gugus 03 - Hygeia Farmasi',
-    },
-  },
-  {
     id: 'BTH-2026-REG-08493',
     nik: '3278021105050001',
     nisn: '0057891234',
@@ -292,18 +249,109 @@ export const useAdminStore = defineStore('admin', () => {
     { deep: true }
   );
 
-  // Computed Key Metrics
-  const totalApplicants = computed(() => applicants.value.length + 1278); // realistic base + mock
+  // Helper: Cek apakah ID pendaftar adalah kandidat aktif yang sedang login
+  const isCurrentApplicant = (applicantId) => {
+    const activeReg = applicantStore.state.candidate?.registrationNumber;
+    return applicantId === activeReg || applicantId === 'current-user';
+  };
+
+  // Sinkronisasi dinamis pendaftar aktif ke meja kerja admin
+  const syncCurrentApplicant = () => {
+    const candidate = applicantStore.state.candidate;
+    if (!candidate || !candidate.registrationNumber) return;
+
+    const existingIndex = applicants.value.findIndex(
+      (a) => a.id === candidate.registrationNumber || (candidate.email && a.email === candidate.email)
+    );
+
+    const verifiedDocs = applicantStore.state.documents.filter((d) => d.status === 'verified').length;
+    const pendingDocs = applicantStore.state.documents.filter((d) => d.status !== 'verified').length;
+
+    const activeApplicantData = {
+      id: candidate.registrationNumber,
+      nik: candidate.nik || '-',
+      nisn: candidate.nisn || '-',
+      fullName: candidate.fullName || 'Calon Mahasiswa Baru',
+      gender: candidate.gender || 'Perempuan',
+      email: candidate.email || 'pendaftar@bth.ac.id',
+      phone: candidate.phone || '-',
+      schoolName: candidate.schoolName || 'Asal Sekolah Belum Diisi',
+      averageScore: candidate.averageScore || '85.00',
+      track: applicantStore.state.admission.track || 'Jalur Reguler Gelombang 1',
+      faculty: applicantStore.state.admission.prodi1Faculty || 'Fakultas Farmasi',
+      prodi1: applicantStore.state.admission.prodi1 || 'Belum Ditentukan',
+      prodi2: applicantStore.state.admission.prodi2 || 'Belum Ditentukan',
+      registrationDate: 'Hari ini',
+      documentStatus: applicantStore.isDocumentsComplete ? 'verified' : pendingDocs > 0 ? 'pending' : 'verified',
+      pendingDocsCount: pendingDocs,
+      verifiedDocsCount: verifiedDocs,
+      documents: applicantStore.state.documents.map((d) => ({
+        id: d.id,
+        title: d.title,
+        filename: d.filename || 'Belum diunggah',
+        status: d.status === 'unuploaded' ? 'pending' : d.status,
+        notes: d.notes || '',
+      })),
+      payments: {
+        registrationFee: {
+          id: applicantStore.state.payments.registrationFee.id,
+          amount: applicantStore.state.payments.registrationFee.amount,
+          status: applicantStore.state.payments.registrationFee.status,
+          paidAt: applicantStore.state.payments.registrationFee.paidAt,
+          method: applicantStore.state.payments.registrationFee.paymentMethod,
+        },
+        uktFee: {
+          id: applicantStore.state.payments.uktFee.id,
+          amount: applicantStore.state.payments.uktFee.amount,
+          status: applicantStore.state.payments.uktFee.status,
+          paidAt: applicantStore.state.payments.uktFee.paidAt,
+          dueDate: applicantStore.state.payments.uktFee.dueDate,
+          method: 'Virtual Account BSI / Mandiri',
+        },
+      },
+      selection: {
+        cbtScore: applicantStore.state.exam.score || 0,
+        interviewScore: 88,
+        interviewer: 'Dosen Penguji PMB BTH',
+        interviewNotes: 'Pendaftar akun aktif terintegrasi sistem.',
+        passedStatus: applicantStore.state.result.isPassed ? 'passed' : applicantStore.state.exam.status === 'completed' ? 'evaluating' : 'evaluating',
+        decisionLetterNo: applicantStore.state.result.decisionLetterNo || null,
+      },
+      onboarding: {
+        isEnrolled: applicantStore.isUktPaid,
+        nim: applicantStore.state.onboarding.nim || null,
+        pkkmbGroup: applicantStore.state.onboarding.pkkmbGroup || null,
+      },
+    };
+
+    if (existingIndex >= 0) {
+      applicants.value[existingIndex] = { ...applicants.value[existingIndex], ...activeApplicantData };
+    } else {
+      applicants.value.unshift(activeApplicantData);
+    }
+  };
+
+  // Reaktif terhadap perubahan data pendaftar aktif
+  watch(
+    () => applicantStore.state,
+    () => {
+      syncCurrentApplicant();
+    },
+    { deep: true, immediate: true }
+  );
+
+  // Computed Key Metrics Murni Dinamis
+  const totalApplicants = computed(() => applicants.value.length);
   const pendingVerificationCount = computed(() => {
     return applicants.value.filter((a) => a.documentStatus === 'pending' || a.documentStatus === 'revision').length;
   });
   const totalPaidRevenue = computed(() => {
     let sum = 0;
     applicants.value.forEach((a) => {
-      if (a.payments.registrationFee.status === 'paid') sum += a.payments.registrationFee.amount;
-      if (a.payments.uktFee.status === 'paid') sum += a.payments.uktFee.amount;
+      if (a.payments?.registrationFee?.status === 'paid') sum += (a.payments.registrationFee.amount || 0);
+      if (a.payments?.uktFee?.status === 'paid') sum += (a.payments.uktFee.amount || 0);
     });
-    return sum + 372500000; // realistic aggregate revenue
+    return sum;
   });
   const passedStudentsCount = computed(() => {
     return applicants.value.filter((a) => a.selection.passedStatus === 'passed').length;
@@ -334,8 +382,8 @@ export const useAdminStore = defineStore('admin', () => {
       applicant.documentStatus = 'verified';
     }
 
-    // Bi-directional sync with applicant store if Siti Rahmawati
-    if (applicantId === 'BTH-2026-REG-08492') {
+    // Sinkronisasi dua arah ke applicantStore jika merupakan user aktif
+    if (isCurrentApplicant(applicantId)) {
       const targetInApplicant = applicantStore.state.documents.find((d) => d.id === docId);
       if (targetInApplicant) {
         targetInApplicant.status = status;
@@ -353,12 +401,15 @@ export const useAdminStore = defineStore('admin', () => {
     if (paymentType === 'uktFee') {
       applicant.payments.uktFee.status = 'paid';
       applicant.payments.uktFee.paidAt = new Date().toLocaleString('id-ID');
-      if (applicantId === 'BTH-2026-REG-08492') {
+      if (isCurrentApplicant(applicantId)) {
         applicantStore.payUktFee();
       }
     } else if (paymentType === 'registrationFee') {
       applicant.payments.registrationFee.status = 'paid';
       applicant.payments.registrationFee.paidAt = new Date().toLocaleString('id-ID');
+      if (isCurrentApplicant(applicantId)) {
+        applicantStore.payRegFee();
+      }
     }
   };
 
@@ -381,8 +432,11 @@ export const useAdminStore = defineStore('admin', () => {
       applicant.selection.passedStatus = 'failed';
     }
 
-    if (applicantId === 'BTH-2026-REG-08492') {
+    if (isCurrentApplicant(applicantId)) {
       applicantStore.state.result.isPassed = applicant.selection.passedStatus === 'passed';
+      if (applicant.selection.decisionLetterNo) {
+        applicantStore.state.result.decisionLetterNo = applicant.selection.decisionLetterNo;
+      }
     }
   };
 
@@ -395,15 +449,16 @@ export const useAdminStore = defineStore('admin', () => {
     applicant.onboarding.nim = customNim || `2601${Math.floor(Math.random() * 9000 + 1000)}`;
     applicant.onboarding.pkkmbGroup = group || 'Gugus 01 - Hygeia Farmasi';
 
-    if (applicantId === 'BTH-2026-REG-08492') {
+    if (isCurrentApplicant(applicantId)) {
       applicantStore.state.onboarding.nim = applicant.onboarding.nim;
       applicantStore.state.onboarding.pkkmbGroup = applicant.onboarding.pkkmbGroup;
     }
   };
 
-  // Action: Reset admin demo data
+  // Action: Reset admin data
   const resetAdminData = () => {
     applicants.value = JSON.parse(JSON.stringify(defaultApplicants));
+    syncCurrentApplicant();
     localStorage.removeItem(STORAGE_KEY);
   };
 
@@ -417,6 +472,7 @@ export const useAdminStore = defineStore('admin', () => {
     confirmPayment,
     updateInterview,
     generateNim,
+    syncCurrentApplicant,
     resetAdminData,
   };
 });

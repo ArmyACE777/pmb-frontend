@@ -18,7 +18,7 @@ function generateRegNumber(userId, email) {
  */
 function createInitialState(user) {
   const regNo = generateRegNumber(user?.id, user?.email);
-  const regSuffix = regNo.split('-').pop() || '08492';
+  const regSuffix = regNo.split('-').pop() || String(Math.floor(10000 + Math.random() * 90000));
 
   return {
     candidate: {
@@ -28,10 +28,10 @@ function createInitialState(user) {
       nisn: '',
       email: user?.email || '',
       phone: user?.phone || '',
-      gender: 'Perempuan',
+      gender: '',
       birthPlace: '',
       birthDate: '',
-      religion: 'Islam',
+      religion: '',
       citizenship: 'WNI',
       address: '',
       city: '',
@@ -39,13 +39,13 @@ function createInitialState(user) {
       postalCode: '',
       schoolName: '',
       schoolMajor: '',
-      graduationYear: '2026',
+      graduationYear: '',
       averageScore: '',
       fatherName: '',
       fatherJob: '',
       motherName: '',
       motherJob: '',
-      parentIncome: 'Rp 2.500.000 - Rp 5.000.000',
+      parentIncome: '',
       emergencyContact: '',
     },
     admission: {
@@ -175,7 +175,7 @@ function createInitialState(user) {
       acceptedProdi: '',
       acceptedFaculty: '',
       acceptedDegree: '',
-      decisionLetterNo: `082/SK-PMB/UBTH/X/2026`,
+      decisionLetterNo: '',
       decisionDate: '24 Oktober 2026',
       reRegistrationPeriod: '25 Oktober - 05 November 2026',
     },
@@ -184,7 +184,7 @@ function createInitialState(user) {
       studentEmail: '',
       faculty: '',
       studyProgram: '',
-      pkkmbGroup: 'Gugus 03 - Kampus BTH',
+      pkkmbGroup: '',
       siakadAccess: 'Aktif setelah pelunasan UKT',
     },
   };
@@ -205,15 +205,9 @@ export const useApplicantStore = defineStore('applicant', () => {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (authStore.currentUser) {
-          if (!parsed.candidate.fullName || parsed.candidate.fullName === 'Siti Rahmawati') {
-            parsed.candidate.fullName = authStore.currentUser.full_name || '';
-          }
-          if (!parsed.candidate.email || parsed.candidate.email === 'siti.rahma@bth.ac.id') {
-            parsed.candidate.email = authStore.currentUser.email || '';
-          }
-          if (!parsed.candidate.phone || parsed.candidate.phone === '082117100200') {
-            parsed.candidate.phone = authStore.currentUser.phone || '';
-          }
+          parsed.candidate.fullName = authStore.currentUser.full_name || parsed.candidate.fullName || '';
+          parsed.candidate.email = authStore.currentUser.email || parsed.candidate.email || '';
+          parsed.candidate.phone = authStore.currentUser.phone || parsed.candidate.phone || '';
         }
         // Clean legacy pre-filled dummy values if any
         if (parsed.payments?.registrationFee?.paidAt === 'Terverifikasi Otomatis') {
@@ -253,15 +247,9 @@ export const useApplicantStore = defineStore('applicant', () => {
     () => authStore.currentUser,
     (newUser) => {
       if (newUser) {
-        if (!state.value.candidate.fullName || state.value.candidate.fullName === 'Siti Rahmawati') {
-          state.value.candidate.fullName = newUser.full_name || '';
-        }
-        if (!state.value.candidate.email || state.value.candidate.email === 'siti.rahma@bth.ac.id') {
-          state.value.candidate.email = newUser.email || '';
-        }
-        if (!state.value.candidate.phone || state.value.candidate.phone === '082117100200') {
-          state.value.candidate.phone = newUser.phone || '';
-        }
+        state.value.candidate.fullName = newUser.full_name || state.value.candidate.fullName || '';
+        state.value.candidate.email = newUser.email || state.value.candidate.email || '';
+        state.value.candidate.phone = newUser.phone || state.value.candidate.phone || '';
       }
     }
   );
@@ -443,6 +431,7 @@ export const useApplicantStore = defineStore('applicant', () => {
       state.value.onboarding.studentEmail = `${emailName}@bth.ac.id`;
       state.value.onboarding.studyProgram = state.value.admission.prodi1;
       state.value.onboarding.faculty = state.value.admission.prodi1Faculty;
+      state.value.onboarding.pkkmbGroup = `Gugus ${prodiCode} - BTH 2026`;
     }
   };
 
@@ -460,6 +449,10 @@ export const useApplicantStore = defineStore('applicant', () => {
     state.value.result.acceptedProdi = state.value.admission.prodi1;
     state.value.result.acceptedFaculty = state.value.admission.prodi1Faculty;
     state.value.result.acceptedDegree = state.value.admission.prodi1Degree;
+    if (isPass) {
+      const regSuffix = state.value.candidate.registrationNumber.split('-').pop() || '082';
+      state.value.result.decisionLetterNo = `${regSuffix.slice(-3)}/SK-PMB/UBTH/X/2026`;
+    }
     state.value.admission.status = isPass ? 'Dinyatakan Lulus Seleksi' : 'Selesai Ujian CBT';
   };
 

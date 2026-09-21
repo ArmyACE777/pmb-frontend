@@ -100,7 +100,7 @@
 
         <div class="pt-4 border-t border-slate-100 mt-4">
           <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-center text-xs text-slate-600 font-mono">
-            ID Zoom: 894 2026 0042 (Pass: BTH2026)
+            ID Zoom: {{ zoomMeetingId }} (Pass: BTH2026)
           </div>
         </div>
       </div>
@@ -214,4 +214,8 @@ defineEmits(['switch-tab']);
 
 const applicantStore = useApplicantStore();
 const schedule = computed(() => applicantStore.state.schedule);
+const zoomMeetingId = computed(() => {
+  const regSuffix = applicantStore.state.candidate?.registrationNumber?.split('-').pop() || '2026';
+  return `894 2026 ${regSuffix.slice(-4)}`;
+});
 </script>
