@@ -129,6 +129,19 @@
                 </button>
               </td>
             </tr>
+            <tr v-if="filteredApplicants.length === 0">
+              <td colspan="7" class="py-12 text-center text-slate-400">
+                <div class="max-w-xs mx-auto space-y-2">
+                  <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                  </div>
+                  <div class="font-sora font-semibold text-slate-700 text-sm">Belum Ada Peserta Seleksi</div>
+                  <p class="text-xs text-slate-400">Belum ada peserta yang mengikuti seleksi atau pengerjaan CBT.</p>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>

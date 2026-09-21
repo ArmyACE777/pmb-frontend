@@ -132,6 +132,19 @@
                 </button>
               </td>
             </tr>
+            <tr v-if="filteredApplicants.length === 0">
+              <td colspan="7" class="py-12 text-center text-slate-400">
+                <div class="max-w-xs mx-auto space-y-2">
+                  <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <div class="font-sora font-semibold text-slate-700 text-sm">Belum Ada Mahasiswa Terdaftar</div>
+                  <p class="text-xs text-slate-400">Belum ada calon mahasiswa yang melunasi UKT atau diterbitkan NIM.</p>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
