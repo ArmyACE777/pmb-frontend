@@ -4,7 +4,7 @@ import { useApplicantStore, PRODI_METADATA } from './applicant';
 import { useAuthStore } from './auth';
 import axios from 'axios';
 
-const STORAGE_KEY = 'bth_admin_data_real_v3';
+const STORAGE_KEY = 'bth_admin_data_real_v4';
 
 function generateRegNumber(userId, email) {
   const seed = String(userId || email || 'CANDIDATE')
@@ -117,94 +117,160 @@ const CANDIDATE_PRESETS = [
 
 function createDefaultApplicantForUser(u, index = 0) {
   const regNo = generateRegNumber(u.id, u.email);
-  const preset = CANDIDATE_PRESETS[index % CANDIDATE_PRESETS.length];
-  const meta = PRODI_METADATA[preset.prodi1] || { uktFee: 6500000 };
+
+  // 1. Cek apakah ada data formulir asli yang tersimpan untuk pengguna ini di browser
+  let localState = null;
+  try {
+    const raw =
+      localStorage.getItem(`bth_applicant_v3_${u.id}`) ||
+      localStorage.getItem(`bth_applicant_v3_${u.email}`);
+    if (raw) localState = JSON.parse(raw);
+  } catch (e) {
+    console.warn('Gagal membaca data lokal pengguna:', e);
+  }
+
+  if (localState) {
+    const cand = localState.candidate || {};
+    const adm = localState.admission || {};
+    const docs = localState.documents || [];
+    const pays = localState.payments || {};
+    const exam = localState.exam || {};
+    const res = localState.result || {};
+    const onb = localState.onboarding || {};
+
+    const verifiedDocs = docs.filter((d) => d.status === 'verified').length;
+    const pendingDocs = docs.filter((d) => d.status === 'pending' || d.status === 'revision').length;
+    const hasRevision = docs.some((d) => d.status === 'revision');
+    const hasPending = docs.some((d) => d.status === 'pending');
+    const hasUploaded = docs.some((d) => d.filename && d.filename !== 'Belum diunggah');
+    const isAllVerified = docs.length > 0 && verifiedDocs === docs.length;
+
+    let docStatus = 'unuploaded';
+    if (isAllVerified) docStatus = 'verified';
+    else if (hasRevision) docStatus = 'revision';
+    else if (hasPending || hasUploaded) docStatus = 'pending';
+    else if (verifiedDocs > 0) docStatus = 'pending';
+
+    return {
+      id: cand.registrationNumber || regNo,
+      backendUserId: u.id,
+      nik: cand.nik || '-',
+      nisn: cand.nisn || '-',
+      fullName: cand.fullName || u.full_name || 'Calon Mahasiswa',
+      gender: cand.gender || 'Perempuan',
+      email: u.email,
+      phone: cand.phone || u.phone || '-',
+      schoolName: cand.schoolName || 'Asal Sekolah Belum Diisi',
+      averageScore: cand.averageScore || '-',
+      track: adm.track || 'Jalur Reguler Gelombang 1',
+      faculty: adm.prodi1Faculty || '-',
+      prodi1: adm.prodi1 || 'Belum Memilih',
+      prodi2: adm.prodi2 || '-',
+      registrationDate: 'Aktif di Sistem',
+      documentStatus: docStatus,
+      pendingDocsCount: pendingDocs,
+      verifiedDocsCount: verifiedDocs,
+      documents: docs.map((d) => ({
+        id: d.id,
+        title: d.title,
+        filename: d.filename || 'Belum diunggah',
+        filesize: d.filesize || '',
+        fileBlobUrl: d.fileBlobUrl || null,
+        fileType: d.fileType || '',
+        status: d.status || 'unuploaded',
+        notes: d.notes || '',
+      })),
+      payments: {
+        registrationFee: {
+          id: pays.registrationFee?.id || `INV-REG-${regNo.slice(-5)}`,
+          amount: pays.registrationFee?.amount || 250000,
+          status: pays.registrationFee?.status || 'unpaid',
+          paidAt: pays.registrationFee?.paidAt || null,
+          method: pays.registrationFee?.paymentMethod || 'Virtual Account BSI',
+        },
+        uktFee: {
+          id: pays.uktFee?.id || `INV-UKT-${regNo.slice(-5)}`,
+          amount: pays.uktFee?.amount || 6500000,
+          status: pays.uktFee?.status || 'unpaid',
+          paidAt: pays.uktFee?.paidAt || null,
+          dueDate: pays.uktFee?.dueDate || '30 April 2026',
+          method: 'Virtual Account BSI / Mandiri',
+        },
+      },
+      selection: {
+        cbtScore: exam.score || 0,
+        interviewScore: res.isPassed ? 88 : null,
+        interviewer: res.isPassed ? 'Dosen Penguji PMB BTH' : null,
+        interviewNotes: 'Pendaftar akun aktif terintegrasi sistem.',
+        passedStatus: res.isPassed ? 'passed' : exam.status === 'completed' ? 'evaluating' : 'evaluating',
+        decisionLetterNo: res.decisionLetterNo || null,
+      },
+      onboarding: {
+        isEnrolled: pays.uktFee?.status === 'paid',
+        nim: onb.nim || null,
+        pkkmbGroup: onb.pkkmbGroup || null,
+      },
+    };
+  }
+
+  // 2. Data jujur untuk user yang baru mendaftar di akun web dan belum mengunggah dokumen
+  const defaultDocs = [
+    { id: 'doc-1', title: 'Ijazah / Surat Keterangan Lulus (SKL)', filename: 'Belum diunggah', status: 'unuploaded', notes: '', fileBlobUrl: null },
+    { id: 'doc-2', title: 'Kartu Tanda Penduduk (KTP) / Kartu Pelajar', filename: 'Belum diunggah', status: 'unuploaded', notes: '', fileBlobUrl: null },
+    { id: 'doc-3', title: 'Kartu Keluarga (KK)', filename: 'Belum diunggah', status: 'unuploaded', notes: '', fileBlobUrl: null },
+    { id: 'doc-4', title: 'Pas Foto Resmi 4x6 (Latar Merah)', filename: 'Belum diunggah', status: 'unuploaded', notes: '', fileBlobUrl: null },
+    { id: 'doc-5', title: 'Surat Keterangan Sehat & Bebas Buta Warna', filename: 'Belum diunggah', status: 'unuploaded', notes: '', fileBlobUrl: null },
+  ];
 
   return {
     id: regNo,
     backendUserId: u.id,
-    nik: `3278${Math.floor(100000000000 + Math.random() * 899999999999)}`,
-    nisn: `00${Math.floor(10000000 + Math.random() * 89999999)}`,
+    nik: '-',
+    nisn: '-',
     fullName: u.full_name || 'Calon Mahasiswa',
-    gender: index % 2 === 0 ? 'Perempuan' : 'Laki-laki',
+    gender: 'Perempuan',
     email: u.email,
-    phone: u.phone || `0812${Math.floor(10000000 + Math.random() * 89999999)}`,
-    schoolName: preset.schoolName,
-    averageScore: preset.averageScore,
+    phone: u.phone || '-',
+    schoolName: 'Belum Diisi',
+    averageScore: '-',
     track: 'Jalur Reguler Gelombang 1',
-    faculty: preset.faculty,
-    prodi1: preset.prodi1,
-    prodi2: preset.prodi2,
-    registrationDate: 'Aktif di Sistem',
-    documentStatus: preset.docsVerified === 5 ? 'verified' : preset.docsVerified > 0 ? 'pending' : 'pending',
-    pendingDocsCount: 5 - preset.docsVerified,
-    verifiedDocsCount: preset.docsVerified,
-    documents: [
-      {
-        id: 'doc-1',
-        title: 'Ijazah / Surat Keterangan Lulus (SKL)',
-        filename: preset.docsVerified >= 1 ? `Ijazah_${u.full_name ? u.full_name.replace(/\s+/g, '_') : 'Scan'}.pdf` : 'Belum diunggah',
-        status: preset.docsVerified >= 1 ? 'verified' : 'pending',
-        notes: preset.docsVerified >= 1 ? 'Dokumen sah terverifikasi tim BTH.' : '',
-      },
-      {
-        id: 'doc-2',
-        title: 'Kartu Tanda Penduduk (KTP) / Kartu Pelajar',
-        filename: preset.docsVerified >= 2 ? `KTP_${u.full_name ? u.full_name.replace(/\s+/g, '_') : 'Identitas'}.jpg` : 'Belum diunggah',
-        status: preset.docsVerified >= 2 ? 'verified' : 'pending',
-        notes: preset.docsVerified >= 2 ? 'Identitas terverifikasi valid.' : '',
-      },
-      {
-        id: 'doc-3',
-        title: 'Kartu Keluarga (KK)',
-        filename: preset.docsVerified >= 3 ? 'Kartu_Keluarga_Disdukcapil.pdf' : 'Belum diunggah',
-        status: preset.docsVerified >= 3 ? 'verified' : 'pending',
-        notes: preset.docsVerified >= 3 ? 'Barcode KK terbaca jelas.' : '',
-      },
-      {
-        id: 'doc-4',
-        title: 'Pas Foto Resmi 4x6 (Latar Merah)',
-        filename: preset.docsVerified >= 4 ? 'PasFoto_Formal_Merah.jpg' : 'Belum diunggah',
-        status: preset.docsVerified >= 4 ? 'verified' : 'pending',
-        notes: preset.docsVerified >= 4 ? 'Foto formal sesuai kriteria.' : '',
-      },
-      {
-        id: 'doc-5',
-        title: 'Surat Keterangan Sehat & Bebas Buta Warna',
-        filename: preset.docsVerified >= 5 ? 'Surat_Keterangan_Sehat.pdf' : 'Belum diunggah',
-        status: preset.docsVerified >= 5 ? 'verified' : 'pending',
-        notes: preset.docsVerified >= 5 ? 'Bebas buta warna memenuhi syarat prodi.' : '',
-      },
-    ],
+    faculty: '-',
+    prodi1: 'Belum Memilih Prodi',
+    prodi2: '-',
+    registrationDate: 'Baru Mendaftar',
+    documentStatus: 'unuploaded',
+    pendingDocsCount: 0,
+    verifiedDocsCount: 0,
+    documents: defaultDocs,
     payments: {
       registrationFee: {
         id: `INV-REG-${regNo.slice(-5)}`,
         amount: 250000,
-        status: preset.regFeeStatus,
-        paidAt: preset.regFeeStatus === 'paid' ? '18 Mar 2026, 09:14' : null,
-        method: index % 2 === 0 ? 'Virtual Account BSI' : 'Virtual Account Mandiri',
+        status: 'unpaid',
+        paidAt: null,
+        method: 'Virtual Account BSI',
       },
       uktFee: {
         id: `INV-UKT-${regNo.slice(-5)}`,
-        amount: meta.uktFee || 6500000,
-        status: preset.uktFeeStatus,
-        paidAt: preset.uktFeeStatus === 'paid' ? '20 Mar 2026, 14:22' : null,
+        amount: 6500000,
+        status: 'unpaid',
+        paidAt: null,
         dueDate: '30 April 2026',
-        method: index % 2 === 0 ? 'Virtual Account BSI' : 'Virtual Account Mandiri',
+        method: 'Virtual Account BSI',
       },
     },
     selection: {
-      cbtScore: preset.cbtScore,
-      interviewScore: preset.passedStatus === 'passed' ? 88 : null,
-      interviewer: preset.passedStatus === 'passed' ? 'apt. Dedi Mulyadi, M.Farm.' : null,
-      interviewNotes: preset.passedStatus === 'passed' ? 'Motivasi belajar tinggi dan komitmen studi kuat.' : 'Menunggu pelaksanaan tes wawancara peminatan.',
-      passedStatus: preset.passedStatus,
-      decisionLetterNo: preset.passedStatus === 'passed' ? `08${regNo.slice(-3)}/SK-PMB/UBTH/X/2026` : null,
+      cbtScore: 0,
+      interviewScore: null,
+      interviewer: null,
+      interviewNotes: 'Pendaftar baru terdaftar di portal PMB.',
+      passedStatus: 'evaluating',
+      decisionLetterNo: null,
     },
     onboarding: {
-      isEnrolled: preset.uktFeeStatus === 'paid',
-      nim: preset.nim,
-      pkkmbGroup: preset.pkkmbGroup,
+      isEnrolled: false,
+      nim: null,
+      pkkmbGroup: null,
     },
   };
 }
@@ -289,10 +355,22 @@ export const useAdminStore = defineStore('admin', () => {
     );
 
     const verifiedDocs = docs.filter((d) => d.status === 'verified').length;
-    const pendingDocs = docs.filter((d) => d.status !== 'verified').length;
+    const pendingDocs = docs.filter((d) => d.status === 'pending' || d.status === 'revision').length;
     const hasPendingDoc = docs.some((d) => d.status === 'pending');
     const hasRevisionDoc = docs.some((d) => d.status === 'revision');
-    const currentDocStatus = hasRevisionDoc ? 'revision' : hasPendingDoc ? 'pending' : verifiedDocs >= 3 ? 'verified' : 'pending';
+    const hasUploaded = docs.some((d) => d.filename && d.filename !== 'Belum diunggah');
+    const isAllVerified = docs.length > 0 && verifiedDocs === docs.length;
+
+    let currentDocStatus = 'unuploaded';
+    if (isAllVerified) {
+      currentDocStatus = 'verified';
+    } else if (hasRevisionDoc) {
+      currentDocStatus = 'revision';
+    } else if (hasPendingDoc || hasUploaded) {
+      currentDocStatus = 'pending';
+    } else if (verifiedDocs > 0) {
+      currentDocStatus = 'pending';
+    }
 
     const existingApplicant = existingIndex >= 0 ? applicants.value[existingIndex] : null;
 
@@ -306,11 +384,11 @@ export const useAdminStore = defineStore('admin', () => {
       email,
       phone,
       schoolName: candidate?.schoolName || existingApplicant?.schoolName || 'Asal Sekolah Belum Diisi',
-      averageScore: candidate?.averageScore || existingApplicant?.averageScore || '85.00',
+      averageScore: candidate?.averageScore || existingApplicant?.averageScore || '-',
       track: admission?.track || existingApplicant?.track || 'Jalur Reguler Gelombang 1',
-      faculty: admission?.prodi1Faculty || existingApplicant?.faculty || 'Fakultas Farmasi',
-      prodi1: admission?.prodi1 || existingApplicant?.prodi1 || 'S1 Farmasi',
-      prodi2: admission?.prodi2 || existingApplicant?.prodi2 || 'S1 Teknologi Informasi',
+      faculty: admission?.prodi1Faculty || existingApplicant?.faculty || '-',
+      prodi1: admission?.prodi1 || existingApplicant?.prodi1 || 'Belum Memilih',
+      prodi2: admission?.prodi2 || existingApplicant?.prodi2 || '-',
       registrationDate: existingApplicant?.registrationDate || 'Hari ini',
       documentStatus: currentDocStatus,
       pendingDocsCount: pendingDocs,
@@ -322,7 +400,7 @@ export const useAdminStore = defineStore('admin', () => {
         filesize: d.filesize || '',
         fileBlobUrl: d.fileBlobUrl || null,
         fileType: d.fileType || '',
-        status: d.status === 'unuploaded' ? 'pending' : d.status,
+        status: d.status || 'unuploaded',
         notes: d.notes || '',
       })),
       payments: {
@@ -401,20 +479,25 @@ export const useAdminStore = defineStore('admin', () => {
       doc.notes = notes;
     }
 
+    const isAllVerified = applicant.documents.length > 0 && applicant.documents.every((d) => d.status === 'verified');
     const hasPending = applicant.documents.some((d) => d.status === 'pending');
     const hasRevision = applicant.documents.some((d) => d.status === 'revision');
     applicant.verifiedDocsCount = applicant.documents.filter((d) => d.status === 'verified').length;
     applicant.pendingDocsCount = applicant.documents.filter((d) => d.status === 'pending' || d.status === 'revision').length;
 
-    if (hasRevision) {
+    if (isAllVerified) {
+      applicant.documentStatus = 'verified';
+    } else if (hasRevision) {
       applicant.documentStatus = 'revision';
     } else if (hasPending) {
       applicant.documentStatus = 'pending';
+    } else if (applicant.verifiedDocsCount > 0) {
+      applicant.documentStatus = 'pending';
     } else {
-      applicant.documentStatus = 'verified';
+      applicant.documentStatus = 'unuploaded';
     }
 
-    // Sinkronisasi dua arah ke applicantStore jika merupakan kandidat aktif
+    // 1. Sinkronisasi dua arah ke applicantStore jika merupakan kandidat aktif
     if (isCurrentApplicant(applicantId)) {
       const targetInApplicant = applicantStore.state.documents.find((d) => d.id === docId);
       if (targetInApplicant) {
@@ -422,6 +505,31 @@ export const useAdminStore = defineStore('admin', () => {
         targetInApplicant.statusLabel = status === 'verified' ? 'Terverifikasi' : status === 'revision' ? 'Perlu Perbaikan' : 'Sedang Ditinjau';
         targetInApplicant.notes = notes;
       }
+    }
+
+    // 2. Sinkronisasi ke penyimpanan lokal pengguna agar tetap tersimpan saat login ulang
+    try {
+      const uId = applicant.backendUserId;
+      const uEmail = applicant.email;
+      const key1 = uId ? `bth_applicant_v3_${uId}` : null;
+      const key2 = uEmail ? `bth_applicant_v3_${uEmail}` : null;
+      [key1, key2].filter(Boolean).forEach((k) => {
+        const raw = localStorage.getItem(k);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed.documents) {
+            const targetDoc = parsed.documents.find((d) => d.id === docId);
+            if (targetDoc) {
+              targetDoc.status = status;
+              targetDoc.statusLabel = status === 'verified' ? 'Terverifikasi' : status === 'revision' ? 'Perlu Perbaikan' : 'Sedang Ditinjau';
+              targetDoc.notes = notes;
+              localStorage.setItem(k, JSON.stringify(parsed));
+            }
+          }
+        }
+      });
+    } catch (e) {
+      console.warn('Gagal sinkronisasi berkas ke penyimpanan lokal pengguna:', e);
     }
   };
 

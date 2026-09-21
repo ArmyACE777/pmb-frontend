@@ -6,8 +6,8 @@
         <h2 class="font-sora font-bold text-base sm:text-lg text-slate-900">
           Meja Verifikasi & Validasi Berkas Pendaftar
         </h2>
-        <p class="text-xs text-slate-500 mt-0.5">
-          Periksa keabsahan pindaian ijazah, identitas kependudukan, pas foto, dan surat keterangan sehat.
+        <p class="text-xs text-slate-500 mt-0.5 font-sans">
+          Periksa keabsahan pindaian ijazah, identitas kependudukan, pas foto, dan surat keterangan sehat pendaftar.
         </p>
       </div>
       <div class="flex items-center gap-2 self-start sm:self-auto">
@@ -26,7 +26,7 @@
         <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
         </svg>
-        <span>{{ toastMessage }}</span>
+        <span class="font-medium">{{ toastMessage }}</span>
       </div>
       <button @click="toastMessage = ''" class="text-emerald-600 hover:text-emerald-900 font-bold text-sm leading-none cursor-pointer">&times;</button>
     </div>
@@ -75,7 +75,7 @@
       </div>
     </div>
 
-    <!-- Applicants Document Table -->
+    <!-- Applicants Document Table (Daftar Mahasiswa Dinamis & Akurat) -->
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs text-slate-700 min-w-[720px]">
@@ -110,25 +110,31 @@
               <!-- Program Studi -->
               <td class="py-3.5 px-4">
                 <div class="font-medium text-slate-800">{{ applicant.prodi1 }}</div>
-                <div class="text-[10px] text-slate-400">Pilihan 2: {{ applicant.prodi2 }}</div>
+                <div v-if="applicant.prodi2 && applicant.prodi2 !== '-'" class="text-[10px] text-slate-400">Pilihan 2: {{ applicant.prodi2 }}</div>
               </td>
 
               <!-- Documents Count -->
               <td class="py-3.5 px-4 text-center">
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono font-semibold"
-                      :class="applicant.pendingDocsCount === 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'">
+                <span
+                  class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold"
+                  :class="{
+                    'bg-emerald-50 text-emerald-700 border border-emerald-200': applicant.verifiedDocsCount === 5,
+                    'bg-amber-50 text-amber-700 border border-amber-200': applicant.verifiedDocsCount > 0 && applicant.verifiedDocsCount < 5,
+                    'bg-slate-100 text-slate-600 border border-slate-200': applicant.verifiedDocsCount === 0
+                  }"
+                >
                   {{ applicant.verifiedDocsCount }}/{{ applicant.documents.length }} Sah
                 </span>
               </td>
 
-              <!-- Status Pill -->
+              <!-- Status Pill Dinamis Sesuai Data Asli -->
               <td class="py-3.5 px-4">
                 <span
                   v-if="applicant.documentStatus === 'verified'"
                   class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[11px] font-semibold"
                 >
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                  <span>Terverifikasi</span>
+                  <span>Terverifikasi (Lengkap)</span>
                 </span>
                 <span
                   v-else-if="applicant.documentStatus === 'revision'"
@@ -138,11 +144,18 @@
                   <span>Perlu Perbaikan</span>
                 </span>
                 <span
-                  v-else
+                  v-else-if="applicant.documentStatus === 'pending'"
                   class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[11px] font-semibold"
                 >
                   <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                   <span>Menunggu Verifikasi</span>
+                </span>
+                <span
+                  v-else
+                  class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-full text-[11px] font-semibold"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                  <span>Belum Unggah Berkas</span>
                 </span>
               </td>
 
@@ -179,137 +192,175 @@
     </div>
 
     <!-- ========================================================================= -->
-    <!-- MODAL INSPEKSI BERKAS MAHASISWA: SEDERHANA, JELAS, LANGSUNG KE TUJUAN -->
+    <!-- MODAL INSPEKSI BERKAS MAHASISWA: MAKSIMAL, BERSIH, KONSISTEN DENGAN BTH -->
     <!-- ========================================================================= -->
     <div
       v-if="activeApplicant"
-      class="fixed inset-0 flex items-center justify-center p-3 sm:p-5 bg-slate-950/75 backdrop-blur-xs animate-fadeIn"
+      class="fixed inset-0 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-xs animate-fadeIn"
       style="z-index: 50;"
       @click.self="closeVerifyDesk"
     >
-      <div class="bg-white rounded-2xl sm:rounded-3xl max-w-5xl w-full h-[90vh] shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
+      <div class="bg-white rounded-2xl sm:rounded-3xl w-full max-w-6xl h-[94vh] shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
         
-        <!-- 1. HEADER RINGKAS & JELAS -->
-        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between gap-3 flex-shrink-0">
+        <!-- 1. HEADER MODAL: KONSISTEN DENGAN IDENTITAS KAMPUS BTH -->
+        <div class="px-5 sm:px-6 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between gap-3 flex-shrink-0">
           <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2">
-              <h3 class="font-sora font-extrabold text-slate-900 text-sm sm:text-base truncate">
-                {{ activeApplicant.fullName }}
-              </h3>
-              <span class="font-mono text-xs px-2 py-0.5 bg-slate-100 text-slate-700 rounded border border-slate-200 font-bold whitespace-nowrap">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-2 py-0.5 bg-blue-100 text-[#1E3A8A] font-sora font-bold text-[10px] rounded uppercase tracking-wider">
+                Verifikasi Dokumen PMB
+              </span>
+              <span class="font-mono text-xs px-2.5 py-0.5 bg-slate-100 text-slate-800 rounded-lg border border-slate-200 font-bold">
                 {{ activeApplicant.id }}
               </span>
               <span
-                class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full whitespace-nowrap"
+                class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full"
                 :class="{
                   'bg-emerald-100 text-emerald-800 border border-emerald-200': activeApplicant.documentStatus === 'verified',
                   'bg-rose-100 text-rose-800 border border-rose-200': activeApplicant.documentStatus === 'revision',
-                  'bg-amber-100 text-amber-800 border border-amber-200': activeApplicant.documentStatus === 'pending'
+                  'bg-amber-100 text-amber-800 border border-amber-200': activeApplicant.documentStatus === 'pending',
+                  'bg-slate-100 text-slate-600 border border-slate-200': activeApplicant.documentStatus === 'unuploaded'
                 }"
               >
-                {{ activeApplicant.documentStatus === 'verified' ? '5/5 Disetujui' : activeApplicant.verifiedDocsCount + '/5 Disetujui' }}
+                {{ activeApplicant.documentStatus === 'verified' ? '5/5 Berkas Disetujui' : activeApplicant.verifiedDocsCount + '/5 Berkas Disetujui' }}
               </span>
             </div>
-            <div class="text-[11px] text-slate-500 mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-sans">
+
+            <!-- Nama Lengkap & Detail Calon Mahasiswa -->
+            <div class="flex items-center gap-2 mt-1">
+              <h3 class="font-sora font-extrabold text-slate-900 text-base sm:text-lg truncate">
+                {{ activeApplicant.fullName }}
+              </h3>
+            </div>
+            <div class="text-[11px] sm:text-xs text-slate-500 mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-sans">
               <span>Prodi: <strong class="text-slate-800">{{ activeApplicant.prodi1 }}</strong></span>
               <span>•</span>
-              <span>Asal Sekolah: {{ activeApplicant.schoolName }}</span>
+              <span>Asal Sekolah: <span class="text-slate-700 font-medium">{{ activeApplicant.schoolName }}</span></span>
               <span>•</span>
-              <span>NIK: <span class="font-mono text-slate-700">{{ activeApplicant.nik }}</span></span>
+              <span>NIK: <span class="font-mono text-slate-700 font-bold">{{ activeApplicant.nik }}</span></span>
             </div>
           </div>
 
-          <!-- Tombol Tutup Silang Besar -->
+          <!-- Tombol Tutup Bersih & Rapi -->
           <button
             @click="closeVerifyDesk"
-            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center text-lg font-bold transition-colors cursor-pointer flex-shrink-0"
-            title="Tutup (Esc)"
+            class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center text-xl font-bold transition-all cursor-pointer flex-shrink-0"
+            title="Tutup Inspeksi (Esc)"
           >
             &times;
           </button>
         </div>
 
-        <!-- 2. TAB PILIHAN BERKAS (5 TAB HORIZONTAL BERSIH, LANGSUNG GANTI DOKUMEN) -->
-        <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-2 overflow-x-auto no-scrollbar flex-shrink-0">
+        <!-- 2. TAB PILIHAN 5 BERKAS: BESAR, JELAS, DENGAN INDIKATOR STATUS REAL -->
+        <div class="px-4 sm:px-6 py-2.5 bg-slate-50/80 border-b border-slate-200 flex items-center gap-2 overflow-x-auto no-scrollbar flex-shrink-0">
           <button
             v-for="(doc, idx) in activeApplicant.documents"
             :key="doc.id"
             @click="selectDoc(doc)"
-            class="px-3 py-1.5 rounded-xl text-xs font-sora transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer flex-shrink-0"
+            class="px-3.5 py-2 rounded-xl text-xs font-sora transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer flex-shrink-0"
             :class="selectedDoc?.id === doc.id
               ? 'bg-[#1E3A8A] text-white font-semibold shadow-xs'
-              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'"
+              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 hover:text-slate-900'"
           >
             <span class="opacity-70 font-mono text-[10px]">{{ idx + 1 }}.</span>
             <span>{{ getShortDocTitle(doc.id) }}</span>
 
-            <!-- Status Badge Dot / Icon pada Tab -->
+            <!-- Status Indicator Label pada Tab -->
             <span
               v-if="doc.status === 'verified'"
-              class="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold"
+              class="px-1.5 py-0.2 rounded-full text-[10px] font-bold"
+              :class="selectedDoc?.id === doc.id ? 'bg-emerald-400 text-slate-900' : 'bg-emerald-100 text-emerald-800'"
               title="Berkas Diterima Sah"
             >
-              ✓
+              ✓ Sah
             </span>
             <span
               v-else-if="doc.status === 'revision'"
-              class="w-4 h-4 rounded-full bg-rose-500 text-white flex items-center justify-center text-[10px] font-bold"
+              class="px-1.5 py-0.2 rounded-full text-[10px] font-bold"
+              :class="selectedDoc?.id === doc.id ? 'bg-rose-300 text-rose-950' : 'bg-rose-100 text-rose-800'"
               title="Perlu Revisi"
             >
-              !
+              ! Revisi
+            </span>
+            <span
+              v-else-if="doc.filename && doc.filename !== 'Belum diunggah'"
+              class="px-1.5 py-0.2 rounded-full text-[10px] font-bold"
+              :class="selectedDoc?.id === doc.id ? 'bg-amber-300 text-amber-950' : 'bg-amber-100 text-amber-800'"
+              title="Menunggu Tindakan"
+            >
+              ⏳ Ditinjau
             </span>
             <span
               v-else
-              class="w-2 h-2 rounded-full bg-amber-400"
-              title="Menunggu Tindakan"
-            ></span>
+              class="text-[10px] opacity-60 italic"
+            >
+              (Kosong)
+            </span>
           </button>
         </div>
 
-        <!-- 3. KANVAS PREVIEW BERKAS UTUH (FOKUS UTAMA: MAKSIMAL, TANPA HARUS DOWNLOAD) -->
-        <div class="flex-1 bg-slate-100 p-3 sm:p-4 overflow-auto flex items-center justify-center relative min-h-0">
+        <!-- 3. KANVAS PREVIEW MAKSIMAL: DOKUMEN UTUH TANPA PERLU DOWNLOAD -->
+        <div class="flex-1 bg-slate-900/5 p-3 sm:p-4 overflow-auto flex items-center justify-center relative min-h-0">
           
-          <!-- KASUS A: BERKAS ASLI PDF DARI MAHASISWA (EMBED LANGSUNG DI BROWSER) -->
+          <!-- KASUS A: BERKAS ASLI PDF DARI USER (VIEWER PDF LENGKAP BROWSER) -->
           <div
             v-if="selectedDoc?.fileBlobUrl && isPdfDoc(selectedDoc)"
-            class="w-full h-full rounded-2xl overflow-hidden shadow-lg border border-slate-300 bg-white flex flex-col"
+            class="w-full h-full rounded-2xl overflow-hidden shadow-sm border border-slate-300 bg-white flex flex-col"
           >
             <div class="px-4 py-2 bg-slate-800 text-white text-xs font-mono flex items-center justify-between flex-shrink-0">
-              <span class="truncate">Dokumen PDF: {{ selectedDoc.filename }}</span>
-              <span class="text-[11px] text-emerald-400 font-sans">Pratinjau Langsung Tanpa Unduh</span>
+              <div class="flex items-center gap-2 truncate">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span class="truncate font-semibold">{{ selectedDoc.filename }}</span>
+                <span v-if="selectedDoc.filesize" class="text-slate-400 text-[11px]">({{ selectedDoc.filesize }})</span>
+              </div>
+              <div class="flex items-center gap-3 text-[11px]">
+                <span class="text-emerald-300 hidden sm:inline font-sans">Pratinjau Asli di Browser</span>
+                <a
+                  :href="selectedDoc.fileBlobUrl"
+                  target="_blank"
+                  class="text-blue-300 hover:text-white underline font-sans flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Buka Tab Baru</span>
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
             </div>
             <iframe
               :src="selectedDoc.fileBlobUrl"
               class="w-full flex-1 border-0"
-              title="Pratinjau Berkas PDF"
+              title="Pratinjau PDF Asli Pendaftar"
             ></iframe>
           </div>
 
-          <!-- KASUS B: BERKAS ASLI GAMBAR (JPG/PNG) DARI MAHASISWA -->
+          <!-- KASUS B: BERKAS ASLI GAMBAR (JPG/PNG/WEBP) DARI USER -->
           <div
             v-else-if="selectedDoc?.fileBlobUrl && isImageDoc(selectedDoc)"
-            class="w-full h-full flex items-center justify-center"
+            class="w-full h-full flex flex-col items-center justify-center p-2"
           >
             <img
               :src="selectedDoc.fileBlobUrl"
               :alt="selectedDoc.title"
-              class="max-h-[62vh] max-w-full object-contain rounded-xl shadow-xl border-4 border-white bg-white"
+              class="max-h-[66vh] max-w-full object-contain rounded-2xl shadow-xl border-4 border-white bg-white"
             />
+            <div class="mt-2 text-xs text-slate-500 font-mono">
+              {{ selectedDoc.filename }} • {{ selectedDoc.filesize || 'Gambar Pindaian Mahasiswa' }}
+            </div>
           </div>
 
-          <!-- KASUS C: TAMPILAN FAKSIMILI RESMI OTENTIK SPESIFIK CALON MAHASISWA -->
+          <!-- KASUS C: TAMPILAN SALINAN ARSIP RESMI SPESIFIK DATA PENDAFTAR -->
           <div
             v-else
             class="w-full max-w-2xl bg-white rounded-2xl p-5 sm:p-7 border border-slate-300 shadow-xl my-auto text-slate-800 font-sans relative overflow-hidden"
           >
-            <!-- Watermark BTH -->
+            <!-- Watermark Lambang Kampus BTH -->
             <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] select-none">
               <img src="/assets/icons/bth.png" alt="BTH Watermark" class="w-80 h-80 object-contain" />
             </div>
 
-            <!-- Header Faksimili Notice -->
-            <div class="mb-3 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-[11px] text-[#1E3A8A] flex items-center justify-between">
-              <span>Arsip Salinan Resmi Sistem BTH (Data Asli Calon Mahasiswa)</span>
+            <!-- Banner Notis Kejujuran Data -->
+            <div class="mb-3 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-xl text-[11px] text-[#1E3A8A] flex items-center justify-between">
+              <span class="font-medium">Salinan Arsip Resmi Data Calon Mahasiswa (Belum Ada File Kustom Diunggah)</span>
               <span class="font-mono font-bold">{{ selectedDoc?.filename || 'Arsip-Sistem' }}</span>
             </div>
 
@@ -322,19 +373,19 @@
                 </div>
                 <div class="font-sora font-bold text-xs text-blue-900 uppercase">SURAT KETERANGAN LULUS (SKL) / IJAZAH</div>
               </div>
-              <div class="grid grid-cols-3 gap-1 pl-2 text-xs py-1">
+              <div class="grid grid-cols-3 gap-1 pl-2 text-xs py-1 font-sans">
                 <span class="text-slate-500">Nama Siswa</span>
                 <span class="col-span-2 font-bold uppercase font-sora">{{ activeApplicant.fullName }}</span>
                 <span class="text-slate-500">NISN / NIK</span>
-                <span class="col-span-2 font-mono font-bold">{{ activeApplicant.nisn || '0058291044' }} / {{ activeApplicant.nik }}</span>
+                <span class="col-span-2 font-mono font-bold">{{ activeApplicant.nisn || '-' }} / {{ activeApplicant.nik }}</span>
                 <span class="text-slate-500">Nilai Rata-Rata</span>
-                <span class="col-span-2 font-mono font-black text-emerald-700 text-sm">{{ activeApplicant.averageScore || '86.50' }} / 100</span>
+                <span class="col-span-2 font-mono font-black text-emerald-700 text-sm">{{ activeApplicant.averageScore || '-' }} / 100</span>
               </div>
               <div class="pt-2 border-t border-slate-200 flex justify-between items-end text-[11px]">
-                <span class="text-[10px] text-slate-500 font-mono">Status: Tervalidasi Kelulusan</span>
+                <span class="text-[10px] text-slate-500 font-mono">Status: Tervalidasi Sistem PMB</span>
                 <div class="text-right">
                   <div>Kepala Sekolah,</div>
-                  <div class="text-emerald-700 font-mono font-bold text-[9px]">[CAP BASAH TERVERIFIKASI]</div>
+                  <div class="text-emerald-700 font-mono font-bold text-[9px]">[CAP BASAH SEKOLAH ✓]</div>
                   <div class="font-bold underline text-slate-900">Dr. H. Dudung Rusmana, M.Pd.</div>
                 </div>
               </div>
@@ -369,7 +420,7 @@
               <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200 text-xs space-y-1">
                 <div class="flex justify-between"><span class="text-slate-500">Nama Pendaftar:</span><span class="font-bold uppercase">{{ activeApplicant.fullName }}</span></div>
                 <div class="flex justify-between"><span class="text-slate-500">Hubungan Keluarga:</span><span class="font-medium">Anak Kandung</span></div>
-                <div class="flex justify-between"><span class="text-slate-500">Validasi SIAK:</span><span class="text-emerald-700 font-semibold">Tervalidasi Aktif ✓</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Validasi Kependudukan:</span><span class="text-emerald-700 font-semibold">Tervalidasi SIAK Aktif ✓</span></div>
               </div>
             </div>
 
@@ -412,10 +463,10 @@
           </div>
         </div>
 
-        <!-- 4. FOOTER AKSI SEDERHANA & TO THE POINT: TERIMA BERKAS / MINTA REVISI -->
-        <div class="px-4 sm:px-6 py-3 bg-white border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-shrink-0">
+        <!-- 4. FOOTER AKSI: LAYOUT & PEWARNAAN KONSISTEN DENGAN SISTEM DESAIN BTH -->
+        <div class="px-5 sm:px-6 py-3.5 bg-white border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-shrink-0">
           
-          <!-- Informasi Status Berkas Saat Ini -->
+          <!-- Informasi Status Berkas & File Aktif -->
           <div class="flex items-center gap-2.5 min-w-0">
             <span class="text-xs text-slate-500 font-medium">Status Berkas:</span>
             <span
@@ -423,27 +474,29 @@
               :class="{
                 'bg-emerald-100 text-emerald-800 border border-emerald-300': selectedDoc?.status === 'verified',
                 'bg-rose-100 text-rose-800 border border-rose-300': selectedDoc?.status === 'revision',
-                'bg-amber-100 text-amber-800 border border-amber-300': selectedDoc?.status === 'pending'
+                'bg-amber-100 text-amber-800 border border-amber-300': selectedDoc?.status === 'pending',
+                'bg-slate-100 text-slate-700 border border-slate-300': selectedDoc?.status === 'unuploaded'
               }"
             >
-              <span v-if="selectedDoc?.status === 'verified'">✓ Berkas Diterima</span>
-              <span v-else-if="selectedDoc?.status === 'revision'">! Perlu Revisi</span>
-              <span v-else>⏳ Menunggu Verifikasi</span>
+              <span v-if="selectedDoc?.status === 'verified'">✓ Berkas Diterima / Sah</span>
+              <span v-else-if="selectedDoc?.status === 'revision'">! Perlu Perbaikan</span>
+              <span v-else-if="selectedDoc?.filename && selectedDoc?.filename !== 'Belum diunggah'">⏳ Menunggu Tindakan</span>
+              <span v-else>⚪ Belum Diunggah</span>
             </span>
 
-            <!-- Catatan revisi yang pernah diberikan jika ada -->
+            <!-- Catatan jika berkas dalam status perbaikan -->
             <span v-if="selectedDoc?.notes && selectedDoc?.status === 'revision'" class="text-xs text-rose-700 truncate max-w-sm hidden md:inline">
               (Catatan: {{ selectedDoc.notes }})
             </span>
           </div>
 
-          <!-- DUA TOMBOL AKSI UTAMA: TERIMA BERKAS & MINTA REVISI -->
-          <div class="flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
-            <!-- 1. TOMBOL TERIMA BERKAS (HIJAU) -->
+          <!-- DUA TOMBOL AKSI UTAMA DENGAN WARNA & TATA LETAK HARMONIS -->
+          <div class="flex items-center gap-2.5 self-end sm:self-auto flex-shrink-0">
+            <!-- 1. TOMBOL TERIMA BERKAS (HIJAU EMERALD RESMI) -->
             <button
               @click="approveCurrentDoc"
-              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-sora font-semibold text-xs sm:text-sm rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
-              title="Terima dan setujui dokumen ini"
+              class="px-4.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-sora font-semibold text-xs sm:text-sm rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+              title="Sahkan berkas ini dan otomatis lanjut ke dokumen berikutnya"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -451,11 +504,11 @@
               <span>Terima Berkas</span>
             </button>
 
-            <!-- 2. TOMBOL MINTA REVISI (MERAH) -->
+            <!-- 2. TOMBOL MINTA REVISI (MERAH ROSE ELEGAN) -->
             <button
               @click="toggleRevisionInput"
-              class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-sora font-semibold text-xs sm:text-sm rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
-              title="Minta mahasiswa mengunggah ulang dengan catatan"
+              class="px-4.5 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-sora font-semibold text-xs sm:text-sm rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+              title="Beri catatan instruksi perbaikan kepada calon mahasiswa"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -463,42 +516,42 @@
               <span>Minta Revisi</span>
             </button>
 
-            <!-- Tombol Berkas Berikutnya -->
+            <!-- 3. TOMBOL BERIKUTNYA (NETRAL SLATE) -->
             <button
               @click="selectNextDoc"
-              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-sora font-semibold text-xs sm:text-sm rounded-xl transition-colors cursor-pointer flex items-center gap-1"
-              title="Lanjut ke berkas berikutnya"
+              class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-sora font-semibold text-xs sm:text-sm rounded-xl transition-colors cursor-pointer flex items-center gap-1"
+              title="Beralih memeriksa berkas berikutnya"
             >
               <span class="hidden sm:inline">Berikutnya</span>
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </button>
           </div>
         </div>
 
-        <!-- FORM INPUT ALASAN REVISI SEDERHANA (MUNCUL JIKA MINTA REVISI DIKLIK) -->
+        <!-- FORM INPUT REVISI YANG RAPI & KONSISTEN DENGAN TEMA WEB BTH -->
         <div
           v-if="isRevisionOpen"
-          class="p-4 bg-rose-50 border-t border-rose-200 animate-fadeIn flex flex-col gap-2.5 flex-shrink-0"
+          class="p-4 bg-rose-50/90 border-t border-rose-200 animate-fadeIn flex flex-col gap-2.5 flex-shrink-0"
         >
           <div class="flex items-center justify-between">
             <span class="font-sora font-bold text-xs text-rose-900 flex items-center gap-1.5">
-              <span>Alasan Revisi untuk {{ selectedDoc?.title }}:</span>
+              <span>Instruksi Perbaikan untuk {{ selectedDoc?.title }}:</span>
             </span>
             <button @click="isRevisionOpen = false" class="text-xs text-slate-500 hover:text-slate-800 font-semibold cursor-pointer">
               Batal
             </button>
           </div>
 
-          <!-- Pilihan Alasan Cepat -->
+          <!-- Pilihan Alasan Cepat Standar Panitia -->
           <div class="flex flex-wrap gap-1.5 text-[11px]">
             <button
               v-for="reason in quickReasons"
               :key="reason"
               type="button"
               @click="revisionNote = reason"
-              class="px-2.5 py-1 bg-white hover:bg-rose-100 text-rose-800 border border-rose-200 rounded-lg transition-colors cursor-pointer"
+              class="px-2.5 py-1 bg-white hover:bg-rose-100 text-rose-800 border border-rose-200 rounded-lg transition-colors cursor-pointer font-sans"
             >
               + {{ reason }}
             </button>
@@ -509,15 +562,15 @@
             <input
               v-model="revisionNote"
               type="text"
-              placeholder="Tuliskan catatan perbaikan berkas..."
-              class="flex-1 px-3 py-2 bg-white border border-rose-300 focus:border-rose-600 rounded-xl text-xs outline-none text-slate-800"
+              placeholder="Tuliskan instruksi perbaikan spesifik untuk calon mahasiswa..."
+              class="flex-1 px-3 py-2 bg-white border border-rose-300 focus:border-rose-600 rounded-xl text-xs outline-none text-slate-800 font-sans shadow-2xs"
               @keyup.enter="submitRevision"
             />
             <button
               @click="submitRevision"
-              class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-sora font-bold text-xs rounded-xl transition-colors cursor-pointer whitespace-nowrap shadow-xs"
+              class="px-4.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-sora font-bold text-xs rounded-xl transition-colors cursor-pointer whitespace-nowrap shadow-xs"
             >
-              Kirim Revisi
+              Kirim Catatan Revisi
             </button>
           </div>
         </div>
@@ -541,10 +594,10 @@ const revisionNote = ref('');
 
 const quickReasons = [
   'Pindaian dokumen buram / tidak terbaca jelas.',
-  'Bagian nilai rapor / nomor identitas terpotong.',
+  'Bagian nilai rapor atau nomor identitas terpotong.',
   'Masa berlaku dokumen telah habis / kedaluwarsa.',
   'Surat keterangan sehat belum memuat tes buta warna.',
-  'Berkas yang diunggah bukan dokumen asli atau salah file.',
+  'Berkas yang diunggah bukan dokumen asli atau salah format file.',
 ];
 
 // Short title for document tabs
@@ -616,6 +669,7 @@ const filters = [
   { id: 'pending', label: 'Menunggu Verifikasi' },
   { id: 'verified', label: 'Terverifikasi' },
   { id: 'revision', label: 'Perlu Perbaikan' },
+  { id: 'unuploaded', label: 'Belum Unggah' },
 ];
 
 const pendingCount = computed(() => {
@@ -674,17 +728,23 @@ const setDocStatus = (docId, status, notes) => {
   activeApplicant.value.verifiedDocsCount = activeApplicant.value.documents.filter((d) => d.status === 'verified').length;
   activeApplicant.value.pendingDocsCount = activeApplicant.value.documents.filter((d) => d.status === 'pending' || d.status === 'revision').length;
 
+  const isAllVerified = activeApplicant.value.documents.length > 0 && activeApplicant.value.documents.every((d) => d.status === 'verified');
   const hasRevision = activeApplicant.value.documents.some((d) => d.status === 'revision');
   const hasPending = activeApplicant.value.documents.some((d) => d.status === 'pending');
-  if (hasRevision) {
+
+  if (isAllVerified) {
+    activeApplicant.value.documentStatus = 'verified';
+  } else if (hasRevision) {
     activeApplicant.value.documentStatus = 'revision';
   } else if (hasPending) {
     activeApplicant.value.documentStatus = 'pending';
+  } else if (activeApplicant.value.verifiedDocsCount > 0) {
+    activeApplicant.value.documentStatus = 'pending';
   } else {
-    activeApplicant.value.documentStatus = 'verified';
+    activeApplicant.value.documentStatus = 'unuploaded';
   }
 
-  toastMessage.value = `Berkas "${target?.title || 'Dokumen'}" berhasil diubah menjadi "${status === 'verified' ? 'Diterima Sah' : 'Perlu Revisi'}".`;
+  toastMessage.value = `Berkas "${target?.title || 'Dokumen'}" berhasil diubah menjadi "${status === 'verified' ? 'Diterima Sah' : 'Perlu Perbaikan'}".`;
 };
 
 // Action 1: Terima Berkas (Setujui)
