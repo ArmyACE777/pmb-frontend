@@ -251,39 +251,32 @@ function createInitialState(user) {
 export const useApplicantStore = defineStore('applicant', () => {
   const authStore = useAuthStore();
 
-  const getStorageKey = () => {
-    const userId = authStore.currentUser?.id || authStore.currentUser?.email || 'default';
+  const getStorageKey = (user = authStore.currentUser) => {
+    const userId = user?.id || user?.email;
+    if (!userId) return null;
     return `bth_applicant_v3_${userId}`;
   };
 
-  const loadInitialData = () => {
-    const key = getStorageKey();
-    try {
-      const saved = localStorage.getItem(key);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (authStore.currentUser) {
-          parsed.candidate.fullName = authStore.currentUser.full_name || parsed.candidate.fullName || '';
-          parsed.candidate.email = authStore.currentUser.email || parsed.candidate.email || '';
-          parsed.candidate.phone = authStore.currentUser.phone || parsed.candidate.phone || '';
+  const loadInitialData = (user = authStore.currentUser) => {
+    const key = getStorageKey(user);
+    if (key) {
+      try {
+        const saved = localStorage.getItem(key);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (user) {
+            parsed.candidate.fullName = user.full_name || parsed.candidate.fullName || '';
+            parsed.candidate.email = user.email || parsed.candidate.email || '';
+            parsed.candidate.phone = user.phone || parsed.candidate.phone || '';
+          }
+          return parsed;
         }
-        // Clean legacy pre-filled dummy values if any
-        if (parsed.payments?.registrationFee?.paidAt === 'Terverifikasi Otomatis') {
-          parsed.payments.registrationFee.status = 'pending';
-          parsed.payments.registrationFee.statusLabel = 'Menunggu Pembayaran';
-          parsed.payments.registrationFee.paidAt = null;
-        }
-        if (!parsed.candidate?.nik && parsed.admission?.prodi1 === 'S1 Farmasi') {
-          parsed.admission.prodi1 = '';
-          parsed.admission.prodi1Faculty = '';
-          parsed.admission.prodi1Degree = '';
-        }
-        return parsed;
+      } catch (e) {
+        console.warn('Gagal memuat data pendaftar dari storage:', e);
       }
-    } catch (e) {
-      console.warn('Gagal memuat data pendaftar dari storage:', e);
     }
-    return createInitialState(authStore.currentUser);
+    // Jika belum ada data tersimpan untuk akun ini (pendaftar baru), buat state 100% bersih!
+    return createInitialState(user);
   };
 
   const state = ref(loadInitialData());
@@ -293,7 +286,9 @@ export const useApplicantStore = defineStore('applicant', () => {
     (newVal) => {
       try {
         const key = getStorageKey();
-        localStorage.setItem(key, JSON.stringify(newVal));
+        if (key && authStore.currentUser) {
+          localStorage.setItem(key, JSON.stringify(newVal));
+        }
       } catch (e) {
         console.warn('Gagal menyimpan data pendaftar:', e);
       }
@@ -301,15 +296,24 @@ export const useApplicantStore = defineStore('applicant', () => {
     { deep: true }
   );
 
+  let lastHandledUserId = authStore.currentUser?.id || null;
+
   watch(
     () => authStore.currentUser,
     (newUser) => {
-      if (newUser) {
+      const currentId = newUser?.id || null;
+      if (currentId !== lastHandledUserId) {
+        lastHandledUserId = currentId;
+        // User berganti (login akun baru, registrasi akun baru, atau logout)!
+        // Selalu muat data spesifik akun tersebut atau reset ke state bersih.
+        state.value = loadInitialData(newUser);
+      } else if (newUser) {
         state.value.candidate.fullName = newUser.full_name || state.value.candidate.fullName || '';
         state.value.candidate.email = newUser.email || state.value.candidate.email || '';
         state.value.candidate.phone = newUser.phone || state.value.candidate.phone || '';
       }
-    }
+    },
+    { deep: true }
   );
 
   const isProfileComplete = computed(() => {
@@ -542,7 +546,11 @@ export const useApplicantStore = defineStore('applicant', () => {
   const resetAllData = () => {
     state.value = createInitialState(authStore.currentUser);
     try {
-      localStorage.removeItem(getStorageKey());
+      const key = getStorageKey();
+      if (key) {
+        localStorage.removeItem(key);
+      }
+      localStorage.removeItem('bth_applicant_v3_default');
     } catch (e) {
       console.warn('Gagal menghapus storage pendaftar:', e);
     }

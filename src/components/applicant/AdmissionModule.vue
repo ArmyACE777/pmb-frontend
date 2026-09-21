@@ -248,7 +248,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useApplicantStore } from '@/stores/applicant';
 
 const applicantStore = useApplicantStore();
@@ -302,6 +302,15 @@ const form = ref({
   prodi1: applicantStore.state.admission.prodi1,
   prodi2: applicantStore.state.admission.prodi2,
 });
+
+watch(
+  () => applicantStore.state.admission,
+  (newAdm) => {
+    form.value.prodi1 = newAdm?.prodi1 || '';
+    form.value.prodi2 = newAdm?.prodi2 || '';
+  },
+  { deep: true }
+);
 
 const currentProdi1Details = computed(() => {
   return prodiList.find((p) => p.name === form.value.prodi1) || null;

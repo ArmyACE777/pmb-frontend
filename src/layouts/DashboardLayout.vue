@@ -275,6 +275,7 @@ const userInitials = computed(() => {
 
 const handleLogout = async () => {
   await authStore.logout();
+  applicantStore.resetAllData();
   router.push('/login');
 };
 </script>
