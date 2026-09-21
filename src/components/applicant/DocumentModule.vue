@@ -415,19 +415,26 @@ const handleFileUpload = (e) => {
   const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
   const formattedSize = sizeMb > 0.1 ? `${sizeMb} MB` : `${Math.round(file.size / 1024)} KB`;
 
-  // Buat Native Web Object URL untuk pratinjau dokumen riil
-  const blobUrl = URL.createObjectURL(file);
   const detectedType = file.type || (ext === '.pdf' ? 'application/pdf' : 'image/jpeg');
 
-  applicantStore.uploadDocument(activeDocIdToUpload.value, {
-    name: file.name,
-    size: formattedSize,
-    fileBlobUrl: blobUrl,
-    fileType: detectedType,
-  });
-
-  toastMessage.value = `Berkas "${file.name}" (${formattedSize}) berhasil diunggah. Format dan ukuran valid, berkas saat ini berstatus 'Sedang Ditinjau' oleh panitia PMB.`;
-  activeDocIdToUpload.value = null;
+  // Baca file ke Data URL Base64 agar dapat diinspeksi secara dinamis baik oleh calon mahasiswa maupun panitia di Meja Verifikasi
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const dataUrl = event.target?.result;
+    applicantStore.uploadDocument(activeDocIdToUpload.value, {
+      name: file.name,
+      size: formattedSize,
+      fileBlobUrl: dataUrl,
+      fileType: detectedType,
+    });
+    toastMessage.value = `Berkas "${file.name}" (${formattedSize}) berhasil diunggah. Berkas langsung terhubung secara dinamis dengan Meja Verifikasi Panitia PMB.`;
+    activeDocIdToUpload.value = null;
+  };
+  reader.onerror = () => {
+    errorMessage.value = 'Gagal membaca isi berkas. Silakan coba unggah kembali.';
+    activeDocIdToUpload.value = null;
+  };
+  reader.readAsDataURL(file);
 };
 
 const previewDoc = (doc) => {
