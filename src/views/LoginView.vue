@@ -158,7 +158,14 @@ const handleLogin = async () => {
   errorMessage.value = '';
   try {
     await authStore.login(email.value, password.value);
-    router.push('/dashboard');
+    const redirectUrl = route.query.redirect;
+    if (redirectUrl) {
+      router.push(redirectUrl);
+    } else if (authStore.isSuperAdmin) {
+      router.push('/admin');
+    } else {
+      router.push('/dashboard');
+    }
   } catch (err) {
     if (err.code === 'ERR_NETWORK' || !err.response) {
       errorMessage.value = 'Tidak dapat terhubung ke server backend. Pastikan layanan backend berjalan.';

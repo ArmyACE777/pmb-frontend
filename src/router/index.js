@@ -50,6 +50,7 @@ const router = createRouter({
       path: '/admin',
       name: 'admin-dashboard',
       component: () => import('@/views/AdminDashboardView.vue'),
+      meta: { requiresAuth: true, adminOnly: true },
     },
     {
       path: '/:pathMatch(.*)*',
@@ -61,12 +62,32 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
 
+  // 1. Guard Autentikasi Umum: Jika butuh login tetapi belum login
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    return next({ name: 'login' });
+    return next({
+      name: 'login',
+      query: to.fullPath !== '/' && to.fullPath !== '/dashboard' ? { redirect: to.fullPath } : {},
+    });
   }
 
+  // 2. Guard Halaman Tamu (Login / Register): Jika sudah login, arahkan ke dashboard yang sesuai
   if (to.meta.guestOnly && authStore.isAuthenticated) {
-    return next({ name: 'dashboard' });
+    return next({ name: authStore.isSuperAdmin ? 'admin-dashboard' : 'dashboard' });
+  }
+
+  // 3. Guard Khusus Panitia / Superadmin (/admin)
+  if (to.meta.adminOnly) {
+    const adminRoles = ['superadmin', 'admin', 'panitia', 'verifikator', 'keuangan', 'penguji', 'pimpinan'];
+    const hasAdminRole =
+      authStore.isSuperAdmin ||
+      (authStore.userRoles && authStore.userRoles.some((r) => adminRoles.includes(r)));
+
+    const isDemoModeAllowed =
+      localStorage.getItem('bth_allow_demo_admin') === 'true' || to.query.demo === 'true';
+
+    if (!hasAdminRole && !isDemoModeAllowed) {
+      return next({ name: 'dashboard', query: { unauthorized: 'admin' } });
+    }
   }
 
   next();

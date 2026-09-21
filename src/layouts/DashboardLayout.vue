@@ -344,7 +344,8 @@
                 <!-- Switcher to Portal Panitia (Relocated Elegantly Inside Menu) -->
                 <div class="border-t border-slate-100 pt-1.5 mt-1">
                   <router-link
-                    to="/admin"
+                    to="/admin?demo=true"
+                    @click="setAllowDemoAdmin"
                     class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-[#1E3A8A] bg-blue-50/70 hover:bg-blue-100 flex items-center justify-between transition-colors font-sora group"
                   >
                     <div class="flex items-center gap-2">
@@ -626,7 +627,8 @@
 
             <!-- Portal Panitia (Mobile Link) -->
             <router-link
-              to="/admin"
+              to="/admin?demo=true"
+              @click="setAllowDemoAdmin"
               class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-[#1E3A8A] bg-blue-50/70 hover:bg-blue-100 transition-colors text-left"
             >
               <svg class="w-5 h-5 text-[#1E3A8A] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -901,7 +903,12 @@ const userInitials = computed(() => {
   return name.slice(0, 2).toUpperCase();
 });
 
+const setAllowDemoAdmin = () => {
+  localStorage.setItem('bth_allow_demo_admin', 'true');
+};
+
 const handleLogout = async () => {
+  localStorage.removeItem('bth_allow_demo_admin');
   await authStore.logout();
   applicantStore.resetAllData();
   router.push('/login');

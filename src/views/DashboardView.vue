@@ -286,7 +286,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import DashboardLayout from '@/layouts/DashboardLayout.vue';
 import { useApplicantStore } from '@/stores/applicant';
 import { useAuthStore } from '@/stores/auth';
@@ -299,9 +300,16 @@ import PaymentModule from '@/components/applicant/PaymentModule.vue';
 import ExamModule from '@/components/applicant/ExamModule.vue';
 import ResultModule from '@/components/applicant/ResultModule.vue';
 
+const route = useRoute();
 const applicantStore = useApplicantStore();
 const authStore = useAuthStore();
 const toastMessage = ref('');
+
+onMounted(() => {
+  if (route.query.unauthorized === 'admin') {
+    toastMessage.value = 'Akses ditolak: Portal Panitia PMB hanya diperuntukkan bagi Panitia Seleksi & Superadmin.';
+  }
+});
 
 // Bind activeTab seamlessly to Pinia store so Topbar, Mobile Drawer, and Dashboard Stay 100% Synchronized
 const activeTab = computed({
