@@ -12,10 +12,28 @@
       </div>
       <div class="flex items-center gap-2">
         <span
-          class="px-3 py-1 rounded-full text-xs font-semibold font-sora"
-          :class="examStatus === 'completed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : isTesting ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-blue-50 text-[#1E3A8A] border border-blue-200/80'"
+          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold font-sora border transition-colors"
+          :class="examStatus === 'completed'
+            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            : isTesting
+              ? 'bg-blue-50 text-[#1E3A8A] border border-blue-200'
+              : !applicantStore.isRegPaymentComplete
+                ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                : 'bg-emerald-50 text-emerald-700 border border-emerald-200'"
         >
-          {{ examStatus === 'completed' ? 'Ujian Telah Selesai' : isTesting ? 'Ujian Sedang Berlangsung' : 'Sesi Siap Dimulai' }}
+          <span
+            class="w-1.5 h-1.5 rounded-full"
+            :class="examStatus === 'completed' ? 'bg-emerald-500' : isTesting ? 'bg-blue-500 animate-pulse' : !applicantStore.isRegPaymentComplete ? 'bg-amber-500' : 'bg-emerald-500'"
+          ></span>
+          <span>
+            {{ examStatus === 'completed'
+              ? 'Ujian CBT Selesai'
+              : isTesting
+                ? 'Ujian Sedang Berlangsung'
+                : !applicantStore.isRegPaymentComplete
+                  ? 'Menunggu Pembayaran Formulir'
+                  : 'Sesi Ujian CBT Siap' }}
+          </span>
         </span>
       </div>
     </div>
@@ -68,7 +86,7 @@
             @click="restartExam"
             class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-sora font-semibold text-xs rounded-xl transition-all"
           >
-            Ulangi Simulasi Ujian
+            Kerjakan Ulang Ujian
           </button>
           <button
             @click="$emit('switch-tab', 'result')"
@@ -249,9 +267,90 @@
       </div>
     </div>
 
-    <!-- VIEW 3: SEBELUM MULAI (START INSTRUCTIONS) -->
+    <!-- VIEW 3: SEBELUM MULAI (JADWAL & PETUNJUK UJIAN) -->
     <div v-else class="space-y-6 animate-fadeIn">
-      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-xs max-w-2xl mx-auto space-y-5">
+      <!-- Jadwal Seleksi PMB Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- 1. Jadwal CBT Online -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200/60 font-sora">
+                Tahap 1 • Seleksi Akademik
+              </span>
+              <span class="text-xs text-emerald-600 font-semibold flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                Siap Diikuti
+              </span>
+            </div>
+
+            <h3 class="font-sora font-bold text-slate-900 text-base mb-1">
+              Ujian CBT Online Mandiri
+            </h3>
+            <p class="text-xs text-slate-500 leading-relaxed mb-4">
+              Tes Potensi Skolastik, Matematika Dasar, Pemahaman Sains/Farmasi, dan Penalaran Logika.
+            </p>
+
+            <div class="space-y-2 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
+              <div class="flex justify-between">
+                <span class="text-slate-500">Tanggal:</span>
+                <strong class="text-slate-800">{{ schedule.cbt.date }}</strong>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">Waktu & Sesi:</span>
+                <strong class="text-[#1E3A8A] font-mono">{{ schedule.cbt.time }} ({{ schedule.cbt.sessionName }})</strong>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">Lokasi / Akses:</span>
+                <span class="text-slate-700 text-right">{{ schedule.cbt.room }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Jadwal Wawancara Peminatan -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-purple-600 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200/60 font-sora">
+                Tahap 2 • Wawancara Peminatan
+              </span>
+              <span class="text-xs text-slate-500 font-semibold">Terkonfirmasi</span>
+            </div>
+
+            <h3 class="font-sora font-bold text-slate-900 text-base mb-1">
+              Wawancara & Uji Buta Warna
+            </h3>
+            <p class="text-xs text-slate-500 leading-relaxed mb-4">
+              Konfirmasi minat studi, komitmen akademik, dan verifikasi berkas program studi kesehatan.
+            </p>
+
+            <div class="space-y-2 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
+              <div class="flex justify-between">
+                <span class="text-slate-500">Tanggal:</span>
+                <strong class="text-slate-800">{{ schedule.interview.date }}</strong>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">Waktu:</span>
+                <strong class="text-[#1E3A8A] font-mono">{{ schedule.interview.time }}</strong>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">Tempat:</span>
+                <span class="text-slate-700 text-right">{{ schedule.interview.location }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 mt-3">
+            <div class="p-2 bg-slate-50 border border-slate-200 rounded-xl text-center text-xs text-slate-600 font-mono">
+              ID Sesi Daring: 894 2026 0042 (Pass: BTH2026)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Petunjuk & Pelaksanaan CBT -->
+      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-xs max-w-3xl mx-auto space-y-5">
         <div class="text-center space-y-2">
           <div class="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-200 text-[#1E3A8A] flex items-center justify-center mx-auto">
             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -259,10 +358,10 @@
             </svg>
           </div>
           <h3 class="font-sora font-bold text-xl text-slate-900">
-            Petunjuk Simulasi Ujian CBT Online
+            Petunjuk & Tata Tertib Ujian CBT Online
           </h3>
           <p class="text-xs text-slate-500 max-w-md mx-auto">
-            Ujian ini menguji kemampuan akademik dasar untuk penentuan peringkat dan kelulusan program studi pilihan.
+            Ujian ini menguji kemampuan akademik dasar untuk penentuan peringkat dan kelulusan program studi pilihan Universitas BTH.
           </p>
         </div>
 
@@ -279,22 +378,37 @@
             <span class="text-slate-500">Passing Grade Kelulusan:</span>
             <strong class="text-emerald-700">Minimal Skor 70</strong>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between pb-1.5 border-b border-slate-200">
             <span class="text-slate-500">Materi Uji:</span>
             <span>Matematika Terapan, Sains/Farmasi, Bahasa Inggris, Logika</span>
           </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Tata Tertib:</span>
+            <span class="text-slate-600">Dikerjakan secara mandiri, jujur, dan tidak meninggalkan layar ujian.</span>
+          </div>
         </div>
 
-        <div class="pt-3 border-t border-slate-100 flex items-center justify-center">
+        <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
+            v-if="applicantStore.isRegPaymentComplete"
             @click="startExam"
-            class="px-8 py-3 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer"
+            class="w-full sm:w-auto px-8 py-3 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>Mulai Ujian CBT Sekarang</span>
+          </button>
+          <button
+            v-else
+            @click="$emit('switch-tab', 'payment')"
+            class="w-full sm:w-auto px-8 py-3 bg-amber-500 hover:bg-amber-600 text-white font-sora font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span>Bayar Biaya Formulir untuk Membuka Sesi Ujian</span>
           </button>
         </div>
       </div>
@@ -348,6 +462,7 @@ defineEmits(['switch-tab']);
 const applicantStore = useApplicantStore();
 const examState = computed(() => applicantStore.state.exam);
 const examStatus = computed(() => examState.value.status);
+const schedule = computed(() => applicantStore.state.schedule);
 
 const isTesting = ref(false);
 const currentIndex = ref(0);

@@ -13,9 +13,9 @@
       <div class="flex items-center gap-2">
         <span
           class="px-3 py-1 rounded-full text-xs font-semibold font-sora"
-          :class="isUktPaid ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'"
+          :class="isUktPaid ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : regPayment.status === 'paid' ? 'bg-blue-50 text-[#1E3A8A] border border-blue-200/80' : 'bg-amber-50 text-amber-700 border border-amber-200'"
         >
-          {{ isUktPaid ? 'Semua Tagihan Lunas' : '1 Tagihan Menunggu Pembayaran' }}
+          {{ isUktPaid ? 'Semua Tagihan Lunas' : regPayment.status === 'paid' ? 'Biaya Formulir Lunas' : 'Menunggu Pembayaran Formulir' }}
         </span>
       </div>
     </div>
@@ -43,10 +43,16 @@
             <span class="text-[11px] font-mono text-slate-500">
               {{ regPayment.id }}
             </span>
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-semibold font-sora">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <span
+              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold font-sora border"
+              :class="regPayment.status === 'paid'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : 'bg-amber-50 text-amber-700 border-amber-200'"
+            >
+              <svg v-if="regPayment.status === 'paid'" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
+              <span v-else class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
               <span>{{ regPayment.statusLabel }}</span>
             </span>
           </div>
@@ -69,13 +75,16 @@
             </div>
             <div class="flex justify-between items-center text-slate-600">
               <span class="text-slate-500">Waktu Pembayaran:</span>
-              <span class="text-emerald-700 font-medium">{{ regPayment.paidAt }}</span>
+              <span :class="regPayment.status === 'paid' ? 'text-emerald-700 font-medium' : 'text-slate-400 italic'">
+                {{ regPayment.paidAt || 'Menunggu Pembayaran' }}
+              </span>
             </div>
           </div>
         </div>
 
         <div class="pt-5 border-t border-slate-100 mt-5">
           <button
+            v-if="regPayment.status === 'paid'"
             @click="openReceiptModal('reg')"
             class="w-full py-2.5 bg-slate-100 hover:bg-[#1E3A8A] hover:text-white text-slate-700 text-xs font-sora font-semibold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
@@ -83,6 +92,16 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <span>Lihat Kwitansi Resmi Formulir</span>
+          </button>
+          <button
+            v-else
+            @click="handlePayReg"
+            class="w-full py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span>Konfirmasi Pembayaran Formulir</span>
           </button>
         </div>
       </div>
@@ -96,16 +115,12 @@
             </span>
             <span
               class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold font-sora"
-              :class="isUktPaid ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'"
+              :class="isUktPaid ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : applicantStore.isResultPassed ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-slate-100 text-slate-600 border border-slate-200'"
             >
               <svg v-if="isUktPaid" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
-              <svg v-else class="w-3 h-3 animate-spin text-amber-600" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-              </svg>
-              <span>{{ uktPayment.statusLabel }}</span>
+              <span>{{ isUktPaid ? 'Lunas' : applicantStore.isResultPassed ? 'Menunggu Pembayaran' : 'Daftar Ulang' }}</span>
             </span>
           </div>
 
@@ -116,11 +131,29 @@
             Rp {{ uktPayment.amount.toLocaleString('id-ID') }}
           </div>
 
-          <!-- If Pending: Show VA options -->
-          <div v-if="!isUktPaid" class="space-y-3 text-xs">
-            <div class="bg-blue-50/70 border border-blue-200/80 rounded-xl p-3.5 space-y-2">
-              <div class="flex items-center justify-between">
-                <span class="font-bold text-[#1E3A8A]">VA Bank Syariah Indonesia (BSI)</span>
+          <!-- If Pre-Acceptance: Show info note -->
+          <div v-if="!applicantStore.isResultPassed && !isUktPaid" class="bg-blue-50/70 border border-blue-200/80 rounded-xl p-4 space-y-1.5 text-xs text-slate-600">
+            <div class="font-sora font-semibold text-[#1E3A8A] flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Tagihan Pra-Kelulusan Seleksi</span>
+            </div>
+            <p class="text-[11px] leading-relaxed text-slate-500">
+              Virtual Account UKT Semester 1 aktif dan dapat dibayarkan untuk daftar ulang setelah Anda menyelesaikan Ujian CBT dan dinyatakan Lulus Seleksi pada Surat Penerimaan (LoA).
+            </p>
+          </div>
+
+          <!-- If Passed & Pending: Show VA options -->
+          <div v-else-if="!isUktPaid" class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 space-y-2 text-xs">
+            <div class="flex justify-between items-center text-slate-600">
+              <span class="text-slate-500">Batas Waktu Bayar:</span>
+              <span class="font-bold text-rose-600 font-mono">{{ uktPayment.dueDate }}</span>
+            </div>
+            <div class="flex justify-between items-center text-slate-600">
+              <span class="text-slate-500">VA Bank Syariah Indonesia:</span>
+              <div class="flex items-center gap-1.5">
+                <span class="font-mono font-bold text-slate-800">{{ uktPayment.vaBsi }}</span>
                 <button
                   @click="copyText(uktPayment.vaBsi, 'Nomor VA BSI')"
                   class="text-[11px] font-semibold text-[#1E3A8A] hover:underline flex items-center gap-1"
@@ -131,17 +164,17 @@
                   <span>Salin</span>
                 </button>
               </div>
-              <div class="font-mono font-bold text-base text-slate-900 tracking-wider">
-                {{ uktPayment.vaBsi }}
-              </div>
-              <div class="text-[11px] text-slate-500">
-                Atas Nama: <strong>PMB BTH - Siti Rahmawati</strong>
-              </div>
+            </div>
+            <div class="font-mono font-bold text-base text-slate-900 tracking-wider">
+              {{ uktPayment.vaBsi }}
+            </div>
+            <div class="text-[11px] text-slate-500">
+              Atas Nama: <strong>PMB BTH - {{ candidate.fullName }}</strong>
             </div>
 
-            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
+            <div class="bg-white border border-slate-200 rounded-xl p-3 space-y-1.5 mt-2">
               <div class="flex items-center justify-between">
-                <span class="font-bold text-slate-800">VA Bank Mandiri</span>
+                <span class="font-bold text-slate-800">VA Bank Mandiri:</span>
                 <button
                   @click="copyText(uktPayment.vaMandiri, 'Nomor VA Mandiri')"
                   class="text-[11px] font-semibold text-[#1E3A8A] hover:underline flex items-center gap-1"
@@ -154,9 +187,6 @@
               </div>
               <div class="font-mono font-bold text-base text-slate-900 tracking-wider">
                 {{ uktPayment.vaMandiri }}
-              </div>
-              <div class="text-[11px] text-slate-500">
-                Batas Akhir: <strong class="text-rose-600">{{ uktPayment.dueDate }}</strong>
               </div>
             </div>
           </div>
@@ -180,16 +210,22 @@
 
         <div class="pt-5 border-t border-slate-100 mt-5 flex flex-col sm:flex-row gap-2">
           <button
-            v-if="!isUktPaid"
-            @click="simulatePayUkt"
+            v-if="!applicantStore.isResultPassed && !isUktPaid"
+            disabled
+            class="flex-1 py-2.5 bg-slate-100 text-slate-400 text-xs font-sora font-semibold rounded-xl cursor-not-allowed text-center"
+          >
+            Aktif Pasca Pengumuman Kelulusan
+          </button>
+          <button
+            v-else-if="!isUktPaid"
+            @click="handlePayUkt"
             class="flex-1 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            <span>Simulasi Bayar Tagihan (Mock)</span>
+            <span>Konfirmasi Pembayaran UKT</span>
           </button>
-
           <button
             v-else
             @click="openReceiptModal('ukt')"
@@ -281,7 +317,7 @@
           </div>
           <div class="flex justify-between">
             <span class="text-slate-500">Waktu Pelunasan:</span>
-            <span class="font-medium text-slate-800">{{ selectedReceiptData.paidAt || '12 September 2026' }}</span>
+            <span class="font-medium text-slate-800">{{ selectedReceiptData.paidAt || '-' }}</span>
           </div>
           <div class="flex justify-between pt-2 border-t border-slate-100 font-sora">
             <span class="font-bold text-slate-700">Jumlah Terbayar:</span>
@@ -354,7 +390,12 @@ const copyText = async (text, label) => {
   }
 };
 
-const simulatePayUkt = () => {
+const handlePayReg = () => {
+  applicantStore.payRegFee();
+  toastMessage.value = 'Pembayaran Formulir Pendaftaran PMB sebesar Rp 250.000 berhasil dikonfirmasi lunas!';
+};
+
+const handlePayUkt = () => {
   applicantStore.payUktFee();
   toastMessage.value = 'Pembayaran UKT Semester 1 sebesar Rp 6.500.000 berhasil dilunasi via Virtual Account!';
 };

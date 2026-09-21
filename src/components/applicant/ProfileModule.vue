@@ -11,8 +11,12 @@
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <span class="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-semibold font-sora">
-          Data Terverifikasi
+        <span
+          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold font-sora transition-colors border"
+          :class="applicantStore.isProfileComplete ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'"
+        >
+          <span class="w-1.5 h-1.5 rounded-full" :class="applicantStore.isProfileComplete ? 'bg-emerald-500' : 'bg-amber-500'"></span>
+          <span>{{ applicantStore.isProfileComplete ? 'Biodata Lengkap & Valid' : 'Biodata Belum Lengkap' }}</span>
         </span>
       </div>
     </div>
@@ -244,9 +248,14 @@
       <div class="flex items-center justify-end gap-3 pt-2">
         <button
           type="submit"
-          class="px-6 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
+          :disabled="isSaving"
+          class="px-6 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2 disabled:opacity-70"
         >
-          <span>Simpan Perubahan Biodata</span>
+          <svg v-if="isSaving" class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          <span>{{ isSaving ? 'Menyimpan ke Server...' : 'Simpan Perubahan Biodata' }}</span>
         </button>
       </div>
     </form>
@@ -254,18 +263,46 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue';
+import { reactive, ref, watch } from 'vue';
 import { useApplicantStore } from '@/stores/applicant';
+import { useAuthStore } from '@/stores/auth';
 
 const applicantStore = useApplicantStore();
+const authStore = useAuthStore();
 const form = reactive({ ...applicantStore.state.candidate });
 const savedMessage = ref('');
+const isSaving = ref(false);
 
-const saveProfile = () => {
-  applicantStore.updateProfile(form);
-  savedMessage.value = 'Perubahan data profil calon mahasiswa berhasil disimpan ke sistem!';
-  setTimeout(() => {
-    savedMessage.value = '';
-  }, 4000);
+watch(
+  () => applicantStore.state.candidate,
+  (newCandidate) => {
+    Object.assign(form, newCandidate);
+  },
+  { deep: true }
+);
+
+const saveProfile = async () => {
+  isSaving.value = true;
+  try {
+    applicantStore.updateProfile(form);
+
+    // Sinkronisasi data nama lengkap & nomor kontak langsung ke backend auth-service
+    if (authStore.isAuthenticated && authStore.token) {
+      await authStore.updateProfile({
+        full_name: form.fullName,
+        phone: form.phone || '',
+      });
+    }
+
+    savedMessage.value = 'Perubahan data profil calon mahasiswa berhasil disimpan ke database sistem!';
+  } catch (err) {
+    console.warn('Gagal update profile ke backend:', err);
+    savedMessage.value = 'Data tersimpan di penyimpanan browser lokal.';
+  } finally {
+    isSaving.value = false;
+    setTimeout(() => {
+      savedMessage.value = '';
+    }, 4000);
+  }
 };
 </script>

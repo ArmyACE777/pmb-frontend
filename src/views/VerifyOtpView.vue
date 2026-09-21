@@ -97,20 +97,6 @@
             <span v-else>Kirim Ulang Kode OTP</span>
           </button>
         </div>
-
-        <!-- Dev Helper Autofill (Khusus Localhost Testing) -->
-        <div v-if="isLocalhost" class="text-center pt-2">
-          <button
-            type="button"
-            @click="autoFetchLocalOtp"
-            :disabled="isFetchingOtp"
-            class="text-[11px] text-slate-400 hover:text-bth-blue transition-colors inline-flex items-center gap-1 hover:underline"
-            title="Mengambil kode OTP otomatis dari Mailpit server lokal"
-          >
-            <span>📥</span>
-            <span>{{ isFetchingOtp ? 'Mengambil OTP...' : 'Ambil & Tempel OTP Otomatis (Uji Coba Lokal)' }}</span>
-          </button>
-        </div>
       </form>
     </div>
   </AuthLayout>
@@ -135,41 +121,6 @@ const errorMessage = ref('');
 const successMessage = ref('');
 const resendCooldown = ref(60);
 let cooldownTimer = null;
-
-const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-const isFetchingOtp = ref(false);
-
-const autoFetchLocalOtp = async () => {
-  isFetchingOtp.value = true;
-  errorMessage.value = '';
-  try {
-    const res = await fetch('http://localhost:8025/api/v1/messages');
-    if (!res.ok) throw new Error('Tidak dapat menghubungi Mailpit');
-    const data = await res.json();
-    const targetEmail = email.value.toLowerCase().trim();
-    const msg = data.messages?.find(
-      (m) =>
-        m.Subject?.toLowerCase().includes('kode verifikasi') &&
-        (!targetEmail || m.To?.some((t) => t.Address.toLowerCase().includes(targetEmail)))
-    );
-    if (msg) {
-      const match = msg.Snippet.match(/\b\d{6}\b/);
-      if (match) {
-        match[0].split('').forEach((digit, idx) => {
-          otpDigits.value[idx] = digit;
-        });
-        successMessage.value = `Kode OTP (${match[0]}) berhasil diambil dari inbox lokal!`;
-        handleVerifyOtp();
-        return;
-      }
-    }
-    errorMessage.value = 'Belum ada email OTP untuk alamat ini di Mailpit lokal.';
-  } catch (e) {
-    errorMessage.value = 'Gagal mengambil OTP otomatis. Pastikan container Mailpit berjalan.';
-  } finally {
-    isFetchingOtp.value = false;
-  }
-};
 
 const isComplete = computed(() => otpDigits.value.every((d) => d !== ''));
 

@@ -11,17 +11,75 @@
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-semibold font-sora">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <span>Diterima / Lulus Seleksi</span>
+        <span
+          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold font-sora border transition-colors"
+          :class="result.isPassed
+            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            : exam.status !== 'completed'
+              ? 'bg-slate-100 text-slate-600 border border-slate-200'
+              : 'bg-amber-50 text-amber-700 border border-amber-200'"
+        >
+          <span
+            class="w-1.5 h-1.5 rounded-full"
+            :class="result.isPassed ? 'bg-emerald-500' : exam.status !== 'completed' ? 'bg-slate-400' : 'bg-amber-500'"
+          ></span>
+          <span>
+            {{ result.isPassed
+              ? 'Diterima / Lulus Seleksi'
+              : exam.status !== 'completed'
+                ? 'Ujian Belum Diikuti'
+                : 'Nilai Belum Memenuhi Passing Grade' }}
+          </span>
         </span>
       </div>
     </div>
 
-    <!-- Official Acceptance Banner (BTH Identity) -->
-    <div class="bg-gradient-to-r from-[#1E3A8A] via-[#1b3478] to-[#12285a] text-white rounded-3xl p-6 sm:p-8 shadow-bth relative overflow-hidden border border-blue-900/40">
+    <!-- STATE 1: BELUM SELESAI UJIAN -->
+    <div v-if="!exam.status || exam.status !== 'completed'" class="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-xs text-center max-w-xl mx-auto space-y-4 my-8 animate-fadeIn">
+      <div class="w-16 h-16 rounded-full bg-blue-50 border border-blue-200 text-[#1E3A8A] flex items-center justify-center mx-auto">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div>
+        <h3 class="font-sora font-bold text-lg text-slate-900">Ujian CBT Belum Diselesaikan</h3>
+        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+          Surat penetapan hasil kelulusan dan Surat Penerimaan (LoA) resmi akan diterbitkan setelah Anda menyelesaikan Ujian Mandiri CBT Online.
+        </p>
+      </div>
+      <button
+        @click="$emit('switch-tab', 'exam')"
+        class="px-6 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs rounded-xl transition-all shadow-sm cursor-pointer"
+      >
+        Menuju Ujian CBT Online
+      </button>
+    </div>
+
+    <!-- STATE 2: BELUM MEMENUHI PASSING GRADE -->
+    <div v-else-if="!result.isPassed" class="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-xs text-center max-w-xl mx-auto space-y-4 my-8 animate-fadeIn">
+      <div class="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <div>
+        <h3 class="font-sora font-bold text-lg text-slate-900">Nilai Belum Memenuhi Passing Grade</h3>
+        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+          Skor Ujian CBT Anda (<strong>{{ exam.score }}/100</strong>) belum mencapai passing grade minimal (70). Anda dapat mengulang pengerjaan ujian untuk memenuhi syarat penerimaan.
+        </p>
+      </div>
+      <button
+        @click="$emit('switch-tab', 'exam')"
+        class="px-6 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs rounded-xl transition-all shadow-sm cursor-pointer"
+      >
+        Kerjakan Ulang Ujian CBT
+      </button>
+    </div>
+
+    <!-- STATE 3: LULUS SELEKSI -->
+    <div v-else class="space-y-6 animate-fadeIn">
+      <!-- Official Acceptance Banner (BTH Identity) -->
+      <div class="bg-gradient-to-r from-[#1E3A8A] via-[#1b3478] to-[#12285a] text-white rounded-3xl p-6 sm:p-8 shadow-bth relative overflow-hidden border border-blue-900/40">
       <div class="relative z-10 space-y-4 max-w-3xl">
         <div class="inline-flex items-center gap-2 px-3 py-1 bg-amber-400/20 border border-amber-300/30 text-amber-300 rounded-full text-xs font-semibold font-sora">
           <span class="w-2 h-2 rounded-full bg-amber-400"></span>
@@ -168,22 +226,20 @@
               </div>
               <div>
                 <div class="font-sora font-bold text-slate-900">
-                  Pengambilan Almamater & Aktivasi NIM Mahasiswa
+                  Pengambilan Almamater & Aktivasi Akun Mahasiswa
                 </div>
                 <div class="text-slate-500 mt-0.5">
-                  Dapatkan Nomor Induk Mahasiswa (NIM), email institusi, dan Kartu Tanda Mahasiswa (KTM).
+                  Penerbitan Nomor Induk Mahasiswa (NIM), email institusi, dan Kartu Tanda Mahasiswa (KTM) resmi oleh Biro Administrasi Akademik & Kemahasiswaan (BAAK) pasca lunas UKT.
                 </div>
               </div>
             </div>
-            <button
-              @click="$emit('switch-tab', 'onboarding')"
-              class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-semibold rounded-lg transition-colors flex-shrink-0"
-            >
-              Lihat NIM & KTM &rarr;
-            </button>
+            <span class="text-[11px] font-medium text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200 flex-shrink-0">
+              Layanan BAAK BTH
+            </span>
           </div>
         </div>
       </div>
+    </div>
     </div>
 
     <!-- Modal Digital LoA (Letter of Acceptance) Resmi BTH -->

@@ -22,18 +22,6 @@
 
         <!-- Right Side: Helpdesk, Notifications & User Menu -->
         <div class="flex items-center gap-2 sm:gap-3">
-          <!-- Switch to Admin Committee Portal Link -->
-          <router-link
-            to="/admin"
-            class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-[#1E3A8A] hover:bg-blue-100 border border-blue-200/80 rounded-lg text-xs font-semibold font-sora transition-colors"
-          >
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <span>Portal Panitia PMB</span>
-          </router-link>
-
           <!-- Quick WhatsApp Helpdesk Pill -->
           <a
             href="https://api.whatsapp.com/send?phone=6282117100200&text=Halo%20Helpdesk%20PMB%20BTH%2C%20saya%20ingin%20bertanya."
@@ -67,7 +55,7 @@
               class="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-slate-100 p-4 z-50 animate-fadeIn"
             >
               <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
-                <span class="font-sora font-bold text-sm text-slate-800">Pengumuman Panitia PMB</span>
+                <span class="font-sora font-bold text-sm text-slate-800">Pemberitahuan & Informasi</span>
                 <button @click="markAllAsRead" class="text-[11px] text-bth-blue hover:underline font-medium">
                   Tandai Dibaca
                 </button>
@@ -124,7 +112,20 @@
                   {{ authStore.currentUser?.email }}
                 </div>
               </div>
-              <div class="py-1">
+              <div class="py-1 space-y-1">
+                <!-- If SuperAdmin or Admin PMB, provide administrative portal entry -->
+                <router-link
+                  v-if="isAdmin"
+                  to="/admin"
+                  class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-[#1E3A8A] hover:bg-blue-50 flex items-center gap-2 transition-colors font-sora"
+                >
+                  <svg class="w-4 h-4 text-[#1E3A8A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>Portal Panitia PMB</span>
+                </router-link>
+
                 <button
                   @click="handleLogout"
                   class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors font-sora"
@@ -175,24 +176,22 @@ const authStore = useAuthStore();
 const showNotifications = ref(false);
 const showProfileMenu = ref(false);
 
+const isAdmin = computed(() => {
+  return authStore.isSuperAdmin || (authStore.userRoles && authStore.userRoles.includes('admin_pmb'));
+});
+
 const notifications = ref([
   {
-    title: 'Verifikasi Berkas Disetujui',
-    desc: 'Dokumen Ijazah & Kartu Keluarga Anda telah diverifikasi valid oleh Panitia PMB.',
-    time: 'Hari ini, 09:15',
+    title: 'Informasi Pendaftaran PMB 2026/2027',
+    desc: 'Selamat datang di Portal PMB Universitas BTH. Lengkapi biodata, unggah berkas, dan ikuti ujian CBT online.',
+    time: 'Pengumuman Resmi',
     isRead: false,
   },
   {
-    title: 'Jadwal Ujian CBT Diumumkan',
-    desc: 'Simulasi dan ujian CBT online Gelombang 1 dijadwalkan pada hari Sabtu mendatang.',
-    time: 'Kemarin',
+    title: 'Sekretariat & Helpdesk PMB',
+    desc: 'Bantuan pendaftaran, beasiswa, dan validasi berkas dapat ditanyakan via WhatsApp resmi 0821-1710-0200.',
+    time: 'Informasi Layanan',
     isRead: false,
-  },
-  {
-    title: 'Pembayaran Formulir Berhasil',
-    desc: 'Biaya pendaftaran Rp 250.000 telah lunas via Bank Syariah Indonesia (BSI).',
-    time: '2 hari lalu',
-    isRead: true,
   },
 ]);
 

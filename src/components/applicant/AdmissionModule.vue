@@ -11,9 +11,12 @@
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-[#1E3A8A] border border-blue-200/80 rounded-full text-xs font-semibold font-sora">
-          <span class="w-1.5 h-1.5 rounded-full bg-[#2563EB]"></span>
-          {{ applicantStore.state.admission.track }}
+        <span
+          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold font-sora border transition-colors"
+          :class="applicantStore.isAdmissionComplete ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'"
+        >
+          <span class="w-1.5 h-1.5 rounded-full" :class="applicantStore.isAdmissionComplete ? 'bg-emerald-500' : 'bg-amber-500'"></span>
+          <span>{{ applicantStore.isAdmissionComplete ? 'Pilihan Prodi Tersimpan' : 'Pilihan Prodi Belum Disimpan' }}</span>
         </span>
       </div>
     </div>
@@ -58,7 +61,7 @@
           <div>
             <div class="text-[10px] text-blue-200 uppercase font-bold tracking-wider">Status Seleksi</div>
             <div class="font-sora font-semibold text-xs text-emerald-300">
-              {{ applicantStore.state.admission.status }}
+              {{ applicantStore.overallStatus.label }}
             </div>
           </div>
         </div>
@@ -91,6 +94,7 @@
                   @change="handleProdi1Change"
                   class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans font-medium"
                 >
+                  <option value="" disabled>-- Pilih Program Studi Prioritas --</option>
                   <option v-for="item in prodiList" :key="item.name" :value="item.name">
                     {{ item.name }} ({{ item.faculty }})
                   </option>
@@ -98,25 +102,28 @@
               </div>
 
               <!-- Info Card Detail Prodi 1 -->
-              <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 space-y-2 text-xs">
+              <div v-if="currentProdi1Details" class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 space-y-2 text-xs">
                 <div class="flex justify-between items-center text-slate-600">
                   <span class="text-slate-500">Fakultas:</span>
-                  <span class="font-semibold text-slate-800">{{ currentProdi1Details?.faculty }}</span>
+                  <span class="font-semibold text-slate-800">{{ currentProdi1Details.faculty }}</span>
                 </div>
                 <div class="flex justify-between items-center text-slate-600">
                   <span class="text-slate-500">Gelar Kelulusan:</span>
-                  <span class="font-mono font-bold text-[#1E3A8A]">{{ currentProdi1Details?.degree }}</span>
+                  <span class="font-mono font-bold text-[#1E3A8A]">{{ currentProdi1Details.degree }}</span>
                 </div>
                 <div class="flex justify-between items-center text-slate-600">
                   <span class="text-slate-500">Akreditasi BAN-PT / LAM-PTKes:</span>
                   <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">
-                    {{ currentProdi1Details?.accreditation }}
+                    {{ currentProdi1Details.accreditation }}
                   </span>
                 </div>
                 <div class="flex justify-between items-center text-slate-600 pt-2 border-t border-slate-200">
                   <span class="text-slate-500">Estimasi UKT Per Semester:</span>
-                  <span class="font-sora font-bold text-slate-900">{{ currentProdi1Details?.uktEstimate }}</span>
+                  <span class="font-sora font-bold text-slate-900">{{ currentProdi1Details.uktEstimate }}</span>
                 </div>
+              </div>
+              <div v-else class="bg-slate-50/60 rounded-xl p-5 border border-dashed border-slate-200 text-center text-slate-400">
+                <p class="text-xs">Silakan tentukan pilihan program studi utama di atas untuk melihat informasi fakultas, akreditasi, dan biaya perkuliahan.</p>
               </div>
             </div>
           </div>
@@ -152,6 +159,7 @@
                   @change="handleProdi2Change"
                   class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans font-medium"
                 >
+                  <option value="">-- Pilih Program Studi Cadangan (Opsional) --</option>
                   <option v-for="item in prodiList" :key="item.name" :value="item.name" :disabled="item.name === form.prodi1">
                     {{ item.name }} ({{ item.faculty }})
                   </option>
@@ -159,25 +167,28 @@
               </div>
 
               <!-- Info Card Detail Prodi 2 -->
-              <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 space-y-2 text-xs">
+              <div v-if="currentProdi2Details" class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 space-y-2 text-xs">
                 <div class="flex justify-between items-center text-slate-600">
                   <span class="text-slate-500">Fakultas:</span>
-                  <span class="font-semibold text-slate-800">{{ currentProdi2Details?.faculty }}</span>
+                  <span class="font-semibold text-slate-800">{{ currentProdi2Details.faculty }}</span>
                 </div>
                 <div class="flex justify-between items-center text-slate-600">
                   <span class="text-slate-500">Gelar Kelulusan:</span>
-                  <span class="font-mono font-bold text-[#1E3A8A]">{{ currentProdi2Details?.degree }}</span>
+                  <span class="font-mono font-bold text-[#1E3A8A]">{{ currentProdi2Details.degree }}</span>
                 </div>
                 <div class="flex justify-between items-center text-slate-600">
                   <span class="text-slate-500">Akreditasi BAN-PT / LAM-PTKes:</span>
                   <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">
-                    {{ currentProdi2Details?.accreditation }}
+                    {{ currentProdi2Details.accreditation }}
                   </span>
                 </div>
                 <div class="flex justify-between items-center text-slate-600 pt-2 border-t border-slate-200">
                   <span class="text-slate-500">Estimasi UKT Per Semester:</span>
-                  <span class="font-sora font-bold text-slate-900">{{ currentProdi2Details?.uktEstimate }}</span>
+                  <span class="font-sora font-bold text-slate-900">{{ currentProdi2Details.uktEstimate }}</span>
                 </div>
+              </div>
+              <div v-else class="bg-slate-50/60 rounded-xl p-5 border border-dashed border-slate-200 text-center text-slate-400">
+                <p class="text-xs">Belum ada program studi cadangan yang dipilih (opsional).</p>
               </div>
             </div>
           </div>
@@ -293,38 +304,50 @@ const form = ref({
 });
 
 const currentProdi1Details = computed(() => {
-  return prodiList.find((p) => p.name === form.value.prodi1) || prodiList[0];
+  return prodiList.find((p) => p.name === form.value.prodi1) || null;
 });
 
 const currentProdi2Details = computed(() => {
-  return prodiList.find((p) => p.name === form.value.prodi2) || prodiList[1];
+  return prodiList.find((p) => p.name === form.value.prodi2) || null;
 });
 
 const handleProdi1Change = () => {
   const p = currentProdi1Details.value;
-  applicantStore.state.admission.prodi1Faculty = p.faculty;
-  applicantStore.state.admission.prodi1Degree = p.degree;
+  if (p) {
+    applicantStore.state.admission.prodi1Faculty = p.faculty;
+    applicantStore.state.admission.prodi1Degree = p.degree;
+  }
 };
 
 const handleProdi2Change = () => {
   const p = currentProdi2Details.value;
-  applicantStore.state.admission.prodi2Faculty = p.faculty;
-  applicantStore.state.admission.prodi2Degree = p.degree;
+  if (p) {
+    applicantStore.state.admission.prodi2Faculty = p.faculty;
+    applicantStore.state.admission.prodi2Degree = p.degree;
+  } else {
+    applicantStore.state.admission.prodi2Faculty = '';
+    applicantStore.state.admission.prodi2Degree = '';
+  }
 };
 
 const isSaving = ref(false);
 const savedMessage = ref('');
 
 const saveAdmission = () => {
+  if (!form.value.prodi1) {
+    savedMessage.value = '';
+    alert('Silakan pilih Program Studi Prioritas Utama terlebih dahulu.');
+    return;
+  }
   isSaving.value = true;
   setTimeout(() => {
     applicantStore.updateAdmission({
       prodi1: form.value.prodi1,
-      prodi1Faculty: currentProdi1Details.value.faculty,
-      prodi1Degree: currentProdi1Details.value.degree,
+      prodi1Faculty: currentProdi1Details.value?.faculty || '',
+      prodi1Degree: currentProdi1Details.value?.degree || '',
       prodi2: form.value.prodi2,
-      prodi2Faculty: currentProdi2Details.value.faculty,
-      prodi2Degree: currentProdi2Details.value.degree,
+      prodi2Faculty: currentProdi2Details.value?.faculty || '',
+      prodi2Degree: currentProdi2Details.value?.degree || '',
     });
     isSaving.value = false;
     savedMessage.value = 'Pilihan program studi berhasil diperbarui dan tersimpan di database sistem.';

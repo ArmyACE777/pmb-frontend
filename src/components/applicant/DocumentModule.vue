@@ -11,8 +11,25 @@
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <span class="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-semibold font-sora">
-          {{ verifiedCount }} dari {{ documents.length }} Dokumen Sah
+        <span
+          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold font-sora border transition-colors"
+          :class="applicantStore.isDocumentsComplete
+            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            : uploadedCount > 0
+              ? 'bg-blue-50 text-[#1E3A8A] border border-blue-200'
+              : 'bg-amber-50 text-amber-700 border border-amber-200'"
+        >
+          <span
+            class="w-1.5 h-1.5 rounded-full"
+            :class="applicantStore.isDocumentsComplete ? 'bg-emerald-500' : uploadedCount > 0 ? 'bg-blue-500' : 'bg-amber-500'"
+          ></span>
+          <span>
+            {{ applicantStore.isDocumentsComplete
+              ? `${verifiedCount} dari ${documents.length} Berkas Lengkap`
+              : uploadedCount > 0
+                ? `${uploadedCount} dari ${documents.length} Berkas Diunggah`
+                : 'Belum Ada Berkas Diunggah' }}
+          </span>
         </span>
       </div>
     </div>
@@ -67,8 +84,12 @@
         <div class="flex items-start gap-3.5">
           <!-- Icon Dokumen -->
           <div
-            class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-            :class="doc.status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'"
+            class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors"
+            :class="doc.status === 'verified'
+              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+              : doc.status === 'pending'
+                ? 'bg-blue-50 text-[#1E3A8A] border border-blue-200'
+                : 'bg-slate-100 text-slate-400 border border-slate-200'"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -89,15 +110,18 @@
             </div>
 
             <div class="text-xs text-slate-500 font-sans flex flex-wrap items-center gap-x-3 gap-y-1">
-              <span>File: <strong class="text-slate-700 font-mono text-[11px]">{{ doc.filename }}</strong></span>
-              <span>•</span>
-              <span>Ukuran: {{ doc.filesize }}</span>
-              <span>•</span>
-              <span>Diunggah: {{ doc.uploadDate }}</span>
+              <span v-if="doc.filename">File: <strong class="text-slate-700 font-mono text-[11px]">{{ doc.filename }}</strong></span>
+              <span v-else class="text-slate-400 italic">Belum ada berkas yang diunggah</span>
+              <template v-if="doc.filename">
+                <span>•</span>
+                <span>Ukuran: {{ doc.filesize }}</span>
+                <span>•</span>
+                <span>Diunggah: {{ doc.uploadDate }}</span>
+              </template>
             </div>
 
             <div class="text-[11px] text-slate-600 pt-1">
-              <span class="font-medium text-slate-500">Catatan Verifikator:</span> {{ doc.notes }}
+              <span class="font-medium text-slate-500">Catatan:</span> {{ doc.notes }}
             </div>
           </div>
         </div>
@@ -116,7 +140,7 @@
               <span>{{ doc.statusLabel }}</span>
             </span>
             <span
-              v-else
+              v-else-if="doc.status === 'pending'"
               class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs font-semibold font-sora"
             >
               <svg class="w-3.5 h-3.5 animate-spin text-amber-600" fill="none" viewBox="0 0 24 24">
@@ -125,11 +149,18 @@
               </svg>
               <span>{{ doc.statusLabel }}</span>
             </span>
+            <span
+              v-else
+              class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-500 border border-slate-200 rounded-full text-xs font-semibold font-sora"
+            >
+              <span>○ {{ doc.statusLabel }}</span>
+            </span>
           </div>
 
           <!-- Action Buttons -->
           <div class="flex items-center gap-2">
             <button
+              v-if="doc.filename"
               @click="previewDoc(doc)"
               class="px-3 py-1.5 border border-slate-200 hover:border-[#1E3A8A] text-slate-700 hover:text-[#1E3A8A] text-xs font-semibold rounded-xl transition-colors flex items-center gap-1"
             >
@@ -142,12 +173,12 @@
 
             <button
               @click="triggerUpload(doc.id)"
-              class="px-3 py-1.5 bg-slate-100 hover:bg-[#1E3A8A] hover:text-white text-slate-700 text-xs font-semibold rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+              class="px-3.5 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
-              <span>Ganti File</span>
+              <span>{{ doc.filename ? 'Ganti File' : 'Unggah Berkas' }}</span>
             </button>
           </div>
         </div>
@@ -226,6 +257,10 @@ const documents = computed(() => applicantStore.state.documents);
 
 const verifiedCount = computed(() => {
   return documents.value.filter((d) => d.status === 'verified').length;
+});
+
+const uploadedCount = computed(() => {
+  return documents.value.filter((d) => d.status !== 'unuploaded').length;
 });
 
 const fileInputRef = ref(null);
