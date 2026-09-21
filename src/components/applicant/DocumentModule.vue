@@ -3,14 +3,14 @@
     <!-- Header Modul -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
       <div>
-        <h2 class="font-sora font-bold text-lg text-slate-900">
+        <h2 class="font-sora font-bold text-base sm:text-lg text-slate-900">
           Dokumen & Berkas Persyaratan Pendaftaran
         </h2>
         <p class="text-xs text-slate-500 mt-0.5">
           Unggah pindaian (scan) berkas asli dalam format PDF atau JPG/PNG maksimal 2 MB per berkas.
         </p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 self-start sm:self-auto">
         <span
           class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold font-sora border transition-colors"
           :class="isAllVerified
@@ -109,55 +109,55 @@
       <div
         v-for="doc in documents"
         :key="doc.id"
-        class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+        class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4"
       >
-        <div class="flex items-start gap-3.5">
+        <div class="flex items-start gap-3 sm:gap-3.5 min-w-0">
           <!-- Icon Dokumen -->
           <div
-            class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors"
+            class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors"
             :class="doc.status === 'verified'
               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
               : doc.status === 'pending'
                 ? 'bg-blue-50 text-[#1E3A8A] border border-blue-200'
                 : 'bg-slate-100 text-slate-400 border border-slate-200'"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4.5 h-4.5 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
 
-          <div class="space-y-1">
-            <div class="flex flex-wrap items-center gap-2">
-              <h3 class="font-sora font-bold text-slate-900 text-sm">
+          <div class="space-y-1 min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <h3 class="font-sora font-bold text-slate-900 text-xs sm:text-sm">
                 {{ doc.title }}
               </h3>
-              <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+              <span class="text-[9px] sm:text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
                 {{ doc.category }}
               </span>
-              <span v-if="doc.required" class="text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">
+              <span v-if="doc.required" class="text-[9px] sm:text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">
                 Wajib
               </span>
             </div>
 
-            <div class="text-xs text-slate-500 font-sans flex flex-wrap items-center gap-x-3 gap-y-1">
-              <span v-if="doc.filename">File: <strong class="text-slate-700 font-mono text-[11px]">{{ doc.filename }}</strong></span>
+            <div class="text-[11px] sm:text-xs text-slate-500 font-sans flex flex-wrap items-center gap-x-2.5 gap-y-1">
+              <span v-if="doc.filename" class="truncate max-w-[200px] xs:max-w-[260px] sm:max-w-none">File: <strong class="text-slate-700 font-mono text-[11px]">{{ doc.filename }}</strong></span>
               <span v-else class="text-slate-400 italic">Belum ada berkas yang diunggah</span>
               <template v-if="doc.filename">
                 <span>•</span>
-                <span>Ukuran: {{ doc.filesize }}</span>
+                <span>{{ doc.filesize }}</span>
                 <span>•</span>
-                <span>Diunggah: {{ doc.uploadDate }}</span>
+                <span>{{ doc.uploadDate }}</span>
               </template>
             </div>
 
-            <div class="text-[11px] text-slate-600 pt-1">
+            <div class="text-[10px] sm:text-[11px] text-slate-600 pt-0.5">
               <span class="font-medium text-slate-500">Catatan:</span> {{ doc.notes }}
             </div>
           </div>
         </div>
 
         <!-- Right Side: Status Badge & Actions -->
-        <div class="flex flex-row md:flex-col lg:flex-row items-center justify-between md:items-end lg:items-center gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 flex-shrink-0">
+        <div class="flex flex-wrap items-center justify-between md:justify-end gap-2.5 pt-2.5 md:pt-0 border-t md:border-t-0 border-slate-100 flex-shrink-0 w-full md:w-auto">
           <!-- Status Pill -->
           <div>
             <span
@@ -220,32 +220,32 @@
       v-if="selectedPreviewDoc"
       class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/70 backdrop-blur-xs animate-fadeIn"
     >
-      <div class="bg-white rounded-3xl max-w-3xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 relative max-h-[92vh] flex flex-col">
+      <div class="bg-white rounded-2xl sm:rounded-3xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl border border-slate-200 relative max-h-[88vh] flex flex-col">
         <!-- Header Modal -->
         <div class="flex items-center justify-between pb-3 border-b border-slate-100 flex-shrink-0">
-          <div>
+          <div class="min-w-0 pr-2">
             <div class="flex items-center gap-2">
-              <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
+              <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base truncate">
                 {{ selectedPreviewDoc.title }}
               </h3>
-              <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-50 text-[#1E3A8A] border border-blue-200">
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-50 text-[#1E3A8A] border border-blue-200 whitespace-nowrap">
                 {{ selectedPreviewDoc.category }}
               </span>
             </div>
-            <p class="text-xs text-slate-500 font-mono mt-0.5">
+            <p class="text-xs text-slate-500 font-mono mt-0.5 truncate">
               Berkas: {{ selectedPreviewDoc.filename }} <span v-if="selectedPreviewDoc.filesize">({{ selectedPreviewDoc.filesize }})</span>
             </p>
           </div>
           <button
             @click="selectedPreviewDoc = null"
-            class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none p-1 cursor-pointer transition-colors"
+            class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none p-1 cursor-pointer transition-colors flex-shrink-0"
           >
             &times;
           </button>
         </div>
 
         <!-- Document Preview Canvas Box -->
-        <div class="flex-1 overflow-y-auto my-3 border border-slate-200 rounded-2xl bg-slate-50/80 p-2 sm:p-4 flex flex-col items-center justify-center min-h-[320px]">
+        <div class="flex-1 overflow-y-auto my-3 border border-slate-200 rounded-2xl bg-slate-50/80 p-2 sm:p-4 flex flex-col items-center justify-center min-h-[250px] sm:min-h-[320px]">
           <!-- Tampilan Berkas Gambar (JPG/PNG) -->
           <template v-if="selectedPreviewDoc.fileBlobUrl && (selectedPreviewDoc.fileType?.startsWith('image/') || isImageFile(selectedPreviewDoc.filename))">
             <div class="max-w-full max-h-[60vh] flex items-center justify-center overflow-auto rounded-xl bg-slate-900/5 p-2">

@@ -3,17 +3,17 @@
     <!-- Header Meja Kerja -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
       <div>
-        <h2 class="font-sora font-bold text-lg text-slate-900">
+        <h2 class="font-sora font-bold text-base sm:text-lg text-slate-900">
           Ringkasan Eksekutif & Statistik PMB BTH
         </h2>
         <p class="text-xs text-slate-500 mt-0.5">
-          Pemantauan komprehensif pendaftaran, validasi berkas, dan penerimaan mahasiswa baru TA 2026/2027.
+          Pemantauan performa penerimaan mahasiswa baru TA 2026/2027 secara dinamis dan terintegrasi sistem backend.
         </p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 self-start sm:self-auto">
         <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-semibold font-sora">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-          <span>Sistem Host-to-Host Aktif</span>
+          <span>Data Dinamis Real-Time</span>
         </span>
       </div>
     </div>
@@ -23,7 +23,7 @@
       <!-- Card 1: Total Pendaftar -->
       <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Pendaftar</span>
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Pendaftar Riil</span>
           <div class="w-8 h-8 rounded-lg bg-blue-50 text-[#1E3A8A] flex items-center justify-center">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -34,11 +34,8 @@
           <div class="font-sora font-extrabold text-2xl sm:text-3xl text-slate-900">
             {{ adminStore.totalApplicants.toLocaleString('id-ID') }}
           </div>
-          <div class="text-[11px] text-emerald-600 font-medium mt-1 flex items-center gap-1">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-            <span>+14.2% dari Gelombang Tahun Lalu</span>
+          <div class="text-[11px] text-slate-500 font-medium mt-1">
+            Akun Calon Mahasiswa Terdaftar
           </div>
         </div>
       </div>
@@ -58,7 +55,7 @@
             {{ adminStore.pendingVerificationCount }} <span class="text-sm font-normal text-slate-500">Berkas</span>
           </div>
           <div class="text-[11px] text-slate-500 font-medium mt-1">
-            Waktu respon rata-rata 1.4 jam
+            Menunggu validasi tim panitia
           </div>
         </div>
       </div>
@@ -66,7 +63,7 @@
       <!-- Card 3: Penerimaan Dana -->
       <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Penerimaan Dana</span>
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Penerimaan Kas Riil</span>
           <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -78,7 +75,7 @@
             {{ formattedRevenue }}
           </div>
           <div class="text-[11px] text-emerald-600 font-medium mt-1">
-            Formulir PMB & UKT Semester 1
+            Formulir & UKT Terverifikasi
           </div>
         </div>
       </div>
@@ -89,7 +86,7 @@
           <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Dinyatakan Lulus Seleksi</span>
           <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z" />
             </svg>
           </div>
         </div>
@@ -104,6 +101,64 @@
       </div>
     </div>
 
+    <!-- Charts Section: Visualisasi Data Interaktif -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Chart 1: Distribusi Peminat per Program Studi (Doughnut) -->
+      <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
+              Proporsi Peminat per Program Studi
+            </h3>
+            <p class="text-xs text-slate-500">Pilihan 1 pendaftar aktif di sistem PMB.</p>
+          </div>
+          <span class="text-[11px] font-bold px-2 py-0.5 bg-blue-50 text-[#1E3A8A] rounded-full border border-blue-200 font-mono">
+            {{ adminStore.applicants.length }} Pelamar
+          </span>
+        </div>
+
+        <div class="h-64 sm:h-72 my-3 flex items-center justify-center">
+          <DoughnutChart
+            v-if="adminStore.applicants.length > 0"
+            :chart-data="prodiDoughnutData"
+          />
+          <div v-else class="text-center text-slate-400 text-xs italic py-12">
+            Belum ada data pendaftar untuk ditampilkan pada grafik.
+          </div>
+        </div>
+
+        <div class="text-[11px] text-slate-400 text-center pt-2 border-t border-slate-100">
+          Diperbarui otomatis dari database akun calon mahasiswa Universitas BTH
+        </div>
+      </div>
+
+      <!-- Chart 2: Funnel Konversi Alur Seleksi PMB (Bar Horizontal) -->
+      <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
+              Funnel Konversi Tahapan PMB
+            </h3>
+            <p class="text-xs text-slate-500">Progres pelamar dari pendaftaran hingga penetapan NIM.</p>
+          </div>
+          <span class="text-[11px] font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200 font-mono">
+            Alur Seleksi
+          </span>
+        </div>
+
+        <div class="h-64 sm:h-72 my-3">
+          <BarChart
+            :chart-data="funnelBarData"
+            :horizontal="true"
+          />
+        </div>
+
+        <div class="text-[11px] text-slate-400 text-center pt-2 border-t border-slate-100">
+          Tingkat konversi pendaftar ke mahasiswa resmi (NIM): {{ conversionRatePercent }}%
+        </div>
+      </div>
+    </div>
+
     <!-- Kuota Program Studi & Log Aktivitas Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Kuota Pendaftaran per Prodi (Col 2) -->
@@ -113,24 +168,24 @@
             <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
               Distribusi Peminat & Keterisian Kuota Gelombang 1
             </h3>
-            <p class="text-xs text-slate-500">Kapasitas daya tampung program studi aktif.</p>
+            <p class="text-xs text-slate-500">Kapasitas daya tampung program studi aktif (murni tanpa data dummy).</p>
           </div>
           <span class="text-xs text-[#1E3A8A] font-semibold">Batas Kuota TA 2026/2027</span>
         </div>
 
         <div class="space-y-4 text-xs">
           <div v-for="item in prodiQuotas" :key="item.name" class="space-y-1.5">
-            <div class="flex justify-between items-center">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
               <span class="font-sora font-semibold text-slate-800">{{ item.name }}</span>
-              <span class="text-slate-500">
-                <strong class="text-slate-900">{{ item.enrolled }}</strong> / {{ item.quota }} Kursi ({{ Math.round((item.enrolled / item.quota) * 100) }}%)
+              <span class="text-slate-500 flex-shrink-0 text-[11px] sm:text-xs">
+                <strong class="text-slate-900">{{ item.enrolled }}</strong> / {{ item.quota }} Kursi ({{ item.percent }}%)
               </span>
             </div>
             <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
               <div
                 class="h-full rounded-full transition-all duration-500"
                 :class="item.color"
-                :style="{ width: `${Math.round((item.enrolled / item.quota) * 100)}%` }"
+                :style="{ width: `${item.percent}%` }"
               ></div>
             </div>
           </div>
@@ -170,6 +225,8 @@
 <script setup>
 import { computed } from 'vue';
 import { useAdminStore } from '@/stores/admin';
+import DoughnutChart from '@/components/charts/DoughnutChart.vue';
+import BarChart from '@/components/charts/BarChart.vue';
 
 const adminStore = useAdminStore();
 
@@ -184,6 +241,92 @@ const formattedRevenue = computed(() => {
 const passRatePercent = computed(() => {
   if (!adminStore.applicants.length) return '0.0';
   return ((adminStore.passedStudentsCount / adminStore.applicants.length) * 100).toFixed(1);
+});
+
+const conversionRatePercent = computed(() => {
+  if (!adminStore.applicants.length) return 0;
+  const enrolledCount = adminStore.applicants.filter(
+    (a) => a.onboarding?.isEnrolled || a.payments?.uktFee?.status === 'paid'
+  ).length;
+  return Math.round((enrolledCount / adminStore.applicants.length) * 100);
+});
+
+// Chart 1: Donut Distribusi Peminat Program Studi
+const prodiDoughnutData = computed(() => {
+  const counts = {
+    'S1 Farmasi': 0,
+    'S1 Teknologi Informasi': 0,
+    'D3 Farmasi': 0,
+    'D3 Analis Kesehatan (TLM)': 0,
+    'S1 Administrasi RS': 0,
+    'S1 Manajemen Bisnis': 0,
+  };
+
+  adminStore.applicants.forEach((a) => {
+    const p = a.prodi1 || '';
+    if (p.includes('D3 Farmasi')) counts['D3 Farmasi']++;
+    else if (p.includes('S1 Farmasi')) counts['S1 Farmasi']++;
+    else if (p.includes('Teknologi')) counts['S1 Teknologi Informasi']++;
+    else if (p.includes('Analis') || p.includes('TLM')) counts['D3 Analis Kesehatan (TLM)']++;
+    else if (p.includes('Administrasi')) counts['S1 Administrasi RS']++;
+    else if (p.includes('Bisnis') || p.includes('MBI')) counts['S1 Manajemen Bisnis']++;
+    else counts['S1 Farmasi']++;
+  });
+
+  return {
+    labels: Object.keys(counts),
+    datasets: [
+      {
+        data: Object.values(counts),
+        backgroundColor: [
+          '#1E3A8A', // BTH Navy
+          '#2563EB', // Blue
+          '#6366F1', // Indigo
+          '#10B981', // Emerald
+          '#F59E0B', // Amber
+          '#EC4899', // Pink
+        ],
+        borderWidth: 2,
+        borderColor: '#FFFFFF',
+      },
+    ],
+  };
+});
+
+// Chart 2: Funnel Bar Konversi Alur PMB
+const funnelBarData = computed(() => {
+  const registered = adminStore.applicants.length;
+  const docsVerified = adminStore.applicants.filter((a) => a.documentStatus === 'verified').length;
+  const regFeePaid = adminStore.applicants.filter((a) => a.payments?.registrationFee?.status === 'paid').length;
+  const cbtTaken = adminStore.applicants.filter((a) => (a.selection?.cbtScore > 0) || a.selection?.passedStatus === 'passed').length;
+  const passed = adminStore.passedStudentsCount;
+  const enrolled = adminStore.applicants.filter((a) => a.onboarding?.isEnrolled || a.payments?.uktFee?.status === 'paid').length;
+
+  return {
+    labels: [
+      'Pendaftar Akun',
+      'Formulir Lunas',
+      'Berkas Terverifikasi',
+      'Peserta CBT',
+      'Lulus Seleksi',
+      'NIM Diterbitkan',
+    ],
+    datasets: [
+      {
+        label: 'Jumlah Calon Mahasiswa',
+        data: [registered, regFeePaid, docsVerified, cbtTaken, passed, enrolled],
+        backgroundColor: [
+          '#94A3B8', // slate-400
+          '#F59E0B', // amber-500
+          '#3B82F6', // blue-500
+          '#6366F1', // indigo-500
+          '#10B981', // emerald-500
+          '#1E3A8A', // bth navy
+        ],
+        borderRadius: 8,
+      },
+    ],
+  };
 });
 
 const recentActivities = computed(() => {
@@ -217,28 +360,31 @@ const recentActivities = computed(() => {
   return list.slice(0, 4);
 });
 
+// Kuota murni tanpa angka dummy base
 const prodiQuotas = computed(() => {
   const baseConfig = [
-    { key: 'Farmasi', name: 'S1 Farmasi (Fakultas Farmasi)', base: 118, quota: 150, color: 'bg-[#1E3A8A]' },
-    { key: 'Teknologi', name: 'S1 Teknologi Informasi (Fakultas Teknologi & Bisnis)', base: 64, quota: 80, color: 'bg-[#2563EB]' },
-    { key: 'D3 Farmasi', name: 'D3 Farmasi (Fakultas Farmasi)', base: 71, quota: 90, color: 'bg-indigo-600' },
-    { key: 'Analis', name: 'D3 Analis Kesehatan / TLM (Fakultas Ilmu Kesehatan)', base: 53, quota: 60, color: 'bg-emerald-600' },
-    { key: 'Administrasi', name: 'S1 Administrasi Rumah Sakit (Fakultas Ilmu Kesehatan)', base: 47, quota: 60, color: 'bg-amber-500' },
+    { key: 'S1 Farmasi', name: 'S1 Farmasi (Fakultas Farmasi)', quota: 150, color: 'bg-[#1E3A8A]' },
+    { key: 'Teknologi', name: 'S1 Teknologi Informasi (Fakultas Teknologi & Bisnis)', quota: 80, color: 'bg-[#2563EB]' },
+    { key: 'D3 Farmasi', name: 'D3 Farmasi (Fakultas Farmasi)', quota: 90, color: 'bg-indigo-600' },
+    { key: 'Analis', name: 'D3 Analis Kesehatan / TLM (Fakultas Ilmu Kesehatan)', quota: 60, color: 'bg-emerald-600' },
+    { key: 'Administrasi', name: 'S1 Administrasi Rumah Sakit (Fakultas Ilmu Kesehatan)', quota: 60, color: 'bg-amber-500' },
+    { key: 'Bisnis', name: 'S1 Manajemen Bisnis Informasi (Fakultas Teknologi & Bisnis)', quota: 60, color: 'bg-pink-500' },
   ];
 
   return baseConfig.map((item) => {
     const activeCount = adminStore.applicants.filter((a) => {
       const p = a.prodi1 || '';
       if (item.key === 'D3 Farmasi') return p.includes('D3 Farmasi');
-      if (item.key === 'Farmasi') return p.includes('S1 Farmasi');
+      if (item.key === 'S1 Farmasi') return p.includes('S1 Farmasi') || (!p.includes('D3 Farmasi') && p.includes('Farmasi'));
       return p.includes(item.key);
     }).length;
 
-    const enrolled = item.base + activeCount;
+    const percent = item.quota ? Math.round((activeCount / item.quota) * 100) : 0;
     return {
       name: item.name,
-      enrolled,
+      enrolled: activeCount,
       quota: item.quota,
+      percent,
       color: item.color,
     };
   });

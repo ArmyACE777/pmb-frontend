@@ -3,14 +3,14 @@
     <!-- Header Meja Kerja -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
       <div>
-        <h2 class="font-sora font-bold text-lg text-slate-900">
+        <h2 class="font-sora font-bold text-base sm:text-lg text-slate-900">
           Meja Penerbitan NIM & Onboarding Mahasiswa Baru
         </h2>
         <p class="text-xs text-slate-500 mt-0.5">
           Penetapan Nomor Induk Mahasiswa resmi, plotting gugus PKKMB 2026, dan aktivasi akun SIAKAD.
         </p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 self-start sm:self-auto">
         <span class="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-semibold font-sora">
           Format NIM: [Tahun 2 Digit][Kode Prodi 2 Digit][No. Urut 4 Digit]
         </span>
@@ -31,15 +31,46 @@
       <button @click="toastMessage = ''" class="text-emerald-600 hover:text-emerald-900 font-bold text-sm leading-none">&times;</button>
     </div>
 
+    <!-- Filter & Search Controls Bar -->
+    <div class="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <!-- Search Input -->
+      <div class="relative flex-1">
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Cari mahasiswa, No. Registrasi, NIM..."
+          class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 focus:border-[#1E3A8A] focus:bg-white rounded-xl text-xs outline-none text-slate-800 transition-colors"
+        />
+        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+
+      <!-- Status Filter Tabs -->
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 md:pb-0 text-xs -mx-1 px-1">
+        <button
+          v-for="filter in filters"
+          :key="filter.id"
+          @click="selectedFilter = filter.id"
+          class="px-3 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap cursor-pointer flex-shrink-0"
+          :class="selectedFilter === filter.id
+            ? 'bg-[#1E3A8A] text-white font-semibold'
+            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+        >
+          {{ filter.label }}
+        </button>
+      </div>
+    </div>
+
     <!-- Enrolment Table -->
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-      <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+      <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h3 class="font-sora font-bold text-slate-900 text-sm">
           Daftar Calon Mahasiswa Siap Penerbitan NIM (Lulus & Lunas UKT)
         </h3>
         <button
           @click="generateAllEligible"
-          class="px-3 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs rounded-xl transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+          class="self-start sm:self-auto px-3 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs rounded-xl transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -49,7 +80,7 @@
       </div>
 
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs text-slate-700">
+        <table class="w-full text-left text-xs text-slate-700 min-w-[720px]">
           <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-sora uppercase text-[10px] tracking-wider">
             <tr>
               <th class="py-3.5 px-4 font-bold">No. Registrasi</th>
@@ -63,7 +94,7 @@
           </thead>
           <tbody class="divide-y divide-slate-100 font-sans">
             <tr
-              v-for="applicant in adminStore.applicants"
+              v-for="applicant in filteredApplicants"
               :key="applicant.id"
               class="hover:bg-slate-50/80 transition-colors"
             >
@@ -227,7 +258,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useAdminStore } from '@/stores/admin';
 import { PRODI_METADATA } from '@/stores/applicant';
 
@@ -236,6 +267,41 @@ const activeApplicant = ref(null);
 const formNim = ref('');
 const formGroup = ref('Gugus 01 - Hygeia Farmasi');
 const toastMessage = ref('');
+const searchQuery = ref('');
+const selectedFilter = ref('all');
+
+const filters = [
+  { id: 'all', label: 'Semua Mahasiswa' },
+  { id: 'enrolled', label: 'Sudah Ada NIM' },
+  { id: 'eligible', label: 'Siap Terbit NIM' },
+  { id: 'unpaid', label: 'Menunggu UKT' },
+];
+
+const filteredApplicants = computed(() => {
+  return adminStore.applicants.filter((applicant) => {
+    // Status filter
+    if (selectedFilter.value === 'enrolled') {
+      if (!applicant.onboarding?.nim) return false;
+    } else if (selectedFilter.value === 'eligible') {
+      if (applicant.selection?.passedStatus !== 'passed' || applicant.payments?.uktFee?.status !== 'paid' || applicant.onboarding?.nim) {
+        return false;
+      }
+    } else if (selectedFilter.value === 'unpaid') {
+      if (applicant.payments?.uktFee?.status === 'paid') return false;
+    }
+
+    // Search query
+    if (searchQuery.value.trim()) {
+      const q = searchQuery.value.toLowerCase();
+      const matchName = (applicant.fullName || '').toLowerCase().includes(q);
+      const matchId = (applicant.id || '').toLowerCase().includes(q);
+      const matchNim = (applicant.onboarding?.nim || '').toLowerCase().includes(q);
+      const matchProdi = (applicant.prodi1 || '').toLowerCase().includes(q);
+      return matchName || matchId || matchNim || matchProdi;
+    }
+    return true;
+  });
+});
 
 const openEnrolModal = (applicant) => {
   activeApplicant.value = applicant;

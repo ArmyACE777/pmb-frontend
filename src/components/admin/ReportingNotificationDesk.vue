@@ -610,10 +610,15 @@ const computedTargetCount = computed(() => {
 });
 
 const previewPersonalizedBody = computed(() => {
+  const sample = adminStore.applicants[0] || {
+    fullName: 'Calon Mahasiswa Baru',
+    id: 'BTH-2026-REG-XXXXX',
+    prodi1: 'S1 Farmasi',
+  };
   return broadcastBody.value
-    .replace('[NAMA_LENGKAP]', 'Dimas Arya Pratama')
-    .replace('[NO_REGISTRASI]', 'BTH-2026-REG-08493')
-    .replace('[PRODI]', 'S1 Teknologi Informasi');
+    .replace('[NAMA_LENGKAP]', sample.fullName)
+    .replace('[NO_REGISTRASI]', sample.id)
+    .replace('[PRODI]', sample.prodi1);
 });
 
 const filteredReportApplicants = computed(() => {
@@ -625,27 +630,27 @@ const filteredReportApplicants = computed(() => {
 const totalBsiRevenue = computed(() => {
   let sum = 0;
   adminStore.applicants.forEach((a) => {
-    if (a.payments.registrationFee.status === 'paid' && a.payments.registrationFee.method?.includes('BSI')) {
+    if (a.payments?.registrationFee?.status === 'paid' && a.payments?.registrationFee?.method?.includes('BSI')) {
       sum += a.payments.registrationFee.amount || 0;
     }
-    if (a.payments.uktFee.status === 'paid' && a.payments.uktFee.method?.includes('BSI')) {
+    if (a.payments?.uktFee?.status === 'paid' && a.payments?.uktFee?.method?.includes('BSI')) {
       sum += a.payments.uktFee.amount || 0;
     }
   });
-  return sum || 11750000;
+  return sum;
 });
 
 const totalMandiriRevenue = computed(() => {
   let sum = 0;
   adminStore.applicants.forEach((a) => {
-    if (a.payments.registrationFee.status === 'paid' && a.payments.registrationFee.method?.includes('Mandiri')) {
+    if (a.payments?.registrationFee?.status === 'paid' && a.payments?.registrationFee?.method?.includes('Mandiri')) {
       sum += a.payments.registrationFee.amount || 0;
     }
-    if (a.payments.uktFee.status === 'paid' && a.payments.uktFee.method?.includes('Mandiri')) {
+    if (a.payments?.uktFee?.status === 'paid' && a.payments?.uktFee?.method?.includes('Mandiri')) {
       sum += a.payments.uktFee.amount || 0;
     }
   });
-  return sum || 4750000;
+  return sum;
 });
 
 const totalPendingUktReceivables = computed(() => {

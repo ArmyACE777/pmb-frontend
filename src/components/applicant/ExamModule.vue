@@ -3,14 +3,14 @@
     <!-- Header Modul -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
       <div>
-        <h2 class="font-sora font-bold text-lg text-slate-900">
+        <h2 class="font-sora font-bold text-base sm:text-lg text-slate-900">
           Portal Ujian Mandiri CBT (Computer Based Test)
         </h2>
         <p class="text-xs text-slate-500 mt-0.5">
           Simulasi dan pengerjaan tes kemampuan akademik & potensi skolastik PMB Universitas BTH.
         </p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 self-start sm:self-auto">
         <span
           class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold font-sora border transition-colors"
           :class="examStatus === 'completed'
@@ -81,16 +81,16 @@
           <span>{{ examState.passedStatus }}</span>
         </div>
 
-        <div class="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-center gap-3">
+        <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-3">
           <button
             @click="restartExam"
-            class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-sora font-semibold text-xs rounded-xl transition-all"
+            class="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-sora font-semibold text-xs rounded-xl transition-all cursor-pointer text-center"
           >
             Kerjakan Ulang Ujian
           </button>
           <button
             @click="$emit('switch-tab', 'result')"
-            class="px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+            class="w-full sm:w-auto px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <span>Lihat Pengumuman Kelulusan</span>
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,25 +180,25 @@
           </div>
 
           <!-- Bottom Navigation Controls -->
-          <div class="pt-6 border-t border-slate-100 mt-6 flex items-center justify-between">
+          <div class="pt-5 border-t border-slate-100 mt-5 flex items-center justify-between gap-2">
             <button
               @click="prevQuestion"
               :disabled="currentIndex === 0"
-              class="px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:pointer-events-none text-slate-700 font-semibold text-xs rounded-xl transition-colors flex items-center gap-1.5"
+              class="px-3 sm:px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:pointer-events-none text-slate-700 font-semibold text-xs rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
               </svg>
-              <span>Soal Sebelumnya</span>
+              <span><span class="hidden xs:inline">Soal </span>Sebelumnya</span>
             </button>
 
             <button
               v-if="currentIndex < questions.length - 1"
               @click="nextQuestion"
-              class="px-4 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-xl transition-all shadow-xs flex items-center gap-1.5"
+              class="px-3.5 sm:px-4 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
-              <span>Soal Berikutnya</span>
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span><span class="hidden xs:inline">Soal </span>Berikutnya</span>
+              <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -206,28 +206,28 @@
             <button
               v-else
               @click="showFinishModal = true"
-              class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-sora font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+              class="px-4 sm:px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-sora font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
             >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
-              <span>Selesaikan Ujian</span>
+              <span>Selesaikan<span class="hidden xs:inline"> Ujian</span></span>
             </button>
           </div>
         </div>
 
         <!-- Question Grid Navigator (Col 1) -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs space-y-4">
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs space-y-4">
           <div class="font-sora font-bold text-xs text-slate-900 pb-2 border-b border-slate-100">
             Daftar Navigasi Soal
           </div>
 
-          <div class="grid grid-cols-5 gap-2">
+          <div class="grid grid-cols-5 gap-1.5 sm:gap-2">
             <button
               v-for="(_, idx) in questions"
               :key="idx"
               @click="currentIndex = idx"
-              class="w-10 h-10 rounded-xl font-sora font-bold text-xs flex items-center justify-center border transition-all"
+              class="h-9 sm:h-10 w-full rounded-xl font-sora font-bold text-xs flex items-center justify-center border transition-all cursor-pointer"
               :class="{
                 'ring-2 ring-[#1E3A8A] ring-offset-2': currentIndex === idx,
                 'bg-amber-100 border-amber-300 text-amber-900': raguList[idx],

@@ -112,9 +112,10 @@ apiClient.interceptors.response.use(
 
     // Handle 401 TOKEN_REVOKED, TOKEN_INVALID, or invalid session on authenticated endpoints
     const isAuthEndpoint = originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/register');
+    const isAdminEndpoint = originalRequest.url?.includes('/auth/admin');
     const isRevokedToken = ['TOKEN_REVOKED', 'TOKEN_INVALID', 'TOKEN_MISSING'].includes(errorCode);
 
-    if (error.response?.status === 401 && !isAuthEndpoint && (isRevokedToken || errorCode !== 'TOKEN_EXPIRED')) {
+    if (error.response?.status === 401 && !isAuthEndpoint && !isAdminEndpoint && (isRevokedToken || errorCode !== 'TOKEN_EXPIRED')) {
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       localStorage.removeItem('user');

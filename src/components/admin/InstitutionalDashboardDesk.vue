@@ -3,7 +3,7 @@
     <!-- Header Meja Kerja Institusional -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
       <div>
-        <h2 class="font-sora font-bold text-lg text-slate-900">
+        <h2 class="font-sora font-bold text-base sm:text-lg text-slate-900">
           Dashboard Institusional & Analitik Eksekutif
         </h2>
         <p class="text-xs text-slate-500 mt-0.5">
@@ -12,10 +12,10 @@
       </div>
 
       <!-- Level Selector Switcher Tabs -->
-      <div class="inline-flex p-1 bg-slate-100 rounded-2xl border border-slate-200 text-xs font-sora font-semibold">
+      <div class="flex overflow-x-auto no-scrollbar max-w-full p-1 bg-slate-100 rounded-2xl border border-slate-200 text-xs font-sora font-semibold">
         <button
           @click="currentLevel = 'university'"
-          class="px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+          class="px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap flex-shrink-0"
           :class="currentLevel === 'university' ? 'bg-[#1E3A8A] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -26,7 +26,7 @@
 
         <button
           @click="currentLevel = 'faculty'"
-          class="px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+          class="px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap flex-shrink-0"
           :class="currentLevel === 'faculty' ? 'bg-[#1E3A8A] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,7 +37,7 @@
 
         <button
           @click="currentLevel = 'prodi'"
-          class="px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+          class="px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap flex-shrink-0"
           :class="currentLevel === 'prodi' ? 'bg-[#1E3A8A] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,6 +140,51 @@
           </div>
           <div class="text-[11px] text-emerald-600 font-medium mt-3 flex items-center gap-1">
             <span>Rekonsiliasi Host-to-Host BSI & Mandiri</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Visualisasi Institusional -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Chart 1: Kinerja Antar Fakultas -->
+        <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
+                Komparasi Pendaftar & Kuota Fakultas
+              </h3>
+              <p class="text-xs text-slate-500">Perbandingan kuota vs pendaftar vs kelulusan per fakultas.</p>
+            </div>
+            <span class="text-[11px] font-bold px-2 py-0.5 bg-blue-50 text-[#1E3A8A] rounded-full border border-blue-200 font-mono">
+              Fakultas BTH
+            </span>
+          </div>
+          <div class="h-64 my-3">
+            <BarChart :chart-data="facultyBarChartData" />
+          </div>
+          <div class="text-[11px] text-slate-400 text-center pt-2 border-t border-slate-100">
+            Daya Tampung: Farmasi 240, FTB 140, FIKes 120
+          </div>
+        </div>
+
+        <!-- Chart 2: Sebaran Rata-rata Skor Seleksi per Prodi -->
+        <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
+                Rata-rata Skor CBT & Rapor per Program Studi
+              </h3>
+              <p class="text-xs text-slate-500">Evaluasi mutu akademik calon mahasiswa per peminatan.</p>
+            </div>
+            <span class="text-[11px] font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200 font-mono">
+              Akademik
+            </span>
+          </div>
+          <div class="h-64 my-3">
+            <BarChart :chart-data="scoresBarChartData" />
+          </div>
+          <div class="text-[11px] text-slate-400 text-center pt-2 border-t border-slate-100">
+            Passing grade minimal standar BTH: 70.0
           </div>
         </div>
       </div>
@@ -452,7 +497,7 @@
           </div>
 
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs text-slate-700">
+            <table class="w-full min-w-[560px] text-left text-xs text-slate-700">
               <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-sora uppercase text-[10px]">
                 <tr>
                   <th class="py-2.5 px-3 font-bold">No. Registrasi</th>
@@ -497,6 +542,7 @@
 import { ref, computed } from 'vue';
 import { useAdminStore } from '@/stores/admin';
 import { PRODI_METADATA } from '@/stores/applicant';
+import BarChart from '@/components/charts/BarChart.vue';
 
 const adminStore = useAdminStore();
 const currentLevel = ref('university');
@@ -505,14 +551,13 @@ const selectedProdi = ref('S1 Farmasi');
 
 const prodiNames = Object.keys(PRODI_METADATA);
 
-// Level 1 Computed
+// Level 1 Computed - 100% Dinamis dari Pendaftar Riil
 const totalEnrolledUniversitas = computed(() => {
-  const baseAdmitted = 352;
-  return baseAdmitted + adminStore.applicants.length;
+  return adminStore.applicants.filter((a) => a.onboarding?.isEnrolled || a.payments?.uktFee?.status === 'paid').length;
 });
 
 const passRate = computed(() => {
-  if (!adminStore.applicants.length) return '88.5';
+  if (!adminStore.applicants.length) return '0.0';
   return ((adminStore.passedStudentsCount / adminStore.applicants.length) * 100).toFixed(1);
 });
 
@@ -521,7 +566,7 @@ const totalPaidUktCount = computed(() => {
 });
 
 const yieldRate = computed(() => {
-  if (!adminStore.passedStudentsCount) return '76.4';
+  if (!adminStore.passedStudentsCount) return '0.0';
   return ((totalPaidUktCount.value / adminStore.passedStudentsCount) * 100).toFixed(1);
 });
 
@@ -533,35 +578,136 @@ const formattedTotalRevenue = computed(() => {
   return `Rp ${rev.toLocaleString('id-ID')}`;
 });
 
-const facultySummaries = computed(() => [
-  {
-    name: 'Fakultas Farmasi',
-    quota: 240,
-    prodis: ['S1 Farmasi', 'D3 Farmasi'],
-    totalApplicants: 192 + adminStore.applicants.filter((a) => a.faculty?.includes('Farmasi') || a.prodi1?.includes('Farmasi')).length,
-    passedCount: 168,
-    fillPercent: 80,
-    color: 'bg-[#1E3A8A]',
-  },
-  {
-    name: 'Fakultas Teknologi & Bisnis',
-    quota: 140,
-    prodis: ['S1 Teknologi Informasi', 'S1 Manajemen Bisnis Informasi'],
-    totalApplicants: 112 + adminStore.applicants.filter((a) => a.faculty?.includes('Teknologi') || a.prodi1?.includes('Teknologi') || a.prodi1?.includes('Bisnis')).length,
-    passedCount: 94,
-    fillPercent: 78,
-    color: 'bg-[#2563EB]',
-  },
-  {
-    name: 'Fakultas Ilmu Kesehatan',
-    quota: 120,
-    prodis: ['S1 Administrasi RS', 'D3 Analis Kesehatan (TLM)'],
-    totalApplicants: 102 + adminStore.applicants.filter((a) => a.faculty?.includes('Kesehatan') || a.prodi1?.includes('Kesehatan') || a.prodi1?.includes('Analis') || a.prodi1?.includes('Administrasi')).length,
-    passedCount: 88,
-    fillPercent: 85,
-    color: 'bg-emerald-600',
-  },
-]);
+// Ringkasan 3 Fakultas - Dinamis murni
+const facultySummaries = computed(() => {
+  const fac1Applicants = adminStore.applicants.filter((a) => a.faculty?.includes('Farmasi') || a.prodi1?.includes('Farmasi'));
+  const fac2Applicants = adminStore.applicants.filter((a) => a.faculty?.includes('Teknologi') || a.prodi1?.includes('Teknologi') || a.prodi1?.includes('Bisnis'));
+  const fac3Applicants = adminStore.applicants.filter((a) => a.faculty?.includes('Kesehatan') || a.prodi1?.includes('Kesehatan') || a.prodi1?.includes('Analis') || a.prodi1?.includes('Administrasi'));
+
+  const fac1Passed = fac1Applicants.filter((a) => a.selection?.passedStatus === 'passed').length;
+  const fac2Passed = fac2Applicants.filter((a) => a.selection?.passedStatus === 'passed').length;
+  const fac3Passed = fac3Applicants.filter((a) => a.selection?.passedStatus === 'passed').length;
+
+  return [
+    {
+      name: 'Fakultas Farmasi',
+      quota: 240,
+      prodis: ['S1 Farmasi', 'D3 Farmasi'],
+      totalApplicants: fac1Applicants.length,
+      passedCount: fac1Passed,
+      fillPercent: fac1Applicants.length ? Math.round((fac1Applicants.length / 240) * 100) : 0,
+      color: 'bg-[#1E3A8A]',
+    },
+    {
+      name: 'Fakultas Teknologi & Bisnis',
+      quota: 140,
+      prodis: ['S1 Teknologi Informasi', 'S1 Manajemen Bisnis Informasi'],
+      totalApplicants: fac2Applicants.length,
+      passedCount: fac2Passed,
+      fillPercent: fac2Applicants.length ? Math.round((fac2Applicants.length / 140) * 100) : 0,
+      color: 'bg-[#2563EB]',
+    },
+    {
+      name: 'Fakultas Ilmu Kesehatan',
+      quota: 120,
+      prodis: ['S1 Administrasi RS', 'D3 Analis Kesehatan (TLM)'],
+      totalApplicants: fac3Applicants.length,
+      passedCount: fac3Passed,
+      fillPercent: fac3Applicants.length ? Math.round((fac3Applicants.length / 120) * 100) : 0,
+      color: 'bg-emerald-600',
+    },
+  ];
+});
+
+// Chart 1: Komparasi Pendaftar & Kuota Fakultas
+const facultyBarChartData = computed(() => {
+  const facs = facultySummaries.value;
+  return {
+    labels: facs.map((f) => f.name),
+    datasets: [
+      {
+        label: 'Pendaftar Masuk',
+        data: facs.map((f) => f.totalApplicants),
+        backgroundColor: '#2563EB',
+        borderRadius: 6,
+      },
+      {
+        label: 'Lulus Seleksi',
+        data: facs.map((f) => f.passedCount),
+        backgroundColor: '#10B981',
+        borderRadius: 6,
+      },
+      {
+        label: 'Kapasitas Kuota',
+        data: facs.map((f) => f.quota),
+        backgroundColor: '#94A3B8',
+        borderRadius: 6,
+      },
+    ],
+  };
+});
+
+// Chart 2: Rata-Rata Nilai CBT & Rapor per Program Studi
+const scoresBarChartData = computed(() => {
+  const prodiLabels = [
+    'S1 Farmasi',
+    'S1 TI',
+    'D3 Farmasi',
+    'D3 TLM',
+    'S1 ARS',
+    'S1 MBI',
+  ];
+
+  const cbtAverages = prodiLabels.map((shortName) => {
+    const list = adminStore.applicants.filter((a) => {
+      const p = a.prodi1 || '';
+      if (shortName === 'S1 TI') return p.includes('Teknologi');
+      if (shortName === 'D3 TLM') return p.includes('Analis') || p.includes('TLM');
+      if (shortName === 'S1 ARS') return p.includes('Administrasi');
+      if (shortName === 'S1 MBI') return p.includes('Bisnis') || p.includes('MBI');
+      if (shortName === 'D3 Farmasi') return p.includes('D3 Farmasi');
+      return p.includes('S1 Farmasi');
+    });
+
+    if (!list.length) return 0;
+    const sum = list.reduce((acc, a) => acc + (a.selection?.cbtScore || 0), 0);
+    return Math.round(sum / list.length);
+  });
+
+  const raporAverages = prodiLabels.map((shortName) => {
+    const list = adminStore.applicants.filter((a) => {
+      const p = a.prodi1 || '';
+      if (shortName === 'S1 TI') return p.includes('Teknologi');
+      if (shortName === 'D3 TLM') return p.includes('Analis') || p.includes('TLM');
+      if (shortName === 'S1 ARS') return p.includes('Administrasi');
+      if (shortName === 'S1 MBI') return p.includes('Bisnis') || p.includes('MBI');
+      if (shortName === 'D3 Farmasi') return p.includes('D3 Farmasi');
+      return p.includes('S1 Farmasi');
+    });
+
+    if (!list.length) return 0;
+    const sum = list.reduce((acc, a) => acc + (parseFloat(a.averageScore) || 80), 0);
+    return Math.round(sum / list.length);
+  });
+
+  return {
+    labels: prodiLabels,
+    datasets: [
+      {
+        label: 'Rata-rata Skor CBT',
+        data: cbtAverages,
+        backgroundColor: '#1E3A8A',
+        borderRadius: 6,
+      },
+      {
+        label: 'Rata-rata Rapor',
+        data: raporAverages,
+        backgroundColor: '#F59E0B',
+        borderRadius: 6,
+      },
+    ],
+  };
+});
 
 // Level 2 Computed
 const facultyDeanName = computed(() => {
@@ -575,8 +721,8 @@ const activeFacultyDetails = computed(() => {
   return (
     item || {
       quota: 150,
-      pilihan1Count: 120,
-      pilihan2Count: 45,
+      pilihan1Count: 0,
+      pilihan2Count: 0,
       prodis: ['S1 Farmasi'],
     }
   );
@@ -588,14 +734,19 @@ const activeFacultyProdis = computed(() => {
     .filter(([_, meta]) => meta.faculty === fac)
     .map(([name, meta]) => {
       const applicants = adminStore.applicants.filter((a) => a.prodi1 === name);
+      const passedCount = applicants.filter((a) => a.selection?.passedStatus === 'passed').length;
+      const avgCbt = applicants.length
+        ? (applicants.reduce((acc, a) => acc + (a.selection?.cbtScore || 0), 0) / applicants.length).toFixed(1)
+        : '0.0';
+
       return {
         name,
         degree: meta.degree,
         accreditation: name.includes('Farmasi') ? 'Unggul' : 'Baik Sekali',
         quota: name.includes('S1 Farmasi') ? 150 : 70,
-        applicantsCount: (name.includes('S1 Farmasi') ? 120 : 55) + applicants.length,
-        avgCbtScore: 84.5,
-        passedCount: (name.includes('S1 Farmasi') ? 104 : 48) + applicants.filter((a) => a.selection?.passedStatus === 'passed').length,
+        applicantsCount: applicants.length,
+        avgCbtScore: avgCbt,
+        passedCount,
       };
     });
 });
@@ -605,16 +756,22 @@ const activeProdiInfo = computed(() => {
   const meta = PRODI_METADATA[selectedProdi.value] || {};
   const applicants = adminStore.applicants.filter((a) => a.prodi1 === selectedProdi.value);
   const quota = selectedProdi.value === 'S1 Farmasi' ? 150 : selectedProdi.value.includes('Teknologi') ? 80 : 60;
-  const baseEnrolled = selectedProdi.value === 'S1 Farmasi' ? 122 : selectedProdi.value.includes('Teknologi') ? 66 : 49;
+
+  const avgCbt = applicants.length
+    ? (applicants.reduce((acc, a) => acc + (a.selection?.cbtScore || 0), 0) / applicants.length).toFixed(1)
+    : '0.0';
+  const avgRapor = applicants.length
+    ? (applicants.reduce((acc, a) => acc + (parseFloat(a.averageScore) || 0), 0) / applicants.length).toFixed(1)
+    : '0.0';
 
   return {
     name: selectedProdi.value,
     degree: meta.degree || 'Sarjana',
     quota,
-    enrolled: baseEnrolled + applicants.length,
+    enrolled: applicants.length,
     uktFee: meta.uktFee || 4500000,
-    avgCbtScore: 86.2,
-    avgRaporScore: 85.4,
+    avgCbtScore: avgCbt,
+    avgRaporScore: avgRapor,
   };
 });
 

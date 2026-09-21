@@ -298,6 +298,23 @@ export const useApplicantStore = defineStore('applicant', () => {
 
   let lastHandledUserId = authStore.currentUser?.id || null;
 
+  // State navigasi aktif (Halaman Utama, Data Saya, Jalur Pendaftaran, Proses Seleksi, Daftar Ulang)
+  const activeTab = ref('overview');
+  const activeSection = ref(null);
+
+  const setActiveTab = (tab, section = null) => {
+    activeTab.value = tab;
+    activeSection.value = section;
+    if (section) {
+      setTimeout(() => {
+        const el = document.getElementById(section);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 150);
+    }
+  };
+
   watch(
     () => authStore.currentUser,
     (newUser) => {
@@ -559,6 +576,9 @@ export const useApplicantStore = defineStore('applicant', () => {
   return {
     state,
     overallStatus,
+    activeTab,
+    activeSection,
+    setActiveTab,
     isProfileComplete,
     isAdmissionComplete,
     uploadedDocsCount,

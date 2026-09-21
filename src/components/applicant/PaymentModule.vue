@@ -3,14 +3,14 @@
     <!-- Header Modul -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
       <div>
-        <h2 class="font-sora font-bold text-lg text-slate-900">
+        <h2 class="font-sora font-bold text-base sm:text-lg text-slate-900">
           Tagihan & Pembayaran Keuangan Mahasiswa
         </h2>
         <p class="text-xs text-slate-500 mt-0.5">
           Pantau status tagihan pendaftaran formulir dan biaya UKT semester 1 via Virtual Account resmi BTH.
         </p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 self-start sm:self-auto">
         <span
           class="px-3 py-1 rounded-full text-xs font-semibold font-sora"
           :class="isUktPaid ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : regPayment.status === 'paid' ? 'bg-blue-50 text-[#1E3A8A] border border-blue-200/80' : 'bg-amber-50 text-amber-700 border border-amber-200'"
@@ -270,79 +270,79 @@
     <!-- Modal Kwitansi Digital Resmi BTH -->
     <div
       v-if="selectedReceipt"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn"
+      class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn"
     >
-      <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 relative">
+      <div class="bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full p-4 sm:p-8 shadow-2xl border border-slate-200 relative max-h-[88vh] overflow-y-auto">
         <!-- Close Button -->
         <button
           @click="selectedReceipt = null"
-          class="absolute top-5 right-5 text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none"
+          class="absolute top-4 right-4 sm:top-5 sm:right-5 text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none p-1 cursor-pointer"
         >
           &times;
         </button>
 
         <!-- Receipt Header with Logo & Institution -->
         <div class="text-center pb-4 border-b border-slate-200">
-          <div class="font-sora font-extrabold text-sm text-[#1E3A8A] tracking-wider uppercase">
+          <div class="font-sora font-extrabold text-xs sm:text-sm text-[#1E3A8A] tracking-wider uppercase">
             Universitas Bakti Tunas Husada
           </div>
-          <div class="text-[11px] text-slate-500 mt-0.5">
+          <div class="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
             Jl. Cilolohan No. 36, Kahuripan, Tawang, Kota Tasikmalaya
           </div>
-          <div class="font-sora font-bold text-base text-slate-900 mt-3">
+          <div class="font-sora font-bold text-sm sm:text-base text-slate-900 mt-2.5 sm:mt-3">
             TANDA BUKTI PEMBAYARAN SAH (KWITANSI)
           </div>
-          <div class="font-mono text-xs text-slate-500">
+          <div class="font-mono text-[11px] sm:text-xs text-slate-500">
             No: {{ selectedReceiptData.id }}
           </div>
         </div>
 
         <!-- Receipt Details Body -->
-        <div class="py-4 space-y-2.5 text-xs text-slate-700">
-          <div class="flex justify-between">
+        <div class="py-3 sm:py-4 space-y-2 sm:space-y-2.5 text-xs text-slate-700">
+          <div class="flex justify-between gap-2">
             <span class="text-slate-500">Telah Diterima Dari:</span>
-            <span class="font-bold text-slate-900">{{ candidate.fullName }}</span>
+            <span class="font-bold text-slate-900 text-right">{{ candidate.fullName }}</span>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between gap-2">
             <span class="text-slate-500">No. Registrasi:</span>
             <span class="font-mono font-semibold text-slate-800">{{ candidate.registrationNumber }}</span>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between gap-2">
             <span class="text-slate-500">Program Studi:</span>
-            <span class="font-semibold text-[#1E3A8A]">{{ admission.prodi1 }}</span>
+            <span class="font-semibold text-[#1E3A8A] text-right">{{ admission.prodi1 }}</span>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between gap-2">
             <span class="text-slate-500">Untuk Pembayaran:</span>
-            <span class="font-medium text-slate-800">{{ selectedReceiptData.title }}</span>
+            <span class="font-medium text-slate-800 text-right">{{ selectedReceiptData.title }}</span>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between gap-2">
             <span class="text-slate-500">Waktu Pelunasan:</span>
             <span class="font-medium text-slate-800">{{ selectedReceiptData.paidAt || '-' }}</span>
           </div>
-          <div class="flex justify-between pt-2 border-t border-slate-100 font-sora">
+          <div class="flex justify-between items-center pt-2 border-t border-slate-100 font-sora">
             <span class="font-bold text-slate-700">Jumlah Terbayar:</span>
-            <span class="font-extrabold text-base text-[#1E3A8A]">
+            <span class="font-extrabold text-sm sm:text-base text-[#1E3A8A]">
               Rp {{ selectedReceiptData.amount.toLocaleString('id-ID') }}
             </span>
           </div>
         </div>
 
         <!-- Paid Digital Stamp -->
-        <div class="my-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs">
+        <div class="my-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 text-xs">
           <div class="flex items-center gap-2">
-            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4.5 h-4.5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span class="font-sora font-bold text-emerald-800">LUNAS - VERIFIKASI SISTEM HOST-TO-HOST BTH</span>
+            <span class="font-sora font-bold text-emerald-800 text-[11px] sm:text-xs">LUNAS - VERIFIKASI SISTEM HOST-TO-HOST</span>
           </div>
-          <span class="font-mono text-[10px] text-emerald-700">AUTOPAY-BSI</span>
+          <span class="font-mono text-[10px] text-emerald-700 self-end sm:self-auto">AUTOPAY-BSI</span>
         </div>
 
         <!-- Actions -->
-        <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-3 sm:pt-4 border-t border-slate-100">
           <button
             @click="windowPrint"
-            class="px-4 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5"
+            class="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -351,7 +351,7 @@
           </button>
           <button
             @click="selectedReceipt = null"
-            class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-colors"
+            class="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-colors cursor-pointer text-center"
           >
             Tutup
           </button>

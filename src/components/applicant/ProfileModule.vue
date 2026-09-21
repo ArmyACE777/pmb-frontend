@@ -3,14 +3,14 @@
     <!-- Header Modul -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
       <div>
-        <h2 class="font-sora font-bold text-lg text-slate-900">
+        <h2 class="font-sora font-bold text-base sm:text-lg text-slate-900">
           Profil & Biodata Calon Mahasiswa
         </h2>
         <p class="text-xs text-slate-500 mt-0.5">
           Pastikan data identitas, alamat, dan riwayat pendidikan sesuai dengan dokumen resmi (KTP & Ijazah).
         </p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 self-start sm:self-auto">
         <span
           class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold font-sora transition-colors border"
           :class="applicantStore.isProfileComplete ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'"
@@ -32,8 +32,8 @@
 
     <!-- Banner OCR Auto-Fill KTP (Integrasi services/ocr-service) -->
     <div class="bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-4 sm:p-5 shadow-sm border border-blue-800/40 relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div class="relative z-10 flex items-start sm:items-center gap-3.5">
-        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center flex-shrink-0 text-blue-300">
+      <div class="relative z-10 flex items-start sm:items-center gap-3">
+        <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center flex-shrink-0 text-blue-300">
           <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -57,7 +57,7 @@
       <button
         type="button"
         @click="openOcrModal"
-        class="relative z-10 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-sora font-semibold text-xs rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 flex-shrink-0 cursor-pointer border border-blue-400/30"
+        class="relative z-10 w-full sm:w-auto px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-sora font-semibold text-xs rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 flex-shrink-0 cursor-pointer border border-blue-400/30"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
@@ -68,7 +68,7 @@
 
     <form @submit.prevent="saveProfile" class="space-y-6">
       <!-- 1. Identitas Pribadi -->
-      <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs">
+      <div id="section-pribadi" class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs scroll-mt-24">
         <div class="text-xs font-sora font-bold text-[#1E3A8A] uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
           1. Identitas Pribadi
         </div>
@@ -135,7 +135,7 @@
       </div>
 
       <!-- 2. Alamat & Kontak -->
-      <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs">
+      <div id="section-alamat" class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs scroll-mt-24">
         <div class="text-xs font-sora font-bold text-[#1E3A8A] uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
           2. Alamat Domisili & Kontak
         </div>
@@ -189,7 +189,7 @@
       </div>
 
       <!-- 3. Riwayat Asal Sekolah -->
-      <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs">
+      <div id="section-pendidikan" class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs scroll-mt-24">
         <div class="text-xs font-sora font-bold text-[#1E3A8A] uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
           3. Riwayat Asal Sekolah
         </div>
@@ -225,7 +225,7 @@
       </div>
 
       <!-- 4. Data Orang Tua / Wali -->
-      <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs">
+      <div id="section-keluarga" class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs scroll-mt-24">
         <div class="text-xs font-sora font-bold text-[#1E3A8A] uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
           4. Data Orang Tua / Wali
         </div>
@@ -257,7 +257,7 @@
               class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             />
           </div>
-          <div>
+          <div id="section-penghasilan" class="scroll-mt-24">
             <label class="block font-medium text-slate-700 mb-1">Penghasilan Orang Tua / Bulan</label>
             <select
               v-model="form.parentIncome"
@@ -287,7 +287,7 @@
         <button
           type="submit"
           :disabled="isSaving"
-          class="px-6 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2 disabled:opacity-70"
+          class="w-full sm:w-auto px-6 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70"
         >
           <svg v-if="isSaving" class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -301,9 +301,9 @@
     <!-- Modal Scanner OCR KTP (Integrasi services/ocr-service) -->
     <div
       v-if="isOcrModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn"
+      class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn"
     >
-      <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 relative max-h-[90vh] overflow-y-auto">
+      <div class="bg-white rounded-2xl sm:rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl border border-slate-200 relative max-h-[88vh] overflow-y-auto">
         <!-- Modal Header -->
         <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
           <div class="flex items-center gap-2.5">
@@ -483,18 +483,18 @@
             <span>Klik tombol <strong>"Terapkan ke Formulir"</strong> di bawah untuk otomatis mengisi kolom formulir biodata Anda.</span>
           </div>
 
-          <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
             <button
               type="button"
               @click="ocrState = 'idle'"
-              class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+              class="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer text-center"
             >
               Pindai Ulang
             </button>
             <button
               type="button"
               @click="applyOcrToForm"
-              class="px-5 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
+              class="w-full sm:w-auto px-5 py-2.5 sm:py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
             >
               <span>✓ Terapkan ke Formulir Biodata</span>
             </button>
@@ -525,7 +525,7 @@
             <button
               type="button"
               @click="ocrState = 'idle'"
-              class="px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded-xl shadow-md transition-all cursor-pointer"
+              class="w-full sm:w-auto px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded-xl shadow-md transition-all cursor-pointer"
             >
               Coba Unggah Foto Lain
             </button>

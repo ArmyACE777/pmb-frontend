@@ -3,14 +3,14 @@
     <!-- Header Modul -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
       <div>
-        <h2 class="font-sora font-bold text-lg text-slate-900">
+        <h2 class="font-sora font-bold text-base sm:text-lg text-slate-900">
           Jalur Pendaftaran & Pilihan Program Studi
         </h2>
         <p class="text-xs text-slate-500 mt-0.5">
           Tentukan program studi prioritas utama dan alternatif pada Tahun Akademik 2026/2027.
         </p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 self-start sm:self-auto">
         <span
           class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold font-sora border transition-colors"
           :class="applicantStore.isAdmissionComplete ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'"
@@ -36,13 +36,13 @@
     </div>
 
     <!-- Status Gelombang & Kuota Banner -->
-    <div class="bg-gradient-to-r from-[#1E3A8A] to-[#1e40af] text-white rounded-2xl p-5 sm:p-6 shadow-sm relative overflow-hidden">
+    <div class="bg-gradient-to-r from-[#1E3A8A] to-[#1e40af] text-white rounded-2xl p-4 sm:p-6 shadow-sm relative overflow-hidden">
       <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div class="text-[11px] font-semibold text-amber-300 uppercase tracking-wider font-sora">
             Informasi Gelombang Aktif
           </div>
-          <h3 class="text-lg sm:text-xl font-sora font-extrabold mt-1 text-white">
+          <h3 class="text-base sm:text-xl font-sora font-extrabold mt-1 text-white">
             Gelombang 1 - TA 2026/2027
           </h3>
           <p class="text-xs text-blue-100/90 mt-1 max-w-xl leading-relaxed">
@@ -50,10 +50,10 @@
           </p>
         </div>
 
-        <div class="flex items-center gap-4 bg-white/10 backdrop-blur-sm border border-white/15 px-4 py-3 rounded-xl flex-shrink-0">
+        <div class="flex items-center justify-between sm:justify-start gap-4 bg-white/10 backdrop-blur-sm border border-white/15 p-3 sm:px-4 sm:py-3 rounded-xl flex-shrink-0 w-full md:w-auto">
           <div>
             <div class="text-[10px] text-blue-200 uppercase font-bold tracking-wider">Sisa Kuota Gel. 1</div>
-            <div class="font-sora font-extrabold text-xl text-amber-300">
+            <div class="font-sora font-extrabold text-lg sm:text-xl text-amber-300">
               {{ applicantStore.state.admission.quotaWave1 }} <span class="text-xs font-normal text-white">Kursi</span>
             </div>
           </div>

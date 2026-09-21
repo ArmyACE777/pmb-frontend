@@ -3,14 +3,14 @@
     <!-- Header Meja Kerja -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
       <div>
-        <h2 class="font-sora font-bold text-lg text-slate-900">
+        <h2 class="font-sora font-bold text-base sm:text-lg text-slate-900">
           Meja Verifikasi & Validasi Berkas Pendaftar
         </h2>
         <p class="text-xs text-slate-500 mt-0.5">
           Periksa keabsahan pindaian ijazah, identitas kependudukan, pas foto, dan surat keterangan sehat.
         </p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 self-start sm:self-auto">
         <span class="px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-full text-xs font-semibold font-sora">
           {{ pendingCount }} Berkas Membutuhkan Tindakan
         </span>
@@ -32,13 +32,13 @@
     </div>
 
     <!-- Filter & Search Controls Bar -->
-    <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+    <div class="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
       <!-- Search Input -->
       <div class="relative flex-1">
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Cari berdasarkan nama, No. Registrasi, atau NIK..."
+          placeholder="Cari nama, No. Registrasi, NIK..."
           class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 focus:border-[#1E3A8A] focus:bg-white rounded-xl text-xs outline-none text-slate-800 transition-colors"
         />
         <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,12 +47,12 @@
       </div>
 
       <!-- Status Filter Tabs -->
-      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 text-xs">
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 md:pb-0 text-xs -mx-1 px-1">
         <button
           v-for="filter in filters"
           :key="filter.id"
           @click="selectedFilter = filter.id"
-          class="px-3 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap cursor-pointer"
+          class="px-3 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap cursor-pointer flex-shrink-0"
           :class="selectedFilter === filter.id
             ? 'bg-[#1E3A8A] text-white font-semibold'
             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
@@ -65,7 +65,7 @@
     <!-- Applicants Document Table -->
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs text-slate-700">
+        <table class="w-full text-left text-xs text-slate-700 min-w-[720px]">
           <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-sora uppercase text-[10px] tracking-wider">
             <tr>
               <th class="py-3.5 px-4 font-bold">No. Registrasi / NIK</th>

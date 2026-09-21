@@ -3,17 +3,17 @@
     <!-- Header Meja Kerja -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
       <div>
-        <h2 class="font-sora font-bold text-lg text-slate-900">
+        <h2 class="font-sora font-bold text-base sm:text-lg text-slate-900">
           Meja Rekonsiliasi Keuangan & Virtual Account
         </h2>
         <p class="text-xs text-slate-500 mt-0.5">
           Pantau transaksi biaya formulir PMB dan pelunasan UKT Semester 1 via BSI & Mandiri.
         </p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 self-start sm:self-auto">
         <button
           @click="exportCsv"
-          class="px-3.5 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+          class="w-full sm:w-auto px-3.5 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -68,6 +68,63 @@
       </div>
     </div>
 
+    <!-- Charts Section: Visualisasi Keuangan PMB -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Chart 1: Komposisi Penerimaan Kas (Formulir vs UKT) -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <h3 class="font-sora font-bold text-slate-900 text-sm">
+              Proporsi Penerimaan Dana PMB
+            </h3>
+            <p class="text-xs text-slate-500">Biaya Formulir Registrasi vs UKT Semester 1</p>
+          </div>
+          <span class="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+            Rp {{ (totalRevenue).toLocaleString('id-ID') }}
+          </span>
+        </div>
+        <div class="h-56 my-2 flex items-center justify-center">
+          <DoughnutChart
+            v-if="totalRevenue > 0"
+            :chart-data="revenueDoughnutData"
+          />
+          <div v-else class="text-xs text-slate-400 italic py-8 text-center">
+            Belum ada pembayaran yang terkonfirmasi lunas.
+          </div>
+        </div>
+        <div class="text-[11px] text-slate-400 text-center pt-2 border-t border-slate-100">
+          Formulir Lunas: Rp {{ totalRegFeePaid.toLocaleString('id-ID') }} • UKT Lunas: Rp {{ totalUktFeePaid.toLocaleString('id-ID') }}
+        </div>
+      </div>
+
+      <!-- Chart 2: Pangsa Kanal Virtual Account (BSI vs Mandiri) -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <h3 class="font-sora font-bold text-slate-900 text-sm">
+              Distribusi Kanal Host-to-Host Virtual Account
+            </h3>
+            <p class="text-xs text-slate-500">Transaksi terverifikasi melalui Bank BSI & Mandiri</p>
+          </div>
+          <span class="text-xs font-mono font-bold text-[#1E3A8A] bg-blue-50 px-2 py-0.5 rounded">
+            {{ totalPaidTrx }} Transaksi Lunas
+          </span>
+        </div>
+        <div class="h-56 my-2 flex items-center justify-center">
+          <DoughnutChart
+            v-if="totalPaidTrx > 0"
+            :chart-data="channelDoughnutData"
+          />
+          <div v-else class="text-xs text-slate-400 italic py-8 text-center">
+            Belum ada transaksi Virtual Account terbayar.
+          </div>
+        </div>
+        <div class="text-[11px] text-slate-400 text-center pt-2 border-t border-slate-100">
+          Bank BSI (Syariah): {{ bsiCount }} trx • Bank Mandiri: {{ mandiriCount }} trx
+        </div>
+      </div>
+    </div>
+
     <!-- Transactions Table -->
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
       <div class="p-4 border-b border-slate-100 flex items-center justify-between">
@@ -78,7 +135,7 @@
       </div>
 
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs text-slate-700">
+        <table class="w-full text-left text-xs text-slate-700 min-w-[680px]">
           <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-sora uppercase text-[10px] tracking-wider">
             <tr>
               <th class="py-3.5 px-4 font-bold">No. Invoice</th>
@@ -184,6 +241,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useAdminStore } from '@/stores/admin';
+import DoughnutChart from '@/components/charts/DoughnutChart.vue';
 
 const adminStore = useAdminStore();
 const toastMessage = ref('');
@@ -200,6 +258,32 @@ const regFeePercent = computed(() => {
   if (!adminStore.applicants.length) return 0;
   return Math.round((paidRegFeeCount.value / adminStore.applicants.length) * 100);
 });
+
+const totalRegFeePaid = computed(() => {
+  return adminStore.applicants
+    .filter((a) => a.payments?.registrationFee?.status === 'paid')
+    .reduce((acc, a) => acc + (a.payments.registrationFee.amount || 250000), 0);
+});
+
+const totalUktFeePaid = computed(() => {
+  return adminStore.applicants
+    .filter((a) => a.payments?.uktFee?.status === 'paid')
+    .reduce((acc, a) => acc + (a.payments.uktFee.amount || 0), 0);
+});
+
+const totalRevenue = computed(() => totalRegFeePaid.value + totalUktFeePaid.value);
+
+const revenueDoughnutData = computed(() => ({
+  labels: ['Biaya Formulir Pendaftaran', 'Pelunasan UKT Semester 1'],
+  datasets: [
+    {
+      data: [totalRegFeePaid.value, totalUktFeePaid.value],
+      backgroundColor: ['#F59E0B', '#1E3A8A'],
+      borderWidth: 2,
+      borderColor: '#FFFFFF',
+    },
+  ],
+}));
 
 const allTransactions = computed(() => {
   const list = [];
@@ -237,8 +321,20 @@ const allTransactions = computed(() => {
 const bsiCount = computed(() => allTransactions.value.filter((t) => t.method?.toLowerCase().includes('bsi') && t.status === 'paid').length);
 const mandiriCount = computed(() => allTransactions.value.filter((t) => t.method?.toLowerCase().includes('mandiri') && t.status === 'paid').length);
 const totalPaidTrx = computed(() => bsiCount.value + mandiriCount.value);
-const bsiPercent = computed(() => (totalPaidTrx.value ? Math.round((bsiCount.value / totalPaidTrx.value) * 100) : 75));
-const mandiriPercent = computed(() => (totalPaidTrx.value ? 100 - bsiPercent.value : 25));
+const bsiPercent = computed(() => (totalPaidTrx.value ? Math.round((bsiCount.value / totalPaidTrx.value) * 100) : 0));
+const mandiriPercent = computed(() => (totalPaidTrx.value ? Math.round((mandiriCount.value / totalPaidTrx.value) * 100) : 0));
+
+const channelDoughnutData = computed(() => ({
+  labels: ['Bank BSI Virtual Account', 'Bank Mandiri Virtual Account'],
+  datasets: [
+    {
+      data: [bsiCount.value, mandiriCount.value],
+      backgroundColor: ['#059669', '#2563EB'],
+      borderWidth: 2,
+      borderColor: '#FFFFFF',
+    },
+  ],
+}));
 
 const confirmManual = (trx) => {
   adminStore.confirmPayment(trx.applicantId, trx.typeKey);
