@@ -79,15 +79,15 @@
           </button>
         </div>
 
-        <!-- 5 Desks Horizontal Tabs -->
-        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        <!-- 7 Desks Horizontal Tabs (Fitur 1-13 Lengkap Sesuai Timeline) -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
           <button
             v-for="desk in desks"
             :key="desk.id"
             @click="activeDesk = desk.id"
             class="p-2.5 rounded-xl border text-center transition-all flex flex-col items-center justify-between group cursor-pointer"
             :class="activeDesk === desk.id
-              ? 'bg-blue-50/90 border-[#1E3A8A] text-[#1E3A8A] ring-2 ring-blue-100'
+              ? 'bg-blue-50/90 border-[#1E3A8A] text-[#1E3A8A] ring-2 ring-blue-100 shadow-xs'
               : 'bg-white border-slate-200/70 hover:bg-slate-50 text-slate-600'"
           >
             <div class="flex items-center gap-1.5 mb-1">
@@ -121,8 +121,14 @@
         <!-- Meja 4: Seleksi CBT & Wawancara -->
         <SelectionScoringDesk v-else-if="activeDesk === 'scoring'" />
 
-        <!-- Meja 5: Penerbitan NIM & Onboarding -->
+        <!-- Meja 5: Penetapan NIM & Onboarding -->
         <StudentEnrolmentDesk v-else-if="activeDesk === 'enrolment'" />
+
+        <!-- Meja 6: Dashboard Institusional Multi-Tingkat (Fitur 12 Timeline) -->
+        <InstitutionalDashboardDesk v-else-if="activeDesk === 'institutional'" />
+
+        <!-- Meja 7: Pusat Pelaporan & Broadcast Notifikasi (Fitur 13 Timeline) -->
+        <ReportingNotificationDesk v-else-if="activeDesk === 'reporting'" />
       </main>
     </div>
 
@@ -144,6 +150,8 @@ import DocumentVerificationDesk from '@/components/admin/DocumentVerificationDes
 import PaymentReconciliationDesk from '@/components/admin/PaymentReconciliationDesk.vue';
 import SelectionScoringDesk from '@/components/admin/SelectionScoringDesk.vue';
 import StudentEnrolmentDesk from '@/components/admin/StudentEnrolmentDesk.vue';
+import InstitutionalDashboardDesk from '@/components/admin/InstitutionalDashboardDesk.vue';
+import ReportingNotificationDesk from '@/components/admin/ReportingNotificationDesk.vue';
 
 const adminStore = useAdminStore();
 const activeDesk = ref('overview');
@@ -177,6 +185,18 @@ const desks = computed(() => [
     id: 'enrolment',
     title: '5. Penetapan NIM',
     subtitle: 'Plotting PKKMB',
+    badge: null,
+  },
+  {
+    id: 'institutional',
+    title: '6. Dashboard Institusi',
+    subtitle: 'Rektor, Dekan, Prodi',
+    badge: 'Pro',
+  },
+  {
+    id: 'reporting',
+    title: '7. Laporan & Broadcast',
+    subtitle: 'Ekspor & notifikasi',
     badge: null,
   },
 ]);
