@@ -199,7 +199,7 @@ const handleVerifyOtp = async () => {
 
   try {
     await authStore.verifyOtp(email.value, otpCode);
-    router.push({ path: '/login', query: { registered: 'true' } });
+    router.push('/dashboard');
   } catch (err) {
     const data = err.response?.data;
     if (data?.error_code === 'OTP_LOCKED') {
@@ -208,6 +208,12 @@ const handleVerifyOtp = async () => {
     }
     if (data?.error_code === 'OTP_EXPIRED') {
       errorMessage.value = 'Masa berlaku kode OTP telah habis (10 menit). Silakan minta kode baru.';
+      return;
+    }
+    if (data?.error_code === 'OTP_INVALID') {
+      errorMessage.value = data?.message || 'Kode OTP tidak cocok. Periksa 6 digit kode pada email Anda.';
+      otpDigits.value = ['', '', '', '', '', ''];
+      otpInputs.value[0]?.focus();
       return;
     }
     errorMessage.value = data?.message || 'Kode OTP salah. Silakan periksa kembali.';
@@ -229,7 +235,12 @@ const handleResendOtp = async () => {
     successMessage.value = 'Kode OTP baru telah berhasil dikirim ke email Anda!';
     startCooldown();
   } catch (err) {
-    errorMessage.value = err.response?.data?.message || 'Gagal mengirim ulang kode OTP.';
+    const data = err.response?.data;
+    if (data?.error_code === 'OTP_RESEND_COOLDOWN') {
+      errorMessage.value = 'Mohon tunggu 60 detik sebelum dapat meminta kode OTP baru lagi.';
+    } else {
+      errorMessage.value = data?.message || err.response?.data?.message || 'Gagal mengirim ulang kode OTP.';
+    }
   } finally {
     isResending.value = false;
   }

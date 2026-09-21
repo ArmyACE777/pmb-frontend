@@ -342,8 +342,18 @@ const handleRegister = async () => {
       return;
     }
     const data = err.response?.data;
-    if (data?.error_code === 'EMAIL_ALREADY_EXISTS') {
-      errorMessage.value = 'Alamat email ini sudah terdaftar. Silakan gunakan email lain atau masuk.';
+    if (data?.error_code === 'EMAIL_TAKEN' || data?.error_code === 'EMAIL_ALREADY_EXISTS') {
+      errorMessage.value = 'Alamat email ini sudah terdaftar di sistem PMB. Silakan gunakan email lain atau langsung masuk.';
+      return;
+    }
+    if (data?.error_code === 'VALIDATION_ERROR' && data?.errors) {
+      const errList = Object.entries(data.errors).map(([field, msgs]) => {
+        const fieldName = field === 'full_name' ? 'Nama' : field === 'phone' ? 'No HP' : field === 'password' ? 'Kata Sandi' : field;
+        return `${fieldName}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`;
+      });
+      errorMessage.value = errList.length > 0 
+        ? errList.join(' | ') 
+        : (data.message || 'Data pendaftaran belum memenuhi syarat validasi server.');
       return;
     }
     errorMessage.value = data?.message || 'Registrasi gagal diproses. Silakan periksa kembali formulir Anda.';

@@ -48,6 +48,20 @@
       <button @click="toastMessage = ''" class="text-emerald-600 hover:text-emerald-900 font-bold text-sm leading-none">&times;</button>
     </div>
 
+    <!-- Alert Error Feedback -->
+    <div
+      v-if="errorMessage"
+      class="p-3.5 bg-red-50 border border-red-200 text-red-800 rounded-xl text-xs flex items-center justify-between animate-fadeIn"
+    >
+      <div class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span>{{ errorMessage }}</span>
+      </div>
+      <button @click="errorMessage = ''" class="text-red-600 hover:text-red-900 font-bold text-sm leading-none">&times;</button>
+    </div>
+
     <!-- Panduan Unggah Berkas Banner -->
     <div class="bg-blue-50/70 border border-blue-200/80 rounded-2xl p-5 text-xs">
       <div class="flex items-start gap-3">
@@ -266,10 +280,12 @@ const uploadedCount = computed(() => {
 const fileInputRef = ref(null);
 const activeDocIdToUpload = ref(null);
 const toastMessage = ref('');
+const errorMessage = ref('');
 const selectedPreviewDoc = ref(null);
 
 const triggerUpload = (docId) => {
   activeDocIdToUpload.value = docId;
+  errorMessage.value = '';
   if (fileInputRef.value) {
     fileInputRef.value.value = '';
     fileInputRef.value.click();
@@ -280,6 +296,29 @@ const handleFileUpload = (e) => {
   const file = e.target.files?.[0];
   if (!file || !activeDocIdToUpload.value) return;
 
+  errorMessage.value = '';
+  toastMessage.value = '';
+
+  // 1. Validasi Ekstensi & MIME Format (FILE_TYPE_NOT_ALLOWED)
+  const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png'];
+  const ext = file.name.includes('.') ? '.' + file.name.split('.').pop().toLowerCase() : '';
+  const allowedMimes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+
+  if (!allowedExtensions.includes(ext) && !allowedMimes.includes(file.type)) {
+    errorMessage.value = `Format berkas "${file.name}" tidak didukung (FILE_TYPE_NOT_ALLOWED). Harap unggah berkas bertipe PDF, JPG, atau PNG.`;
+    activeDocIdToUpload.value = null;
+    return;
+  }
+
+  // 2. Validasi Batas Ukuran Maksimal 2 MB (FILE_TOO_LARGE)
+  const MAX_BYTES = 2 * 1024 * 1024;
+  if (file.size > MAX_BYTES) {
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+    errorMessage.value = `Ukuran berkas "${file.name}" (${sizeMb} MB) melebihi batas maksimal 2 MB (FILE_TOO_LARGE). Silakan perkecil resolusi atau kompres dokumen Anda.`;
+    activeDocIdToUpload.value = null;
+    return;
+  }
+
   const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
   const formattedSize = sizeMb > 0.1 ? `${sizeMb} MB` : `${Math.round(file.size / 1024)} KB`;
 
@@ -288,7 +327,7 @@ const handleFileUpload = (e) => {
     size: formattedSize,
   });
 
-  toastMessage.value = `Berkas "${file.name}" berhasil diunggah dan sedang dalam antrean verifikasi tim PMB.`;
+  toastMessage.value = `Berkas "${file.name}" (${formattedSize}) berhasil diunggah dan memenuhi validasi persyaratan PMB.`;
   activeDocIdToUpload.value = null;
 };
 

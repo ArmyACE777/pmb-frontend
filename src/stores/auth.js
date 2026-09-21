@@ -9,7 +9,10 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref(JSON.parse(localStorage.getItem('user') || 'null'));
   const isLoading = ref(false);
   const error = ref(null);
+  const errorCode = ref(null);
+  const fieldErrors = ref({});
 
+  const token = computed(() => accessToken.value);
   const isAuthenticated = computed(() => !!accessToken.value);
   const currentUser = computed(() => user.value);
   const userRoles = computed(() => user.value?.roles || []);
@@ -24,6 +27,18 @@ export const useAuthStore = defineStore('auth', () => {
       return null;
     }
   });
+
+  const clearApiError = () => {
+    error.value = null;
+    errorCode.value = null;
+    fieldErrors.value = {};
+  };
+
+  const setApiError = (err, defaultMsg) => {
+    error.value = err.response?.data?.message || defaultMsg;
+    errorCode.value = err.response?.data?.error_code || null;
+    fieldErrors.value = err.response?.data?.errors || {};
+  };
 
   const setAuth = (data) => {
     if (data.access_token) {
@@ -51,12 +66,12 @@ export const useAuthStore = defineStore('auth', () => {
 
   const register = async (form) => {
     isLoading.value = true;
-    error.value = null;
+    clearApiError();
     try {
       const res = await apiClient.post('/auth/register', form);
       return res.data;
     } catch (err) {
-      error.value = err.response?.data?.message || 'Pendaftaran gagal';
+      setApiError(err, 'Pendaftaran gagal');
       throw err;
     } finally {
       isLoading.value = false;
@@ -65,7 +80,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const verifyOtp = async (email, otp) => {
     isLoading.value = true;
-    error.value = null;
+    clearApiError();
     try {
       const res = await apiClient.post('/auth/verify', { email, otp });
       if (res.data?.data) {
@@ -73,7 +88,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
       return res.data;
     } catch (err) {
-      error.value = err.response?.data?.message || 'Verifikasi OTP gagal';
+      setApiError(err, 'Verifikasi OTP gagal');
       throw err;
     } finally {
       isLoading.value = false;
@@ -82,12 +97,12 @@ export const useAuthStore = defineStore('auth', () => {
 
   const resendOtp = async (email) => {
     isLoading.value = true;
-    error.value = null;
+    clearApiError();
     try {
       const res = await apiClient.post('/auth/resend-otp', { email });
       return res.data;
     } catch (err) {
-      error.value = err.response?.data?.message || 'Gagal mengirim ulang OTP';
+      setApiError(err, 'Gagal mengirim ulang OTP');
       throw err;
     } finally {
       isLoading.value = false;
@@ -96,7 +111,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const login = async (email, password) => {
     isLoading.value = true;
-    error.value = null;
+    clearApiError();
     try {
       const res = await apiClient.post('/auth/login', { email, password });
       if (res.data?.data) {
@@ -104,7 +119,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
       return res.data;
     } catch (err) {
-      error.value = err.response?.data?.message || 'Login gagal';
+      setApiError(err, 'Login gagal');
       throw err;
     } finally {
       isLoading.value = false;
@@ -114,6 +129,7 @@ export const useAuthStore = defineStore('auth', () => {
   const refreshSession = async () => {
     if (!refreshToken.value) throw new Error('No refresh token available');
     isLoading.value = true;
+    clearApiError();
     try {
       const res = await apiClient.post('/auth/refresh', {
         refresh_token: refreshToken.value,
@@ -123,6 +139,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
       return res.data;
     } catch (err) {
+      setApiError(err, 'Sesi berakhir');
       clearAuth();
       throw err;
     } finally {
@@ -132,12 +149,12 @@ export const useAuthStore = defineStore('auth', () => {
 
   const forgotPassword = async (email) => {
     isLoading.value = true;
-    error.value = null;
+    clearApiError();
     try {
       const res = await apiClient.post('/auth/forgot-password', { email });
       return res.data;
     } catch (err) {
-      error.value = err.response?.data?.message || 'Gagal mengirim email reset password';
+      setApiError(err, 'Gagal mengirim email reset password');
       throw err;
     } finally {
       isLoading.value = false;
@@ -146,7 +163,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const resetPassword = async (payloadOrToken, password, passwordConfirmation) => {
     isLoading.value = true;
-    error.value = null;
+    clearApiError();
     let data;
     if (typeof payloadOrToken === 'object' && payloadOrToken !== null) {
       data = payloadOrToken;
@@ -161,7 +178,7 @@ export const useAuthStore = defineStore('auth', () => {
       const res = await apiClient.post('/auth/reset-password', data);
       return res.data;
     } catch (err) {
-      error.value = err.response?.data?.message || 'Gagal mereset kata sandi';
+      setApiError(err, 'Gagal mereset kata sandi');
       throw err;
     } finally {
       isLoading.value = false;
@@ -170,6 +187,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const fetchProfile = async () => {
     isLoading.value = true;
+    clearApiError();
     try {
       const res = await apiClient.get('/auth/me');
       if (res.data?.data) {
@@ -178,6 +196,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
       return res.data;
     } catch (err) {
+      setApiError(err, 'Gagal mengambil profil');
       throw err;
     } finally {
       isLoading.value = false;
@@ -186,6 +205,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const updateProfile = async (payload) => {
     isLoading.value = true;
+    clearApiError();
     try {
       const res = await apiClient.put('/auth/profile', payload);
       if (res.data?.data) {
@@ -194,6 +214,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
       return res.data;
     } catch (err) {
+      setApiError(err, 'Gagal memperbarui profil');
       throw err;
     } finally {
       isLoading.value = false;
@@ -202,10 +223,12 @@ export const useAuthStore = defineStore('auth', () => {
 
   const changePassword = async (payload) => {
     isLoading.value = true;
+    clearApiError();
     try {
       const res = await apiClient.put('/auth/password', payload);
       return res.data;
     } catch (err) {
+      setApiError(err, 'Gagal mengganti kata sandi');
       throw err;
     } finally {
       isLoading.value = false;
@@ -274,15 +297,19 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     accessToken,
     refreshToken,
+    token,
     user,
     isLoading,
     error,
+    errorCode,
+    fieldErrors,
     isAuthenticated,
     currentUser,
     userRoles,
     userScopes,
     isSuperAdmin,
     decodedToken,
+    clearApiError,
     setAuth,
     clearAuth,
     register,
