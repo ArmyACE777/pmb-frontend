@@ -329,6 +329,10 @@ export const useApplicantStore = defineStore('applicant', () => {
     return uploadedDocsCount.value >= 3;
   });
 
+  const isDocumentsVerified = computed(() => {
+    return state.value.documents.length > 0 && state.value.documents.every((d) => d.status === 'verified');
+  });
+
   const isRegPaymentComplete = computed(() => {
     return state.value.payments.registrationFee.status === 'paid';
   });
@@ -402,7 +406,7 @@ export const useApplicantStore = defineStore('applicant', () => {
         label: 'Menunggu Pembayaran Formulir',
         shortLabel: 'Menunggu Bayar',
         theme: 'amber',
-        description: 'Berkas persyaratan lengkap. Selesaikan pembayaran biaya formulir untuk aktivasi sesi CBT.',
+        description: 'Berkas persyaratan berhasil diunggah (dalam peninjauan panitia). Selesaikan pembayaran formulir untuk aktivasi sesi CBT.',
       };
     }
     if (isAdmissionComplete.value) {
@@ -551,6 +555,7 @@ export const useApplicantStore = defineStore('applicant', () => {
     isAdmissionComplete,
     uploadedDocsCount,
     isDocumentsComplete,
+    isDocumentsVerified,
     isRegPaymentComplete,
     isScheduleReady,
     isExamCompleted,

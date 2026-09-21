@@ -13,22 +13,38 @@
       <div class="flex items-center gap-2">
         <span
           class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold font-sora border transition-colors"
-          :class="applicantStore.isDocumentsComplete
+          :class="isAllVerified
             ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-            : uploadedCount > 0
-              ? 'bg-blue-50 text-[#1E3A8A] border border-blue-200'
-              : 'bg-amber-50 text-amber-700 border border-amber-200'"
+            : hasRevision
+              ? 'bg-rose-50 text-rose-700 border-rose-200'
+              : isAllUploaded
+                ? 'bg-blue-50 text-[#1E3A8A] border-blue-200'
+                : uploadedCount > 0
+                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                  : 'bg-slate-50 text-slate-600 border-slate-200'"
         >
           <span
             class="w-1.5 h-1.5 rounded-full"
-            :class="applicantStore.isDocumentsComplete ? 'bg-emerald-500' : uploadedCount > 0 ? 'bg-blue-500' : 'bg-amber-500'"
+            :class="isAllVerified
+              ? 'bg-emerald-500'
+              : hasRevision
+                ? 'bg-rose-500'
+                : isAllUploaded
+                  ? 'bg-blue-500'
+                  : uploadedCount > 0
+                    ? 'bg-amber-500'
+                    : 'bg-slate-400'"
           ></span>
           <span>
-            {{ applicantStore.isDocumentsComplete
-              ? `${verifiedCount} dari ${documents.length} Berkas Lengkap`
-              : uploadedCount > 0
-                ? `${uploadedCount} dari ${documents.length} Berkas Diunggah`
-                : 'Belum Ada Berkas Diunggah' }}
+            {{ isAllVerified
+              ? 'Seluruh Berkas Sah & Terverifikasi'
+              : hasRevision
+                ? 'Ada Berkas Perlu Perbaikan'
+                : isAllUploaded
+                  ? `${uploadedCount} Berkas Diunggah (Menunggu Verifikasi)`
+                  : uploadedCount > 0
+                    ? `${uploadedCount} dari ${documents.length} Berkas Diunggah`
+                    : 'Belum Ada Berkas Diunggah' }}
           </span>
         </span>
       </div>
@@ -337,6 +353,18 @@ const uploadedCount = computed(() => {
   return documents.value.filter((d) => d.status !== 'unuploaded').length;
 });
 
+const isAllVerified = computed(() => {
+  return documents.value.length > 0 && documents.value.every((d) => d.status === 'verified');
+});
+
+const isAllUploaded = computed(() => {
+  return documents.value.length > 0 && documents.value.every((d) => d.status !== 'unuploaded');
+});
+
+const hasRevision = computed(() => {
+  return documents.value.some((d) => d.status === 'revision');
+});
+
 const fileInputRef = ref(null);
 const activeDocIdToUpload = ref(null);
 const toastMessage = ref('');
@@ -398,7 +426,7 @@ const handleFileUpload = (e) => {
     fileType: detectedType,
   });
 
-  toastMessage.value = `Berkas "${file.name}" (${formattedSize}) berhasil diunggah dan memenuhi validasi persyaratan PMB.`;
+  toastMessage.value = `Berkas "${file.name}" (${formattedSize}) berhasil diunggah. Format dan ukuran valid, berkas saat ini berstatus 'Sedang Ditinjau' oleh panitia PMB.`;
   activeDocIdToUpload.value = null;
 };
 
