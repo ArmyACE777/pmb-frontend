@@ -419,7 +419,15 @@ export const useApplicantStore = defineStore('applicant', () => {
         label: 'Sesi Ujian CBT Aktif',
         shortLabel: 'Siap Ujian CBT',
         theme: 'indigo',
-        description: 'Biaya formulir lunas. Silakan ikuti Ujian CBT Online sesuai jadwal yang ditentukan.',
+        description: 'Biaya formulir lunas dikonfirmasi admin. Silakan ikuti Ujian CBT Online sesuai jadwal yang ditentukan.',
+      };
+    }
+    if (state.value.payments.registrationFee.status === 'pending_confirmation') {
+      return {
+        label: 'Menunggu Konfirmasi Pembayaran Admin',
+        shortLabel: 'Verifikasi Bayar',
+        theme: 'amber',
+        description: 'Pembayaran formulir telah dikirimkan. Menunggu verifikasi dan konfirmasi lunas oleh admin keuangan.',
       };
     }
     if (isDocumentsComplete.value) {
@@ -504,15 +512,31 @@ export const useApplicantStore = defineStore('applicant', () => {
     }
   };
 
-  const payRegFee = () => {
+  const submitRegPayment = (note = 'Pengajuan pembayaran via Virtual Account BSI') => {
+    state.value.payments.registrationFee.status = 'pending_confirmation';
+    state.value.payments.registrationFee.statusLabel = 'Menunggu Konfirmasi Admin';
+    state.value.payments.registrationFee.submittedAt = new Date().toLocaleString('id-ID');
+    state.value.payments.registrationFee.notes = note;
+  };
+
+  const payRegFee = (confirmedBy = 'Panitia PMB / Biro Keuangan BTH') => {
     state.value.payments.registrationFee.status = 'paid';
-    state.value.payments.registrationFee.statusLabel = 'Lunas';
+    state.value.payments.registrationFee.statusLabel = 'Lunas (Dikonfirmasi Admin)';
+    state.value.payments.registrationFee.confirmedBy = confirmedBy;
     state.value.payments.registrationFee.paidAt = new Date().toLocaleString('id-ID');
   };
 
-  const payUktFee = () => {
+  const submitUktPayment = (note = 'Pengajuan pelunasan UKT Semester 1 via Virtual Account') => {
+    state.value.payments.uktFee.status = 'pending_confirmation';
+    state.value.payments.uktFee.statusLabel = 'Menunggu Konfirmasi Admin';
+    state.value.payments.uktFee.submittedAt = new Date().toLocaleString('id-ID');
+    state.value.payments.uktFee.notes = note;
+  };
+
+  const payUktFee = (confirmedBy = 'Panitia PMB / Biro Keuangan BTH') => {
     state.value.payments.uktFee.status = 'paid';
-    state.value.payments.uktFee.statusLabel = 'Lunas';
+    state.value.payments.uktFee.statusLabel = 'Lunas (Dikonfirmasi Admin)';
+    state.value.payments.uktFee.confirmedBy = confirmedBy;
     state.value.payments.uktFee.paidAt = new Date().toLocaleString('id-ID');
 
     if (!state.value.onboarding.nim) {
@@ -594,7 +618,9 @@ export const useApplicantStore = defineStore('applicant', () => {
     updateProfile,
     updateAdmission,
     uploadDocument,
+    submitRegPayment,
     payRegFee,
+    submitUktPayment,
     payUktFee,
     submitExam,
     resetAllData,

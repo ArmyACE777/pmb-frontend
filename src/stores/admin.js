@@ -407,15 +407,19 @@ export const useAdminStore = defineStore('admin', () => {
         registrationFee: {
           id: payments?.registrationFee?.id || existingApplicant?.payments?.registrationFee?.id || `INV-REG-${regNo.slice(-5)}`,
           amount: payments?.registrationFee?.amount || 250000,
-          status: payments?.registrationFee?.status || 'unpaid',
-          paidAt: payments?.registrationFee?.paidAt || null,
+          status: payments?.registrationFee?.status || existingApplicant?.payments?.registrationFee?.status || 'unpaid',
+          paidAt: payments?.registrationFee?.paidAt || existingApplicant?.payments?.registrationFee?.paidAt || null,
+          submittedAt: payments?.registrationFee?.submittedAt || existingApplicant?.payments?.registrationFee?.submittedAt || null,
+          confirmedBy: payments?.registrationFee?.confirmedBy || existingApplicant?.payments?.registrationFee?.confirmedBy || null,
           method: payments?.registrationFee?.paymentMethod || 'Virtual Account BSI',
         },
         uktFee: {
           id: payments?.uktFee?.id || existingApplicant?.payments?.uktFee?.id || `INV-UKT-${regNo.slice(-5)}`,
           amount: payments?.uktFee?.amount || 6500000,
-          status: payments?.uktFee?.status || 'unpaid',
-          paidAt: payments?.uktFee?.paidAt || null,
+          status: payments?.uktFee?.status || existingApplicant?.payments?.uktFee?.status || 'unpaid',
+          paidAt: payments?.uktFee?.paidAt || existingApplicant?.payments?.uktFee?.paidAt || null,
+          submittedAt: payments?.uktFee?.submittedAt || existingApplicant?.payments?.uktFee?.submittedAt || null,
+          confirmedBy: payments?.uktFee?.confirmedBy || existingApplicant?.payments?.uktFee?.confirmedBy || null,
           dueDate: payments?.uktFee?.dueDate || '30 April 2026',
           method: 'Virtual Account BSI / Mandiri',
         },
@@ -533,23 +537,29 @@ export const useAdminStore = defineStore('admin', () => {
     }
   };
 
-  // Action: Konfirmasi pelunasan tagihan VA
+  // Action: Konfirmasi pelunasan tagihan VA oleh admin
   const confirmPayment = (applicantId, paymentType) => {
     const applicant = applicants.value.find((a) => a.id === applicantId);
     if (!applicant) return;
 
     const nowStr = new Date().toLocaleString('id-ID');
+    const confirmedBy = 'Panitia PMB / Biro Keuangan BTH';
+
     if (paymentType === 'uktFee') {
       applicant.payments.uktFee.status = 'paid';
+      applicant.payments.uktFee.statusLabel = 'Lunas (Dikonfirmasi Admin)';
       applicant.payments.uktFee.paidAt = nowStr;
+      applicant.payments.uktFee.confirmedBy = confirmedBy;
       if (isCurrentApplicant(applicantId)) {
-        applicantStore.payUktFee();
+        applicantStore.payUktFee(confirmedBy);
       }
     } else if (paymentType === 'registrationFee') {
       applicant.payments.registrationFee.status = 'paid';
+      applicant.payments.registrationFee.statusLabel = 'Lunas (Dikonfirmasi Admin)';
       applicant.payments.registrationFee.paidAt = nowStr;
+      applicant.payments.registrationFee.confirmedBy = confirmedBy;
       if (isCurrentApplicant(applicantId)) {
-        applicantStore.payRegFee();
+        applicantStore.payRegFee(confirmedBy);
       }
     }
   };

@@ -36,7 +36,7 @@
 
     <!-- Tagihan Cards Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- 1. Biaya Formulir (LUNAS) -->
+      <!-- 1. Biaya Formulir -->
       <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
@@ -47,13 +47,19 @@
               class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold font-sora border"
               :class="regPayment.status === 'paid'
                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                : 'bg-amber-50 text-amber-700 border-amber-200'"
+                : regPayment.status === 'pending_confirmation'
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : 'bg-slate-100 text-slate-600 border-slate-200'"
             >
               <svg v-if="regPayment.status === 'paid'" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
-              <span v-else class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-              <span>{{ regPayment.statusLabel }}</span>
+              <svg v-else-if="regPayment.status === 'pending_confirmation'" class="w-3 h-3 animate-spin text-amber-600" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <span v-else class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+              <span>{{ regPayment.status === 'paid' ? 'Lunas (Dikonfirmasi Admin)' : regPayment.status === 'pending_confirmation' ? 'Menunggu Konfirmasi Admin' : 'Menunggu Pembayaran' }}</span>
             </span>
           </div>
 
@@ -74,25 +80,73 @@
               <span class="font-mono font-bold text-slate-800">{{ regPayment.vaNumber }}</span>
             </div>
             <div class="flex justify-between items-center text-slate-600">
-              <span class="text-slate-500">Waktu Pembayaran:</span>
-              <span :class="regPayment.status === 'paid' ? 'text-emerald-700 font-medium' : 'text-slate-400 italic'">
-                {{ regPayment.paidAt || 'Menunggu Pembayaran' }}
+              <span class="text-slate-500">Status Pembayaran:</span>
+              <span
+                class="font-semibold"
+                :class="regPayment.status === 'paid' ? 'text-emerald-700' : regPayment.status === 'pending_confirmation' ? 'text-amber-700' : 'text-slate-500'"
+              >
+                {{ regPayment.status === 'paid' ? 'Lunas (Dikonfirmasi Selesai oleh Admin)' : regPayment.status === 'pending_confirmation' ? 'Menunggu Konfirmasi Admin' : 'Menunggu Pembayaran' }}
               </span>
             </div>
+            <div v-if="regPayment.paidAt" class="flex justify-between items-center text-slate-600">
+              <span class="text-slate-500">Waktu Pelunasan:</span>
+              <span class="text-emerald-700 font-medium font-mono">
+                {{ regPayment.paidAt }}
+              </span>
+            </div>
+            <div v-if="regPayment.confirmedBy" class="flex justify-between items-center text-slate-600">
+              <span class="text-slate-500">Dikonfirmasi Oleh:</span>
+              <span class="text-emerald-800 font-medium">
+                {{ regPayment.confirmedBy }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Alert Box jika Sedang Menunggu Konfirmasi Admin -->
+          <div v-if="regPayment.status === 'pending_confirmation'" class="mt-3 bg-amber-50/80 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 space-y-1">
+            <div class="font-sora font-semibold flex items-center gap-1.5 text-amber-800">
+              <span class="inline-block w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+              <span>Menunggu Konfirmasi Selesai oleh Admin</span>
+            </div>
+            <p class="text-[11px] text-amber-800 leading-relaxed font-sans">
+              Pengajuan pembayaran telah diterima sistem pada <strong class="font-mono">{{ regPayment.submittedAt }}</strong>. Panitia/Admin Keuangan sedang memverifikasi transaksi. Status akan otomatis berubah menjadi Lunas setelah disahkan oleh admin.
+            </p>
           </div>
         </div>
 
         <div class="pt-5 border-t border-slate-100 mt-5">
+          <!-- State 1: Paid (Confirmed by Admin) -->
           <button
             v-if="regPayment.status === 'paid'"
             @click="openReceiptModal('reg')"
-            class="w-full py-2.5 bg-slate-100 hover:bg-[#1E3A8A] hover:text-white text-slate-700 text-xs font-sora font-semibold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+            class="w-full py-2.5 bg-slate-100 hover:bg-[#1E3A8A] hover:text-white text-slate-700 text-xs font-sora font-semibold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <span>Lihat Kwitansi Resmi Formulir</span>
           </button>
+
+          <!-- State 2: Waiting Admin Confirmation -->
+          <div v-else-if="regPayment.status === 'pending_confirmation'" class="space-y-2">
+            <router-link
+              to="/admin?demo=true"
+              class="w-full py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+            >
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Buka Meja Keuangan Admin (Konfirmasi Panitia)</span>
+            </router-link>
+            <button
+              @click="checkPaymentStatus"
+              class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-sora rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <span>Cek Status Konfirmasi Terkini</span>
+            </button>
+          </div>
+
+          <!-- State 3: Pending / Unpaid -->
           <button
             v-else
             @click="handlePayReg"
@@ -101,12 +155,12 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            <span>Konfirmasi Pembayaran Formulir</span>
+            <span>Saya Sudah Transfer (Ajukan Konfirmasi ke Admin)</span>
           </button>
         </div>
       </div>
 
-      <!-- 2. Biaya UKT Semester 1 (Menunggu / Lunas) -->
+      <!-- 2. Biaya UKT Semester 1 -->
       <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
@@ -114,13 +168,23 @@
               {{ uktPayment.id }}
             </span>
             <span
-              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold font-sora"
-              :class="isUktPaid ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : applicantStore.isResultPassed ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-slate-100 text-slate-600 border border-slate-200'"
+              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold font-sora border"
+              :class="isUktPaid
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : uktPayment.status === 'pending_confirmation'
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : applicantStore.isResultPassed
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : 'bg-slate-100 text-slate-600 border-slate-200'"
             >
               <svg v-if="isUktPaid" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
-              <span>{{ isUktPaid ? 'Lunas' : applicantStore.isResultPassed ? 'Menunggu Pembayaran' : 'Daftar Ulang' }}</span>
+              <svg v-else-if="uktPayment.status === 'pending_confirmation'" class="w-3 h-3 animate-spin text-amber-600" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <span>{{ isUktPaid ? 'Lunas (Dikonfirmasi Admin)' : uktPayment.status === 'pending_confirmation' ? 'Menunggu Konfirmasi Admin' : applicantStore.isResultPassed ? 'Menunggu Pembayaran' : 'Daftar Ulang' }}</span>
             </span>
           </div>
 
@@ -132,7 +196,7 @@
           </div>
 
           <!-- If Pre-Acceptance: Show info note -->
-          <div v-if="!applicantStore.isResultPassed && !isUktPaid" class="bg-blue-50/70 border border-blue-200/80 rounded-xl p-4 space-y-1.5 text-xs text-slate-600">
+          <div v-if="!applicantStore.isResultPassed && !isUktPaid && uktPayment.status !== 'pending_confirmation'" class="bg-blue-50/70 border border-blue-200/80 rounded-xl p-4 space-y-1.5 text-xs text-slate-600">
             <div class="font-sora font-semibold text-[#1E3A8A] flex items-center gap-1.5">
               <svg class="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -189,21 +253,36 @@
                 {{ uktPayment.vaMandiri }}
               </div>
             </div>
+
+            <!-- Alert Box jika Sedang Menunggu Konfirmasi UKT -->
+            <div v-if="uktPayment.status === 'pending_confirmation'" class="mt-3 bg-amber-50/80 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 space-y-1">
+              <div class="font-sora font-semibold flex items-center gap-1.5 text-amber-800">
+                <span class="inline-block w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                <span>Menunggu Konfirmasi Selesai oleh Admin</span>
+              </div>
+              <p class="text-[11px] text-amber-800 leading-relaxed font-sans">
+                Pelunasan UKT Semester 1 telah diajukan pada <strong class="font-mono">{{ uktPayment.submittedAt }}</strong>. Panitia/Admin Keuangan sedang merekonsiliasi pembayaran Anda.
+              </p>
+            </div>
           </div>
 
           <!-- If Paid: Show Paid Info -->
           <div v-else class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 space-y-2 text-xs">
             <div class="flex justify-between items-center text-slate-600">
               <span class="text-slate-500">Status Pembayaran:</span>
-              <span class="font-bold text-emerald-800">Lunas & Terverifikasi Otomatis</span>
+              <span class="font-bold text-emerald-800">Lunas & Dikonfirmasi Selesai oleh Admin</span>
             </div>
             <div class="flex justify-between items-center text-slate-600">
               <span class="text-slate-500">Kanal Pembayaran:</span>
-              <span class="font-medium text-slate-800">Virtual Account BSI</span>
+              <span class="font-medium text-slate-800">Virtual Account BSI / Mandiri</span>
             </div>
             <div class="flex justify-between items-center text-slate-600">
               <span class="text-slate-500">Waktu Pelunasan:</span>
-              <span class="text-emerald-700 font-medium">{{ uktPayment.paidAt }}</span>
+              <span class="text-emerald-700 font-medium font-mono">{{ uktPayment.paidAt }}</span>
+            </div>
+            <div v-if="uktPayment.confirmedBy" class="flex justify-between items-center text-slate-600">
+              <span class="text-slate-500">Dikonfirmasi Oleh:</span>
+              <span class="text-emerald-800 font-medium">{{ uktPayment.confirmedBy }}</span>
             </div>
           </div>
         </div>
@@ -217,24 +296,41 @@
             Aktif Pasca Pengumuman Kelulusan
           </button>
           <button
-            v-else-if="!isUktPaid"
+            v-else-if="isUktPaid"
+            @click="openReceiptModal('ukt')"
+            class="flex-1 py-2.5 bg-slate-100 hover:bg-[#1E3A8A] hover:text-white text-slate-700 text-xs font-sora font-semibold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span>Lihat Kwitansi Resmi UKT</span>
+          </button>
+          <div v-else-if="uktPayment.status === 'pending_confirmation'" class="w-full space-y-2">
+            <router-link
+              to="/admin?demo=true"
+              class="w-full py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+            >
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Buka Meja Keuangan Admin (Konfirmasi Panitia)</span>
+            </router-link>
+            <button
+              @click="checkPaymentStatus"
+              class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-sora rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <span>Cek Status Konfirmasi Terkini</span>
+            </button>
+          </div>
+          <button
+            v-else
             @click="handlePayUkt"
             class="flex-1 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            <span>Konfirmasi Pembayaran UKT</span>
-          </button>
-          <button
-            v-else
-            @click="openReceiptModal('ukt')"
-            class="flex-1 py-2.5 bg-slate-100 hover:bg-[#1E3A8A] hover:text-white text-slate-700 text-xs font-sora font-semibold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <span>Lihat Kwitansi Resmi UKT</span>
+            <span>Saya Sudah Transfer UKT (Ajukan Konfirmasi ke Admin)</span>
           </button>
         </div>
       </div>
@@ -439,8 +535,16 @@
                     <td class="py-1.5">
                       <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 font-mono font-bold text-[11px] border border-emerald-300 uppercase">
                         <span>✓</span>
-                        <span>LUNAS (SAH & TERVERIFIKASI SISTEM)</span>
+                        <span>LUNAS (DIKONFIRMASI SELESAI OLEH ADMIN KEUANGAN PMB)</span>
                       </span>
+                    </td>
+                  </tr>
+
+                  <tr class="align-top">
+                    <td class="py-1.5 font-semibold text-slate-700">Pengesahan / Verifikator</td>
+                    <td class="py-1.5 text-center font-bold">:</td>
+                    <td class="py-1.5 text-slate-800 text-xs font-medium">
+                      {{ selectedReceiptData.confirmedBy || 'Panitia Seleksi PMB / Biro Keuangan & Administrasi Universitas BTH' }}
                     </td>
                   </tr>
                 </tbody>
@@ -666,13 +770,23 @@ const copyText = async (text, label) => {
 };
 
 const handlePayReg = () => {
-  applicantStore.payRegFee();
-  toastMessage.value = 'Pembayaran Formulir Pendaftaran PMB sebesar Rp 250.000 berhasil dikonfirmasi lunas!';
+  applicantStore.submitRegPayment();
+  toastMessage.value = 'Bukti pembayaran formulir telah dikirimkan! Menunggu verifikasi dan konfirmasi selesai oleh Admin Keuangan PMB.';
 };
 
 const handlePayUkt = () => {
-  applicantStore.payUktFee();
-  toastMessage.value = 'Pembayaran UKT Semester 1 sebesar Rp 6.500.000 berhasil dilunasi via Virtual Account!';
+  applicantStore.submitUktPayment();
+  toastMessage.value = 'Bukti pelunasan UKT Semester 1 telah dikirimkan! Menunggu verifikasi dan konfirmasi selesai oleh Admin Keuangan PMB.';
+};
+
+const checkPaymentStatus = () => {
+  if (regPayment.value.status === 'paid') {
+    toastMessage.value = 'Status Terkini: Pembayaran formulir telah diverifikasi & dikonfirmasi LUNAS oleh Panitia PMB!';
+  } else if (regPayment.value.status === 'pending_confirmation') {
+    toastMessage.value = 'Status Terkini: Transaksi dalam antrean pemeriksaan Admin Keuangan. Mohon tunggu sesaat atau buka portal admin untuk konfirmasi.';
+  } else {
+    toastMessage.value = 'Status Terkini: Menunggu pembayaran dilakukan melalui Virtual Account / QRIS.';
+  }
 };
 
 const openReceiptModal = (type) => {

@@ -38,7 +38,7 @@
     </div>
 
     <!-- Summary Metrics Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
         <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Formulir Terbayar</div>
         <div class="font-sora font-extrabold text-2xl text-slate-900 mt-1">
@@ -47,13 +47,26 @@
         <div class="text-xs text-slate-500 mt-1">Rp 250.000 / formulir pendaftaran</div>
       </div>
 
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs" :class="pendingConfirmationCount > 0 ? 'border-amber-300 ring-1 ring-amber-200 bg-amber-50/30' : ''">
+        <div class="text-[11px] font-bold uppercase tracking-wider flex items-center justify-between" :class="pendingConfirmationCount > 0 ? 'text-amber-700' : 'text-slate-400'">
+          <span>Perlu Konfirmasi Admin</span>
+          <span v-if="pendingConfirmationCount > 0" class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+        </div>
+        <div class="font-sora font-extrabold text-2xl mt-1" :class="pendingConfirmationCount > 0 ? 'text-amber-600' : 'text-slate-900'">
+          {{ pendingConfirmationCount }} <span class="text-xs font-normal text-slate-500 font-sans">Transaksi</span>
+        </div>
+        <div class="text-xs mt-1 font-sans" :class="pendingConfirmationCount > 0 ? 'text-amber-800 font-medium' : 'text-slate-500'">
+          {{ pendingConfirmationCount > 0 ? 'Segera validasi transaksi pendaftar' : 'Semua pembayaran telah disahkan' }}
+        </div>
+      </div>
+
       <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
         <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pelunasan UKT Semester 1</div>
         <div class="font-sora font-extrabold text-2xl text-[#1E3A8A] mt-1">
-          {{ paidUktCount }} <span class="text-xs font-normal text-slate-500 font-sans">dari {{ adminStore.applicants.length }} Calon Mahasiswa</span>
+          {{ paidUktCount }} <span class="text-xs font-normal text-slate-500 font-sans">dari {{ adminStore.applicants.length }} Mhs</span>
         </div>
-        <div class="text-xs text-amber-600 font-medium mt-1">
-          {{ adminStore.applicants.length - paidUktCount }} Mahasiswa Menunggu Pembayaran
+        <div class="text-xs text-slate-500 mt-1">
+          Total Dana: Rp {{ totalUktFeePaid.toLocaleString('id-ID') }}
         </div>
       </div>
 
@@ -190,13 +203,22 @@
                   <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                   </svg>
-                  <span>Lunas</span>
+                  <span>Lunas (Disahkan)</span>
+                </span>
+                <span
+                  v-else-if="trx.status === 'pending_confirmation'"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-300 rounded-full text-[11px] font-semibold font-sora animate-pulse"
+                >
+                  <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Perlu Konfirmasi Admin</span>
                 </span>
                 <span
                   v-else
-                  class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[11px] font-semibold font-sora"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-full text-[11px] font-semibold font-sora"
                 >
-                  <svg class="w-3 h-3 animate-spin text-amber-600" fill="none" viewBox="0 0 24 24">
+                  <svg class="w-3 h-3 animate-spin text-slate-400" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                   </svg>
@@ -206,16 +228,37 @@
 
               <!-- Action Button -->
               <td class="py-3.5 px-4 text-right">
-                <button
-                  v-if="trx.status !== 'paid'"
-                  @click="confirmManual(trx)"
-                  class="px-3 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs rounded-xl transition-all shadow-2xs inline-flex items-center gap-1 cursor-pointer"
-                >
-                  <span>Konfirmasi Lunas</span>
-                </button>
-                <span v-else class="text-[11px] text-slate-400 font-mono">
-                  {{ trx.paidAt || 'Tervalidasi' }}
-                </span>
+                <div v-if="trx.status === 'pending_confirmation'" class="flex items-center justify-end gap-2">
+                  <button
+                    @click="confirmManual(trx)"
+                    class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-sora font-semibold text-xs rounded-xl transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer ring-2 ring-emerald-400/40"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Konfirmasi Selesai</span>
+                  </button>
+                </div>
+                <div v-else-if="trx.status === 'paid'" class="flex flex-col items-end">
+                  <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 font-sora">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    Disahkan Admin
+                  </span>
+                  <span class="text-[10px] text-slate-400 font-mono">
+                    {{ trx.paidAt || 'Tervalidasi' }}
+                  </span>
+                </div>
+                <div v-else class="flex items-center justify-end">
+                  <button
+                    @click="confirmManual(trx)"
+                    class="px-3 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs rounded-xl transition-all shadow-2xs inline-flex items-center gap-1 cursor-pointer"
+                    title="Konfirmasi manual pelunasan oleh Panitia PMB"
+                  >
+                    <span>Konfirmasi Lunas</span>
+                  </button>
+                </div>
               </td>
             </tr>
             <tr v-if="allTransactions.length === 0">
@@ -289,33 +332,48 @@ const allTransactions = computed(() => {
   const list = [];
   adminStore.applicants.forEach((a) => {
     // UKT Fee
-    list.push({
-      applicantId: a.id,
-      applicantName: a.fullName,
-      prodi: a.prodi1,
-      invoiceId: a.payments.uktFee.id,
-      feeType: 'UKT & Registrasi Sem. 1',
-      amount: a.payments.uktFee.amount,
-      status: a.payments.uktFee.status,
-      method: a.payments.uktFee.method,
-      paidAt: a.payments.uktFee.paidAt,
-      typeKey: 'uktFee',
-    });
+    if (a.payments?.uktFee) {
+      list.push({
+        applicantId: a.id,
+        applicantName: a.fullName,
+        prodi: a.prodi1,
+        invoiceId: a.payments.uktFee.id,
+        feeType: 'UKT & Registrasi Sem. 1',
+        amount: a.payments.uktFee.amount,
+        status: a.payments.uktFee.status,
+        method: a.payments.uktFee.method,
+        paidAt: a.payments.uktFee.paidAt,
+        submittedAt: a.payments.uktFee.submittedAt,
+        confirmedBy: a.payments.uktFee.confirmedBy,
+        typeKey: 'uktFee',
+      });
+    }
     // Registration Fee
-    list.push({
-      applicantId: a.id,
-      applicantName: a.fullName,
-      prodi: a.prodi1,
-      invoiceId: a.payments.registrationFee.id,
-      feeType: 'Biaya Formulir Pendaftaran',
-      amount: a.payments.registrationFee.amount,
-      status: a.payments.registrationFee.status,
-      method: a.payments.registrationFee.method,
-      paidAt: a.payments.registrationFee.paidAt,
-      typeKey: 'registrationFee',
-    });
+    if (a.payments?.registrationFee) {
+      list.push({
+        applicantId: a.id,
+        applicantName: a.fullName,
+        prodi: a.prodi1,
+        invoiceId: a.payments.registrationFee.id,
+        feeType: 'Biaya Formulir Pendaftaran',
+        amount: a.payments.registrationFee.amount,
+        status: a.payments.registrationFee.status,
+        method: a.payments.registrationFee.method,
+        paidAt: a.payments.registrationFee.paidAt,
+        submittedAt: a.payments.registrationFee.submittedAt,
+        confirmedBy: a.payments.registrationFee.confirmedBy,
+        typeKey: 'registrationFee',
+      });
+    }
   });
-  return list;
+
+  // Urutkan transaksi: yang membutuhkan konfirmasi admin ('pending_confirmation') ditempatkan paling atas
+  const statusPriority = { pending_confirmation: 1, pending: 2, unpaid: 2, paid: 3 };
+  return list.sort((a, b) => (statusPriority[a.status] || 99) - (statusPriority[b.status] || 99));
+});
+
+const pendingConfirmationCount = computed(() => {
+  return allTransactions.value.filter((t) => t.status === 'pending_confirmation').length;
 });
 
 const bsiCount = computed(() => allTransactions.value.filter((t) => t.method?.toLowerCase().includes('bsi') && t.status === 'paid').length);
@@ -338,7 +396,7 @@ const channelDoughnutData = computed(() => ({
 
 const confirmManual = (trx) => {
   adminStore.confirmPayment(trx.applicantId, trx.typeKey);
-  toastMessage.value = `Tagihan ${trx.invoiceId} atas nama ${trx.applicantName} berhasil dikonfirmasi LUNAS.`;
+  toastMessage.value = `✓ Sukses: Pembayaran ${trx.feeType} (${trx.invoiceId}) atas nama ${trx.applicantName} telah disahkan lunas oleh Admin PMB.`;
 };
 
 const exportCsv = () => {
