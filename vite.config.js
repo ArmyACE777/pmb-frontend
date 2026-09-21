@@ -12,5 +12,15 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    proxy: {
+      '/ocr-api': {
+        target: 'http://localhost:8088',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ocr-api/, '/internal/ocr'),
+        headers: {
+          'X-Internal-Token': 'secret-internal-token',
+        },
+      },
+    },
   },
 });

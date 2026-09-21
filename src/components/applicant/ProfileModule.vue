@@ -362,29 +362,14 @@
             </span>
           </div>
 
-          <!-- Quick Test / Demo Option -->
-          <div class="p-3.5 bg-blue-50/70 rounded-xl border border-blue-200/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-            <div class="flex items-center gap-2 text-slate-700">
-              <svg class="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>Belum ada foto KTP siap pakai? Coba simulasi kecerdasan OCR:</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <button
-                type="button"
-                @click="simulateOcr('clear')"
-                class="px-3 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white rounded-lg font-semibold font-sora transition-colors cursor-pointer text-[11px]"
-              >
-                Uji KTP Jernih
-              </button>
-              <button
-                type="button"
-                @click="simulateOcr('blurry')"
-                class="px-2.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg font-semibold font-sora transition-colors cursor-pointer text-[11px]"
-              >
-                Uji Coba Buram (AI Retake)
-              </button>
+          <!-- Panduan Scan KTP Resmi -->
+          <div class="p-3.5 bg-blue-50/70 rounded-xl border border-blue-200/70 flex items-start gap-2.5 text-xs text-slate-700">
+            <svg class="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <strong class="font-semibold text-slate-900 block mb-0.5">Petunjuk Pindaian e-KTP:</strong>
+              <span>Pastikan seluruh 4 sudut fisik e-KTP berada dalam bingkai foto, pencahayaan merata tanpa pantulan kilap, dan teks NIK serta Nama terlihat jelas. Sistem secara otomatis menolak gambar yang bukan e-KTP.</span>
             </div>
           </div>
         </div>
@@ -446,39 +431,47 @@
             <div class="p-3 bg-white border border-slate-200 rounded-xl space-y-1">
               <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">NIK (16 Digit)</span>
               <div class="font-mono font-bold text-slate-900 text-sm flex items-center justify-between">
-                <span>{{ ocrData.fields.nik.value }}</span>
-                <span class="text-[10px] font-normal text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">99%</span>
+                <span>{{ ocrData.fields?.nik?.value || '-' }}</span>
+                <span v-if="ocrData.fields?.nik?.confidence" class="text-[10px] font-normal text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                  {{ Math.round(ocrData.fields.nik.confidence * 100) }}%
+                </span>
               </div>
             </div>
 
             <div class="p-3 bg-white border border-slate-200 rounded-xl space-y-1">
               <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Nama Lengkap</span>
               <div class="font-sora font-bold text-slate-900 text-sm flex items-center justify-between">
-                <span>{{ ocrData.fields.nama.value }}</span>
-                <span class="text-[10px] font-normal text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">96%</span>
+                <span>{{ ocrData.fields?.nama?.value || '-' }}</span>
+                <span v-if="ocrData.fields?.nama?.confidence" class="text-[10px] font-normal text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                  {{ Math.round(ocrData.fields.nama.confidence * 100) }}%
+                </span>
               </div>
             </div>
 
             <div class="p-3 bg-white border border-slate-200 rounded-xl space-y-1">
               <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Tempat & Tanggal Lahir</span>
               <div class="font-sans font-medium text-slate-800 flex items-center justify-between">
-                <span>{{ ocrData.fields.tempat_lahir.value }}, {{ ocrData.fields.tanggal_lahir.value }}</span>
-                <span class="text-[10px] font-normal text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">94%</span>
+                <span>{{ [ocrData.fields?.tempat_lahir?.value, ocrData.fields?.tanggal_lahir?.value].filter(Boolean).join(', ') || '-' }}</span>
+                <span v-if="ocrData.fields?.tempat_lahir?.confidence" class="text-[10px] font-normal text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                  {{ Math.round(ocrData.fields.tempat_lahir.confidence * 100) }}%
+                </span>
               </div>
             </div>
 
             <div class="p-3 bg-white border border-slate-200 rounded-xl space-y-1">
               <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Jenis Kelamin</span>
               <div class="font-sans font-medium text-slate-800 flex items-center justify-between">
-                <span>{{ ocrData.fields.jenis_kelamin.value === 'L' ? 'Laki-laki' : 'Perempuan' }}</span>
-                <span class="text-[10px] font-normal text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">99%</span>
+                <span>{{ ocrData.fields?.jenis_kelamin?.value === 'L' ? 'Laki-laki' : ocrData.fields?.jenis_kelamin?.value === 'P' ? 'Perempuan' : (ocrData.fields?.jenis_kelamin?.value || '-') }}</span>
+                <span v-if="ocrData.fields?.jenis_kelamin?.confidence" class="text-[10px] font-normal text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                  {{ Math.round(ocrData.fields.jenis_kelamin.confidence * 100) }}%
+                </span>
               </div>
             </div>
 
             <div class="sm:col-span-2 p-3 bg-white border border-slate-200 rounded-xl space-y-1">
               <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Alamat KTP</span>
               <div class="font-sans text-slate-800 text-xs">
-                {{ ocrData.fields.alamat.value }}, RT/RW: {{ ocrData.fields.rt_rw.value }}, Kel: {{ ocrData.fields.kel_desa.value }}, Kec: {{ ocrData.fields.kecamatan.value }}
+                {{ formatOcrAddress(ocrData.fields) }}
               </div>
             </div>
           </div>
@@ -545,6 +538,7 @@
 
 <script setup>
 import { reactive, ref, watch } from 'vue';
+import axios from 'axios';
 import { useApplicantStore } from '@/stores/applicant';
 import { useAuthStore } from '@/stores/auth';
 
@@ -590,7 +584,48 @@ const triggerOcrPicker = () => {
   }
 };
 
-const handleOcrFileSelected = (e) => {
+const formatOcrAddress = (fields) => {
+  if (!fields) return '-';
+  const parts = [];
+  if (fields.alamat?.value) parts.push(fields.alamat.value);
+  if (fields.rt_rw?.value) parts.push(`RT/RW: ${fields.rt_rw.value}`);
+  if (fields.kel_desa?.value) parts.push(`Kel: ${fields.kel_desa.value}`);
+  if (fields.kecamatan?.value) parts.push(`Kec: ${fields.kecamatan.value}`);
+  return parts.join(', ') || '-';
+};
+
+/**
+ * Validasi awal klien untuk mendeteksi proporsi kartu e-KTP
+ */
+const validateCardHeuristics = (file) => {
+  return new Promise((resolve) => {
+    if (!file.type.startsWith('image/')) {
+      resolve({ isCardProportion: true });
+      return;
+    }
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const ratio = img.width / img.height;
+      const isLandscapeCard = ratio >= 1.2 && ratio <= 2.2;
+      const isPortraitCard = ratio >= 0.45 && ratio <= 0.85;
+      const minDimension = Math.min(img.width, img.height);
+      const isTooSmall = minDimension < 150;
+      resolve({
+        isCardProportion: (isLandscapeCard || isPortraitCard) && !isTooSmall,
+        ratio,
+      });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve({ isCardProportion: true });
+    };
+    img.src = url;
+  });
+};
+
+const handleOcrFileSelected = async (e) => {
   const file = e.target.files?.[0];
   if (!file) return;
 
@@ -599,77 +634,149 @@ const handleOcrFileSelected = (e) => {
     return;
   }
 
-  runOcrPipeline(file.name, false);
+  await runOcrPipeline(file);
 };
 
-const simulateOcr = (mode) => {
-  runOcrPipeline('ktp_sample.jpg', mode === 'blurry');
-};
-
-const runOcrPipeline = (filename, isBlurry = false) => {
+const runOcrPipeline = async (file) => {
   ocrState.value = 'scanning';
   ocrProgressPercent.value = 15;
-  ocrPipelineStepText.value = 'Memeriksa resolusi & rasio bingkai KTP...';
+  ocrPipelineStepText.value = 'Memeriksa resolusi & rasio bingkai e-KTP...';
+  ocrData.value = null;
+  ocrRejectionMessage.value = '';
 
-  setTimeout(() => {
-    ocrProgressPercent.value = 45;
+  // 1. Pre-flight cek proporsi kartu pada sisi klien
+  const heuristics = await validateCardHeuristics(file);
+  if (!heuristics.isCardProportion) {
+    ocrState.value = 'retake_required';
+    ocrRejectionMessage.value =
+      'Gambar yang diunggah tidak sesuai dengan proporsi kartu e-KTP fisik. Pastikan Anda mengunggah foto kartu identitas horizontal tanpa terpotong.';
+    return;
+  }
+
+  ocrProgressPercent.value = 35;
+  ocrPipelineStepText.value = 'Mengunggah ke layanan OCR (services/ocr-service)...';
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const postRes = await axios.post('/ocr-api/ktp', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'X-Internal-Token': 'secret-internal-token',
+      },
+      timeout: 30000,
+    });
+
+    const jobId = postRes.data?.data?.job_id;
+    if (!jobId) {
+      throw new Error(postRes.data?.message || 'Gagal membuat job pemrosesan OCR.');
+    }
+
+    ocrProgressPercent.value = 55;
     ocrPipelineStepText.value = 'Menjalankan AI Image Enhancer (Super-Resolution & De-noising)...';
 
-    setTimeout(() => {
-      ocrProgressPercent.value = 80;
-      ocrPipelineStepText.value = 'Mengekstraksi 14 field Kemendagri & validasi NIK 16 digit...';
+    // 2. Polling status job hingga selesai atau ditolak
+    let attempts = 0;
+    const maxAttempts = 35;
+    let completed = false;
 
-      setTimeout(() => {
-        ocrProgressPercent.value = 100;
-        if (isBlurry) {
+    while (attempts < maxAttempts && !completed) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      attempts++;
+      ocrProgressPercent.value = Math.min(95, 55 + attempts * 2);
+
+      const statusRes = await axios.get(`/ocr-api/jobs/${jobId}`, {
+        headers: { 'X-Internal-Token': 'secret-internal-token' },
+        timeout: 10000,
+      });
+
+      const jobData = statusRes.data?.data;
+      if (!jobData) continue;
+
+      if (jobData.status === 'completed') {
+        completed = true;
+        // Validasi apakah hasil ekstraksi benar-benar memuat NIK atau Nama
+        const hasValidFields = jobData.fields && (jobData.fields.nik?.value || jobData.fields.nama?.value);
+        if (!hasValidFields) {
           ocrState.value = 'retake_required';
-          ocrRejectionMessage.value = 'Foto buram (BLURRY): Kualitas gambar di bawah batas ambang 70%. Pegang HP lebih stabil dan pastikan pencahayaan cukup.';
-        } else {
-          // Menyesuaikan dengan kandidat akun aktif
-          const currentCandidateName = authStore.currentUser?.full_name || form.fullName || 'SITI RAHMAWATI';
-          const randomNikSuffix = Math.floor(1000 + Math.random() * 9000);
-          ocrData.value = {
-            job_id: `job-ocr-${Date.now()}`,
-            status: 'completed',
-            quality_score: 94.2,
-            enhanced: true,
-            fields: {
-              nik: { value: `327801230495${randomNikSuffix}`, confidence: 0.99, needs_review: false },
-              nama: { value: currentCandidateName.toUpperCase(), confidence: 0.96, needs_review: false },
-              tempat_lahir: { value: 'TASIKMALAYA', confidence: 0.93, needs_review: false },
-              tanggal_lahir: { value: '2004-05-18', confidence: 0.95, needs_review: false },
-              jenis_kelamin: { value: 'P', confidence: 0.99, needs_review: false },
-              alamat: { value: 'JL. K.H. WAHID HASYIM NO. 42', confidence: 0.91, needs_review: false },
-              rt_rw: { value: '003/007', confidence: 0.88, needs_review: false },
-              kel_desa: { value: 'SUKAMANAH', confidence: 0.90, needs_review: false },
-              kecamatan: { value: 'CIPEDES', confidence: 0.92, needs_review: false },
-              agama: { value: 'ISLAM', confidence: 0.98, needs_review: false },
-            },
-          };
-          ocrState.value = 'completed';
+          ocrRejectionMessage.value =
+            'Dokumen tidak terdeteksi sebagai e-KTP yang valid (teks NIK/Nama tidak ditemukan). Harap unggah foto e-KTP fisik yang asli dan jelas.';
+          return;
         }
-      }, 600);
-    }, 600);
-  }, 500);
+
+        ocrProgressPercent.value = 100;
+        ocrData.value = jobData;
+        ocrState.value = 'completed';
+        return;
+      } else if (jobData.status === 'retake_required') {
+        completed = true;
+        ocrState.value = 'retake_required';
+        ocrRejectionMessage.value =
+          jobData.reason_message || 'Foto ditolak mesin OCR karena kualitas buram atau dokumen bukan e-KTP asli.';
+        return;
+      } else if (jobData.status === 'failed') {
+        completed = true;
+        ocrState.value = 'retake_required';
+        ocrRejectionMessage.value =
+          jobData.reason_message || 'Pemrosesan OCR gagal. Pastikan dokumen yang diunggah dapat dibaca jelas.';
+        return;
+      }
+    }
+
+    if (!completed) {
+      ocrState.value = 'retake_required';
+      ocrRejectionMessage.value = 'Waktu pemrosesan pindaian KTP melebihi batas waktu (timeout). Silakan coba lagi.';
+    }
+  } catch (err) {
+    console.warn('OCR error:', err);
+    ocrState.value = 'retake_required';
+    const serverMessage = err.response?.data?.message;
+    ocrRejectionMessage.value =
+      serverMessage || 'Gagal memproses pindaian e-KTP. Pastikan berkas adalah foto KTP yang valid dan server OCR aktif.';
+  }
 };
 
 const applyOcrToForm = () => {
   if (!ocrData.value?.fields) return;
 
   const f = ocrData.value.fields;
-  form.nik = f.nik.value;
-  form.fullName = f.nama.value;
-  form.birthPlace = f.tempat_lahir.value;
-  form.birthDate = f.tanggal_lahir.value;
-  form.gender = f.jenis_kelamin.value === 'L' ? 'Laki-laki' : 'Perempuan';
-  form.religion = f.agama.value ? f.agama.value.charAt(0) + f.agama.value.slice(1).toLowerCase() : 'Islam';
-  form.address = `${f.alamat.value}, RT ${f.rt_rw.value}, Kel. ${f.kel_desa.value}, Kec. ${f.kecamatan.value}`;
-  form.city = 'Kota Tasikmalaya';
-  form.province = 'Jawa Barat';
+  if (f.nik?.value) form.nik = f.nik.value;
+  if (f.nama?.value) form.fullName = f.nama.value;
+  if (f.tempat_lahir?.value) form.birthPlace = f.tempat_lahir.value;
+  if (f.tanggal_lahir?.value) form.birthDate = f.tanggal_lahir.value;
 
+  if (f.jenis_kelamin?.value) {
+    const val = f.jenis_kelamin.value.trim().toUpperCase();
+    form.gender = val.startsWith('L') ? 'Laki-laki' : 'Perempuan';
+  }
+
+  if (f.agama?.value) {
+    const ag = f.agama.value.trim().toUpperCase();
+    const mapAgama = {
+      ISLAM: 'Islam',
+      KRISTEN: 'Kristen',
+      KATOLIK: 'Katolik',
+      HINDU: 'Hindu',
+      BUDDHA: 'Buddha',
+      KONGHUCU: 'Konghucu',
+    };
+    form.religion = mapAgama[ag] || f.agama.value;
+  }
+
+  // Susun alamat hanya jika field alamat ada
+  if (f.alamat?.value) {
+    let fullAddr = f.alamat.value;
+    if (f.rt_rw?.value) fullAddr += `, RT/RW: ${f.rt_rw.value}`;
+    if (f.kel_desa?.value) fullAddr += `, Kel. ${f.kel_desa.value}`;
+    if (f.kecamatan?.value) fullAddr += `, Kec. ${f.kecamatan.value}`;
+    form.address = fullAddr;
+  }
+
+  // Simpan hasil ke applicantStore secara dinamis murni
   applicantStore.updateProfile(form);
   closeOcrModal();
-  savedMessage.value = 'Data KTP berhasil diekstraksi dan diterapkan otomatis ke formulir biodata!';
+  savedMessage.value = 'Data e-KTP berhasil diekstraksi dan diterapkan otomatis ke formulir biodata!';
 };
 
 const saveProfile = async () => {
