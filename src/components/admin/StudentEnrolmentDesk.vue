@@ -216,6 +216,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useAdminStore } from '@/stores/admin';
+import { PRODI_METADATA } from '@/stores/applicant';
 
 const adminStore = useAdminStore();
 const activeApplicant = ref(null);
@@ -225,8 +226,10 @@ const toastMessage = ref('');
 
 const openEnrolModal = (applicant) => {
   activeApplicant.value = applicant;
-  formNim.value = applicant.onboarding.nim || `260100${Math.floor(Math.random() * 80 + 10)}`;
-  formGroup.value = applicant.onboarding.pkkmbGroup || 'Gugus 03 - Hygeia Farmasi';
+  const meta = PRODI_METADATA[applicant.prodi1] || { code: '01', gugus: 'Gugus 01 - Hygeia Farmasi' };
+  const regSuffix = (applicant.id || '').split('-').pop() || String(Math.floor(Math.random() * 80 + 10));
+  formNim.value = applicant.onboarding?.nim || `26${meta.code}${regSuffix.slice(-4)}`;
+  formGroup.value = applicant.onboarding?.pkkmbGroup || meta.gugus;
 };
 
 const saveNim = () => {
@@ -239,13 +242,13 @@ const saveNim = () => {
 const generateAllEligible = () => {
   let count = 0;
   adminStore.applicants.forEach((a, idx) => {
-    if (a.selection.passedStatus === 'passed' && !a.onboarding.nim) {
-      const code = a.prodi1.includes('Teknologi') ? '02' : '01';
-      const num = `26${code}00${idx + 20}`;
-      adminStore.generateNim(a.id, num, 'Gugus 01 - Hygeia Farmasi');
+    if (a.selection?.passedStatus === 'passed' && !a.onboarding?.nim) {
+      const meta = PRODI_METADATA[a.prodi1] || { code: '01', gugus: 'Gugus 01 - Hygeia Farmasi' };
+      const num = `26${meta.code}00${String(idx + 1).padStart(2, '0')}`;
+      adminStore.generateNim(a.id, num, meta.gugus);
       count++;
     }
   });
-  toastMessage.value = `${count} calon mahasiswa berhasil diterbitkan NIM secara batch.`;
+  toastMessage.value = `${count} calon mahasiswa berhasil diterbitkan NIM secara batch sesuai kode prodi resmi.`;
 };
 </script>

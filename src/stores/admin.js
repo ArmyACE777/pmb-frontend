@@ -267,6 +267,11 @@ export const useAdminStore = defineStore('admin', () => {
     const verifiedDocs = applicantStore.state.documents.filter((d) => d.status === 'verified').length;
     const pendingDocs = applicantStore.state.documents.filter((d) => d.status !== 'verified').length;
 
+    const hasPendingDoc = applicantStore.state.documents.some((d) => d.status === 'pending');
+    const hasRevisionDoc = applicantStore.state.documents.some((d) => d.status === 'revision');
+    const currentDocStatus = hasRevisionDoc ? 'revision' : hasPendingDoc ? 'pending' : verifiedDocs >= 3 ? 'verified' : 'pending';
+    const existingSelection = existingIndex >= 0 ? applicants.value[existingIndex]?.selection : null;
+
     const activeApplicantData = {
       id: candidate.registrationNumber,
       nik: candidate.nik || '-',
@@ -282,7 +287,7 @@ export const useAdminStore = defineStore('admin', () => {
       prodi1: applicantStore.state.admission.prodi1 || 'Belum Ditentukan',
       prodi2: applicantStore.state.admission.prodi2 || 'Belum Ditentukan',
       registrationDate: 'Hari ini',
-      documentStatus: applicantStore.isDocumentsComplete ? 'verified' : pendingDocs > 0 ? 'pending' : 'verified',
+      documentStatus: currentDocStatus,
       pendingDocsCount: pendingDocs,
       verifiedDocsCount: verifiedDocs,
       documents: applicantStore.state.documents.map((d) => ({
@@ -311,9 +316,9 @@ export const useAdminStore = defineStore('admin', () => {
       },
       selection: {
         cbtScore: applicantStore.state.exam.score || 0,
-        interviewScore: 88,
-        interviewer: 'Dosen Penguji PMB BTH',
-        interviewNotes: 'Pendaftar akun aktif terintegrasi sistem.',
+        interviewScore: existingSelection?.interviewScore ?? (applicantStore.state.result.isPassed ? 88 : null),
+        interviewer: existingSelection?.interviewer ?? (applicantStore.state.result.isPassed ? 'Dosen Penguji PMB BTH' : null),
+        interviewNotes: existingSelection?.interviewNotes ?? (applicantStore.state.result.isPassed ? 'Pendaftar akun aktif terintegrasi sistem.' : 'Menunggu pelaksanaan tes wawancara peminatan.'),
         passedStatus: applicantStore.state.result.isPassed ? 'passed' : applicantStore.state.exam.status === 'completed' ? 'evaluating' : 'evaluating',
         decisionLetterNo: applicantStore.state.result.decisionLetterNo || null,
       },

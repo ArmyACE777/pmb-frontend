@@ -170,30 +170,86 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 
+import { useApplicantStore } from '@/stores/applicant';
+
 const router = useRouter();
 const authStore = useAuthStore();
+const applicantStore = useApplicantStore();
 
 const showNotifications = ref(false);
 const showProfileMenu = ref(false);
+const readNotificationIndices = ref(new Set());
 
 const isAdmin = computed(() => {
   return authStore.isSuperAdmin || (authStore.userRoles && authStore.userRoles.includes('admin_pmb'));
 });
 
-const notifications = ref([
-  {
+const notifications = computed(() => {
+  const list = [];
+  
+  if (applicantStore.isUktPaid) {
+    list.push({
+      title: 'Pelunasan UKT Semester 1 Berhasil',
+      desc: `Registrasi ulang lunas. NIM ${applicantStore.state.onboarding.nim || 'resmi'} telah aktif dan tercatat pada SIAKAD BTH.`,
+      time: applicantStore.state.payments.uktFee.paidAt || 'Terkini',
+      isRead: readNotificationIndices.value.has('ukt'),
+      key: 'ukt',
+    });
+  } else if (applicantStore.isResultPassed) {
+    list.push({
+      title: 'Selamat! Anda Dinyatakan Lulus Seleksi PMB',
+      desc: `Surat Keputusan Rektor (${applicantStore.state.result.decisionLetterNo || 'LoA'}) telah terbit. Silakan lakukan pembayaran UKT Semester 1.`,
+      time: 'Pengumuman Resmi',
+      isRead: readNotificationIndices.value.has('passed'),
+      key: 'passed',
+    });
+  } else if (applicantStore.isExamCompleted) {
+    list.push({
+      title: 'Ujian Mandiri CBT Telah Diselesaikan',
+      desc: `Skor CBT Anda (${applicantStore.state.exam.score}/100) berhasil direkam. Dewan juri sedang memproses penetapan kelulusan.`,
+      time: applicantStore.state.exam.completedAt || 'Terkini',
+      isRead: readNotificationIndices.value.has('exam'),
+      key: 'exam',
+    });
+  } else if (applicantStore.isRegPaymentComplete) {
+    list.push({
+      title: 'Pembayaran Formulir Terkonfirmasi',
+      desc: 'Sesi Ujian CBT Online Anda telah diaktifkan. Silakan kerjakan ujian mandiri pada menu Jadwal & CBT.',
+      time: applicantStore.state.payments.registrationFee.paidAt || 'Terkini',
+      isRead: readNotificationIndices.value.has('regpay'),
+      key: 'regpay',
+    });
+  }
+
+  const revisionDocs = applicantStore.state.documents.filter((d) => d.status === 'revision');
+  if (revisionDocs.length > 0) {
+    list.push({
+      title: 'Perhatian: Berkas Memerlukan Perbaikan',
+      desc: `${revisionDocs.length} berkas (${revisionDocs.map((d) => d.title).join(', ')}) memerlukan unggah ulang sesuai catatan verifikator.`,
+      time: 'Tindakan Diperlukan',
+      isRead: readNotificationIndices.value.has('revision'),
+      key: 'revision',
+    });
+  }
+
+  list.push({
     title: 'Informasi Pendaftaran PMB 2026/2027',
-    desc: 'Selamat datang di Portal PMB Universitas BTH. Lengkapi biodata, unggah berkas, dan ikuti ujian CBT online.',
-    time: 'Pengumuman Resmi',
-    isRead: false,
-  },
-  {
+    desc: 'Selamat datang di Portal PMB Universitas BTH. Lengkapi biodata, unggah berkas, dan ikuti seleksi online.',
+    time: 'Pengumuman',
+    isRead: readNotificationIndices.value.has('welcome'),
+    key: 'welcome',
+  });
+
+  list.push({
     title: 'Sekretariat & Helpdesk PMB',
-    desc: 'Bantuan pendaftaran, beasiswa, dan validasi berkas dapat ditanyakan via WhatsApp resmi 0821-1710-0200.',
-    time: 'Informasi Layanan',
-    isRead: false,
-  },
-]);
+    desc: 'Bantuan pendaftaran dan validasi berkas dapat ditanyakan via WhatsApp resmi 0821-1710-0200.',
+    time: 'Layanan Kampus',
+    isRead: true,
+    key: 'helpdesk',
+  });
+
+  return list;
+});
 
 const unreadCount = computed(() => notifications.value.filter((n) => !n.isRead).length);
 
@@ -203,7 +259,9 @@ const toggleNotifications = () => {
 };
 
 const markAllAsRead = () => {
-  notifications.value.forEach((n) => (n.isRead = true));
+  notifications.value.forEach((n) => {
+    if (n.key) readNotificationIndices.value.add(n.key);
+  });
 };
 
 const userInitials = computed(() => {

@@ -217,11 +217,30 @@ const recentActivities = computed(() => {
   return list.slice(0, 4);
 });
 
-const prodiQuotas = [
-  { name: 'S1 Farmasi (Fakultas Farmasi)', enrolled: 120, quota: 150, color: 'bg-[#1E3A8A]' },
-  { name: 'S1 Teknologi Informasi (Fakultas Teknologi & Bisnis)', enrolled: 65, quota: 80, color: 'bg-[#2563EB]' },
-  { name: 'D3 Farmasi (Fakultas Farmasi)', enrolled: 72, quota: 90, color: 'bg-indigo-600' },
-  { name: 'D3 Analis Kesehatan / TLM (Fakultas Ilmu Kesehatan)', enrolled: 54, quota: 60, color: 'bg-emerald-600' },
-  { name: 'S1 Administrasi Rumah Sakit (Fakultas Ilmu Kesehatan)', enrolled: 48, quota: 60, color: 'bg-amber-500' },
-];
+const prodiQuotas = computed(() => {
+  const baseConfig = [
+    { key: 'Farmasi', name: 'S1 Farmasi (Fakultas Farmasi)', base: 118, quota: 150, color: 'bg-[#1E3A8A]' },
+    { key: 'Teknologi', name: 'S1 Teknologi Informasi (Fakultas Teknologi & Bisnis)', base: 64, quota: 80, color: 'bg-[#2563EB]' },
+    { key: 'D3 Farmasi', name: 'D3 Farmasi (Fakultas Farmasi)', base: 71, quota: 90, color: 'bg-indigo-600' },
+    { key: 'Analis', name: 'D3 Analis Kesehatan / TLM (Fakultas Ilmu Kesehatan)', base: 53, quota: 60, color: 'bg-emerald-600' },
+    { key: 'Administrasi', name: 'S1 Administrasi Rumah Sakit (Fakultas Ilmu Kesehatan)', base: 47, quota: 60, color: 'bg-amber-500' },
+  ];
+
+  return baseConfig.map((item) => {
+    const activeCount = adminStore.applicants.filter((a) => {
+      const p = a.prodi1 || '';
+      if (item.key === 'D3 Farmasi') return p.includes('D3 Farmasi');
+      if (item.key === 'Farmasi') return p.includes('S1 Farmasi');
+      return p.includes(item.key);
+    }).length;
+
+    const enrolled = item.base + activeCount;
+    return {
+      name: item.name,
+      enrolled,
+      quota: item.quota,
+      color: item.color,
+    };
+  });
+});
 </script>

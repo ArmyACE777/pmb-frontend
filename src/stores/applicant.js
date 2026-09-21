@@ -14,6 +14,54 @@ function generateRegNumber(userId, email) {
 }
 
 /**
+ * Master Metadata Program Studi Universitas BTH
+ */
+export const PRODI_METADATA = {
+  'S1 Farmasi': {
+    code: '01',
+    faculty: 'Fakultas Farmasi',
+    degree: 'S.Farm.',
+    uktFee: 6500000,
+    gugus: 'Gugus 01 - Hygeia Farmasi',
+  },
+  'S1 Teknologi Informasi': {
+    code: '02',
+    faculty: 'Fakultas Teknologi & Bisnis',
+    degree: 'S.Kom.',
+    uktFee: 4500000,
+    gugus: 'Gugus 07 - Turing Informatika',
+  },
+  'S1 Administrasi Rumah Sakit': {
+    code: '03',
+    faculty: 'Fakultas Ilmu Kesehatan',
+    degree: 'S.Kes.',
+    uktFee: 4500000,
+    gugus: 'Gugus 05 - Asklepios Kesehatan',
+  },
+  'D3 Analis Kesehatan (TLM)': {
+    code: '04',
+    faculty: 'Fakultas Ilmu Kesehatan',
+    degree: 'A.Md.Kes.',
+    uktFee: 4750000,
+    gugus: 'Gugus 05 - Asklepios Kesehatan',
+  },
+  'D3 Farmasi': {
+    code: '05',
+    faculty: 'Fakultas Farmasi',
+    degree: 'A.Md.Farm.',
+    uktFee: 4800000,
+    gugus: 'Gugus 02 - Galen Kefarmasian',
+  },
+  'S1 Manajemen Bisnis Informasi': {
+    code: '06',
+    faculty: 'Fakultas Teknologi & Bisnis',
+    degree: 'S.M.',
+    uktFee: 4250000,
+    gugus: 'Gugus 08 - Lovelace Komputer',
+  },
+};
+
+/**
  * Inisialisasi state awal pendaftaran calon mahasiswa
  */
 function createInitialState(user) {
@@ -388,11 +436,22 @@ export const useApplicantStore = defineStore('applicant', () => {
   const updateAdmission = (data) => {
     state.value.admission = { ...state.value.admission, ...data };
     if (data.prodi1) {
+      const meta = PRODI_METADATA[data.prodi1];
+      const faculty = meta?.faculty || data.prodi1Faculty || state.value.admission.prodi1Faculty;
+      const degree = meta?.degree || data.prodi1Degree || state.value.admission.prodi1Degree;
+
+      state.value.admission.prodi1Faculty = faculty;
+      state.value.admission.prodi1Degree = degree;
       state.value.result.acceptedProdi = data.prodi1;
-      state.value.result.acceptedFaculty = data.prodi1Faculty || state.value.admission.prodi1Faculty;
-      state.value.result.acceptedDegree = data.prodi1Degree || state.value.admission.prodi1Degree;
+      state.value.result.acceptedFaculty = faculty;
+      state.value.result.acceptedDegree = degree;
       state.value.onboarding.studyProgram = data.prodi1;
-      state.value.onboarding.faculty = data.prodi1Faculty || state.value.admission.prodi1Faculty;
+      state.value.onboarding.faculty = faculty;
+
+      // Update nominal tagihan UKT dinamis sesuai prodi pilihan
+      if (meta?.uktFee && state.value.payments?.uktFee) {
+        state.value.payments.uktFee.amount = meta.uktFee;
+      }
     }
   };
 
@@ -402,9 +461,9 @@ export const useApplicantStore = defineStore('applicant', () => {
       doc.filename = fileInfo.name;
       doc.filesize = fileInfo.size;
       doc.uploadDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-      doc.status = 'verified';
-      doc.statusLabel = 'Terverifikasi';
-      doc.notes = 'Dokumen telah diperiksa dan dinyatakan memenuhi syarat verifikasi PMB.';
+      doc.status = 'pending';
+      doc.statusLabel = 'Sedang Ditinjau';
+      doc.notes = 'Berkas berhasil diunggah. Menunggu pemeriksaan dan verifikasi tim panitia PMB.';
     }
   };
 
@@ -422,16 +481,24 @@ export const useApplicantStore = defineStore('applicant', () => {
     if (!state.value.onboarding.nim) {
       const regSuffix = state.value.candidate.registrationNumber.split('-').pop() || '0042';
       const yearPrefix = '26';
-      const prodiCode = state.value.admission.prodi1.includes('Farmasi') ? '01' : '02';
+      const selectedProdi = state.value.admission.prodi1 || 'S1 Farmasi';
+      const meta = PRODI_METADATA[selectedProdi] || {
+        code: '01',
+        faculty: 'Fakultas Farmasi',
+        degree: 'S.Farm.',
+        uktFee: 6500000,
+        gugus: 'Gugus 01 - Hygeia Farmasi',
+      };
+      const prodiCode = meta.code;
       state.value.onboarding.nim = `${yearPrefix}${prodiCode}${regSuffix.slice(-4)}`;
       
       const emailName = (state.value.candidate.fullName || 'mahasiswa')
         .toLowerCase()
         .replace(/[^a-z0-9]/g, '.');
       state.value.onboarding.studentEmail = `${emailName}@bth.ac.id`;
-      state.value.onboarding.studyProgram = state.value.admission.prodi1;
-      state.value.onboarding.faculty = state.value.admission.prodi1Faculty;
-      state.value.onboarding.pkkmbGroup = `Gugus ${prodiCode} - BTH 2026`;
+      state.value.onboarding.studyProgram = selectedProdi;
+      state.value.onboarding.faculty = meta.faculty || state.value.admission.prodi1Faculty;
+      state.value.onboarding.pkkmbGroup = meta.gugus;
     }
   };
 

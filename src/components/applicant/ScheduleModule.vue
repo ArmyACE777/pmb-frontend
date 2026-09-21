@@ -26,7 +26,12 @@
             <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200/60 font-sora">
               Tahap 1 • Seleksi Akademik
             </span>
-            <span class="text-xs text-emerald-600 font-semibold">Siap Diikuti</span>
+            <span
+              class="text-xs font-semibold"
+              :class="applicantStore.isExamCompleted ? 'text-emerald-600' : applicantStore.isRegPaymentComplete ? 'text-blue-600' : 'text-amber-600'"
+            >
+              {{ applicantStore.isExamCompleted ? 'Ujian Selesai' : applicantStore.isRegPaymentComplete ? 'Siap Diikuti' : 'Menunggu Bayar' }}
+            </span>
           </div>
 
           <h3 class="font-sora font-bold text-slate-900 text-base mb-2">
@@ -54,6 +59,21 @@
 
         <div class="pt-4 border-t border-slate-100 mt-4">
           <button
+            v-if="!applicantStore.isRegPaymentComplete"
+            @click="$emit('switch-tab', 'payment')"
+            class="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-sora font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <span>Bayar Formulir untuk Sesi CBT</span>
+          </button>
+          <button
+            v-else-if="applicantStore.isExamCompleted"
+            @click="$emit('switch-tab', 'exam')"
+            class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-sora font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <span>Lihat Skor CBT ({{ applicantStore.state.exam.score }}/100)</span>
+          </button>
+          <button
+            v-else
             @click="$emit('switch-tab', 'exam')"
             class="w-full py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
           >
@@ -112,7 +132,12 @@
             <span class="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/60 font-sora">
               Tahap 3 • Keputusan
             </span>
-            <span class="text-xs text-emerald-600 font-semibold">Tersedia</span>
+            <span
+              class="text-xs font-semibold"
+              :class="applicantStore.isResultPassed ? 'text-emerald-600' : applicantStore.isExamCompleted ? 'text-blue-600' : 'text-slate-400'"
+            >
+              {{ applicantStore.isResultPassed ? 'Tersedia (Lulus)' : applicantStore.isExamCompleted ? 'Dalam Evaluasi' : 'Belum Tersedia' }}
+            </span>
           </div>
 
           <h3 class="font-sora font-bold text-slate-900 text-base mb-2">
@@ -133,7 +158,11 @@
             </div>
             <div class="flex justify-between">
               <span class="text-slate-500">Status:</span>
-              <strong class="text-emerald-600">Dapat Diakses Sekarang</strong>
+              <strong
+                :class="applicantStore.isResultPassed ? 'text-emerald-600' : applicantStore.isExamCompleted ? 'text-blue-600' : 'text-slate-400'"
+              >
+                {{ applicantStore.isResultPassed ? 'Dapat Diakses Sekarang' : applicantStore.isExamCompleted ? 'Menunggu Sidang Pleno' : 'Menunggu Pelaksanaan Ujian' }}
+              </strong>
             </div>
           </div>
         </div>
@@ -141,12 +170,15 @@
         <div class="pt-4 border-t border-slate-100 mt-4">
           <button
             @click="$emit('switch-tab', 'result')"
-            class="w-full py-2.5 bg-slate-100 hover:bg-[#1E3A8A] hover:text-white text-slate-700 font-sora font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            class="w-full py-2.5 font-sora font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            :class="applicantStore.isResultPassed
+              ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
+              : 'bg-slate-100 hover:bg-[#1E3A8A] hover:text-white text-slate-700'"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span>Buka Hasil Kelulusan</span>
+            <span>{{ applicantStore.isResultPassed ? 'Unduh Surat Penerimaan (LoA)' : 'Buka Status Kelulusan' }}</span>
           </button>
         </div>
       </div>
