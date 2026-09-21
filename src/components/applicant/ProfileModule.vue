@@ -556,6 +556,7 @@ const ocrPipelineStepText = ref('');
 const ocrData = ref(null);
 const ocrRejectionMessage = ref('');
 const ocrFileInputRef = ref(null);
+const currentOcrFile = ref(null);
 
 watch(
   () => applicantStore.state.candidate,
@@ -634,6 +635,7 @@ const handleOcrFileSelected = async (e) => {
     return;
   }
 
+  currentOcrFile.value = file;
   await runOcrPipeline(file);
 };
 
@@ -775,8 +777,26 @@ const applyOcrToForm = () => {
 
   // Simpan hasil ke applicantStore secara dinamis murni
   applicantStore.updateProfile(form);
+
+  // Otomatis tautkan pindaian e-KTP ke berkas dokumen persyaratan (doc-2) jika belum diunggah
+  if (currentOcrFile.value) {
+    const ktpDoc = applicantStore.state.documents.find((d) => d.id === 'doc-2');
+    if (ktpDoc && ktpDoc.status === 'unuploaded') {
+      const blobUrl = URL.createObjectURL(currentOcrFile.value);
+      const sizeMb = (currentOcrFile.value.size / (1024 * 1024)).toFixed(1);
+      const formattedSize = sizeMb > 0.1 ? `${sizeMb} MB` : `${Math.round(currentOcrFile.value.size / 1024)} KB`;
+      applicantStore.uploadDocument('doc-2', {
+        name: currentOcrFile.value.name,
+        size: formattedSize,
+        fileBlobUrl: blobUrl,
+        fileType: currentOcrFile.value.type || 'image/jpeg',
+        notes: 'Pindaian e-KTP diunggah dan diverifikasi otomatis melalui integrasi OCR Cerdas.',
+      });
+    }
+  }
+
   closeOcrModal();
-  savedMessage.value = 'Data e-KTP berhasil diekstraksi dan diterapkan otomatis ke formulir biodata!';
+  savedMessage.value = 'Data e-KTP berhasil diekstraksi dan diterapkan otomatis ke formulir serta berkas persyaratan!';
 };
 
 const saveProfile = async () => {

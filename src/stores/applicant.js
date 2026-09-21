@@ -116,6 +116,8 @@ function createInitialState(user) {
         required: true,
         filename: '',
         filesize: '',
+        fileBlobUrl: null,
+        fileType: '',
         uploadDate: '',
         status: 'unuploaded',
         statusLabel: 'Belum Diunggah',
@@ -128,6 +130,8 @@ function createInitialState(user) {
         required: true,
         filename: '',
         filesize: '',
+        fileBlobUrl: null,
+        fileType: '',
         uploadDate: '',
         status: 'unuploaded',
         statusLabel: 'Belum Diunggah',
@@ -140,6 +144,8 @@ function createInitialState(user) {
         required: true,
         filename: '',
         filesize: '',
+        fileBlobUrl: null,
+        fileType: '',
         uploadDate: '',
         status: 'unuploaded',
         statusLabel: 'Belum Diunggah',
@@ -152,6 +158,8 @@ function createInitialState(user) {
         required: true,
         filename: '',
         filesize: '',
+        fileBlobUrl: null,
+        fileType: '',
         uploadDate: '',
         status: 'unuploaded',
         statusLabel: 'Belum Diunggah',
@@ -164,6 +172,8 @@ function createInitialState(user) {
         required: true,
         filename: '',
         filesize: '',
+        fileBlobUrl: null,
+        fileType: '',
         uploadDate: '',
         status: 'unuploaded',
         statusLabel: 'Belum Diunggah',
@@ -460,10 +470,12 @@ export const useApplicantStore = defineStore('applicant', () => {
     if (doc) {
       doc.filename = fileInfo.name;
       doc.filesize = fileInfo.size;
+      doc.fileBlobUrl = fileInfo.fileBlobUrl || fileInfo.blobUrl || null;
+      doc.fileType = fileInfo.fileType || '';
       doc.uploadDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
       doc.status = 'pending';
       doc.statusLabel = 'Sedang Ditinjau';
-      doc.notes = 'Berkas berhasil diunggah. Menunggu pemeriksaan dan verifikasi tim panitia PMB.';
+      doc.notes = fileInfo.notes || 'Berkas berhasil diunggah. Menunggu pemeriksaan dan verifikasi tim panitia PMB.';
     }
   };
 

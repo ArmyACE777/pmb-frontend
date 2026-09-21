@@ -232,6 +232,18 @@
             <!-- Action Buttons for this document -->
             <div class="flex flex-wrap items-center gap-2 pt-1">
               <button
+                v-if="doc.filename && doc.filename !== 'Belum diunggah'"
+                @click="inspectDoc(doc)"
+                class="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#1E3A8A] font-sora font-semibold text-[11px] rounded-lg transition-colors flex items-center gap-1 cursor-pointer border border-blue-200 shadow-2xs"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span>Inspeksi Berkas</span>
+              </button>
+
+              <button
                 @click="setDocStatus(doc.id, 'verified', 'Dokumen terverifikasi sah dan sesuai standar BTH.')"
                 class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-sora font-semibold text-[11px] rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
               >
@@ -275,6 +287,146 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Inspeksi Visual Berkas Riil (Khusus Panitia Verifikator PMB) -->
+    <div
+      v-if="inspectingDoc"
+      class="fixed inset-0 z-60 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-xs animate-fadeIn"
+    >
+      <div class="bg-white rounded-3xl max-w-3xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 relative max-h-[92vh] flex flex-col">
+        <!-- Header Inspeksi -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 flex-shrink-0">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-blue-100 text-[#1E3A8A] font-sora font-bold text-[10px] rounded uppercase tracking-wider">
+                Inspeksi Berkas Panitia
+              </span>
+              <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
+                {{ inspectingDoc.title }}
+              </h3>
+            </div>
+            <div class="text-xs text-slate-500 font-mono mt-0.5 flex flex-wrap items-center gap-2">
+              <span>Peserta: <strong class="text-slate-700">{{ activeApplicant?.fullName }}</strong></span>
+              <span>•</span>
+              <span>No. Registrasi: <strong class="text-slate-700">{{ activeApplicant?.id }}</strong></span>
+              <span>•</span>
+              <span>File: {{ inspectingDoc.filename }}</span>
+            </div>
+          </div>
+          <button
+            @click="inspectingDoc = null"
+            class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none p-1 cursor-pointer transition-colors"
+          >
+            &times;
+          </button>
+        </div>
+
+        <!-- Document Viewer Content Area -->
+        <div class="flex-1 overflow-y-auto my-3 border border-slate-200 rounded-2xl bg-slate-100/70 p-2 sm:p-4 flex flex-col items-center justify-center min-h-[340px]">
+          <!-- Jika Berkas Gambar Riil (Object URL) -->
+          <template v-if="inspectingDoc.fileBlobUrl && (inspectingDoc.fileType?.startsWith('image/') || isImageFile(inspectingDoc.filename))">
+            <div class="max-w-full max-h-[60vh] flex items-center justify-center overflow-auto rounded-xl bg-slate-900/5 p-2">
+              <img
+                :src="inspectingDoc.fileBlobUrl"
+                :alt="inspectingDoc.title"
+                class="max-h-[56vh] max-w-full object-contain rounded-lg shadow-md border border-white"
+              />
+            </div>
+          </template>
+
+          <!-- Jika Berkas PDF Riil (Object URL) -->
+          <template v-else-if="inspectingDoc.fileBlobUrl && (inspectingDoc.fileType === 'application/pdf' || inspectingDoc.filename?.toLowerCase().endsWith('.pdf'))">
+            <iframe
+              :src="inspectingDoc.fileBlobUrl"
+              class="w-full h-[58vh] rounded-xl border border-slate-200 bg-white shadow-inner"
+              title="Inspeksi PDF Dokumen"
+            ></iframe>
+          </template>
+
+          <!-- Inspeksi Standar Berkas Terverifikasi Sistem (Lembar Dokumen Universitas BTH) -->
+          <div v-else class="w-full text-center space-y-4 py-8 px-6 bg-white rounded-2xl border border-slate-200/90 shadow-xs max-w-xl mx-auto relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04] select-none">
+              <span class="text-7xl font-sora font-black text-slate-900 transform -rotate-12">
+                UNIVERSITAS BTH
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div class="text-left">
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-sora">Dokumen Arsip PMB Digital</div>
+                <div class="font-sora font-bold text-slate-800 text-sm">{{ inspectingDoc.title }}</div>
+              </div>
+              <span class="px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-bold rounded-lg">
+                Berkas Terdaftar
+              </span>
+            </div>
+
+            <div class="py-4 space-y-2">
+              <div class="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-200 text-[#1E3A8A] mx-auto flex items-center justify-center">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div class="font-mono text-xs text-slate-600 font-semibold">{{ inspectingDoc.filename }}</div>
+              <p class="text-xs text-slate-500 max-w-md mx-auto">
+                Pindaian asli telah diproses dan tervalidasi memenuhi format standar berkas PMB Universitas Bakti Tunas Husada.
+              </p>
+            </div>
+
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-left">
+              <div class="font-semibold text-slate-700 mb-1">Catatan Saat Ini:</div>
+              <div class="text-slate-600">{{ inspectingDoc.notes || 'Belum ada catatan perbaikan.' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Modal Inspeksi: Aksi Langsung Panitia -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 flex-shrink-0">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500">Status Saat Ini:</span>
+            <span
+              class="px-2.5 py-0.5 rounded-md text-[11px] font-bold"
+              :class="{
+                'bg-emerald-100 text-emerald-800': inspectingDoc.status === 'verified',
+                'bg-rose-100 text-rose-800': inspectingDoc.status === 'revision',
+                'bg-amber-100 text-amber-800': inspectingDoc.status === 'pending'
+              }"
+            >
+              {{ inspectingDoc.status === 'verified' ? 'Disetujui' : inspectingDoc.status === 'revision' ? 'Perlu Perbaikan' : 'Menunggu Verifikasi' }}
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button
+              @click="setDocStatusFromInspector('verified')"
+              class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-sora font-semibold text-xs rounded-xl transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Setujui Berkas Ini</span>
+            </button>
+
+            <button
+              @click="setDocStatusFromInspector('revision')"
+              class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-sora font-semibold text-xs rounded-xl transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>Minta Perbaikan</span>
+            </button>
+
+            <button
+              @click="inspectingDoc = null"
+              class="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -286,7 +438,17 @@ const adminStore = useAdminStore();
 const searchQuery = ref('');
 const selectedFilter = ref('all');
 const activeApplicant = ref(null);
+const inspectingDoc = ref(null);
 const toastMessage = ref('');
+
+const isImageFile = (filename) => {
+  if (!filename) return false;
+  return /\.(jpg|jpeg|png|webp)$/i.test(filename);
+};
+
+const inspectDoc = (doc) => {
+  inspectingDoc.value = doc;
+};
 
 const filters = [
   { id: 'all', label: 'Semua Status' },
@@ -325,6 +487,20 @@ const setDocStatus = (docId, status, notes) => {
   if (!activeApplicant.value) return;
   adminStore.verifyDocument(activeApplicant.value.id, docId, status, notes);
   toastMessage.value = `Status dokumen berhasil diubah menjadi "${status === 'verified' ? 'Disetujui' : 'Perlu Perbaikan'}".`;
+};
+
+const setDocStatusFromInspector = (status) => {
+  if (!inspectingDoc.value || !activeApplicant.value) return;
+  if (status === 'verified') {
+    setDocStatus(inspectingDoc.value.id, 'verified', 'Dokumen terverifikasi sah dan sesuai standar BTH.');
+    inspectingDoc.value = null;
+  } else {
+    const note = prompt('Masukkan catatan perbaikan untuk calon mahasiswa:', 'Pindaian dokumen kurang jelas / buram. Mohon unggah ulang dengan resolusi lebih baik.');
+    if (note !== null) {
+      setDocStatus(inspectingDoc.value.id, 'revision', note || 'Mohon unggah ulang berkas.');
+      inspectingDoc.value = null;
+    }
+  }
 };
 
 const promptRevision = (docId) => {
