@@ -4,10 +4,10 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
       <div>
         <h2 class="font-sora font-bold text-base sm:text-lg text-slate-900">
-          Meja Verifikasi & Validasi Berkas Pendaftar
+          Verifikasi & Validasi Berkas Pendaftar
         </h2>
         <p class="text-xs text-slate-500 mt-0.5 font-sans">
-          Periksa keabsahan pindaian ijazah, identitas kependudukan, pas foto, dan surat keterangan sehat pendaftar.
+          Periksa keabsahan pindaian ijazah, identitas kependudukan, pasfoto, dan surat keterangan sehat pendaftar.
         </p>
       </div>
       <div class="flex items-center gap-2 self-start sm:self-auto">
@@ -131,30 +131,26 @@
               <td class="py-3.5 px-4">
                 <span
                   v-if="applicant.documentStatus === 'verified'"
-                  class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[11px] font-semibold"
+                  class="inline-flex items-center px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[11px] font-semibold"
                 >
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                   <span>Terverifikasi (Lengkap)</span>
                 </span>
                 <span
                   v-else-if="applicant.documentStatus === 'revision'"
-                  class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-full text-[11px] font-semibold"
+                  class="inline-flex items-center px-2.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-full text-[11px] font-semibold"
                 >
-                  <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                   <span>Perlu Perbaikan</span>
                 </span>
                 <span
                   v-else-if="applicant.documentStatus === 'pending'"
-                  class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[11px] font-semibold"
+                  class="inline-flex items-center px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[11px] font-semibold"
                 >
-                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                   <span>Menunggu Verifikasi</span>
                 </span>
                 <span
                   v-else
-                  class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-full text-[11px] font-semibold"
+                  class="inline-flex items-center px-2.5 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-full text-[11px] font-semibold"
                 >
-                  <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                   <span>Belum Unggah Berkas</span>
                 </span>
               </td>
@@ -308,7 +304,6 @@
           >
             <div class="px-4 py-2 bg-slate-800 text-white text-xs font-mono flex items-center justify-between flex-shrink-0">
               <div class="flex items-center gap-2 truncate">
-                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
                 <span class="truncate font-semibold">{{ selectedDoc.filename }}</span>
                 <span v-if="selectedDoc.filesize" class="text-slate-400 text-[11px]">({{ selectedDoc.filesize }})</span>
               </div>
@@ -428,7 +423,7 @@
             <div v-else-if="selectedDoc?.id === 'doc-4'" class="text-center space-y-3 relative z-10">
               <div class="inline-block p-2 bg-slate-100 rounded-2xl border border-slate-300 shadow-sm">
                 <div class="w-32 h-44 bg-gradient-to-b from-red-600 to-red-700 rounded-xl flex flex-col items-center justify-between p-3 text-white shadow-inner">
-                  <span class="text-[9px] font-mono opacity-80">RASIO 4x6 LATAR MERAH</span>
+                  <span class="text-[9px] font-mono opacity-80">PAS FOTO RESMI 4x6</span>
                   <div class="w-16 h-16 rounded-full bg-white/20 border-2 border-white/40 flex items-center justify-center">
                     <svg class="w-10 h-10 text-white/90" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
@@ -437,20 +432,20 @@
                   <span class="font-mono text-[10px] font-bold uppercase truncate max-w-full">{{ activeApplicant.fullName }}</span>
                 </div>
               </div>
-              <p class="text-xs text-slate-500">Format pasfoto formal berlatar merah tervalidasi memenuhi standar kartu ujian dan KTM.</p>
+              <p class="text-xs text-slate-500">Format pasfoto formal tervalidasi memenuhi standar kartu ujian dan KTM.</p>
             </div>
 
-            <!-- 5. Surat Sehat & Bebas Buta Warna -->
+            <!-- 5. Surat Keterangan Sehat -->
             <div v-else class="space-y-2.5 relative z-10 text-xs">
               <div class="text-center pb-2 border-b-2 border-slate-900">
                 <div class="font-serif font-bold text-[10px] text-slate-600 uppercase">DINAS KESEHATAN KOTA TASIKMALAYA</div>
                 <div class="font-sora font-extrabold text-sm text-slate-900 uppercase">KLINIK PRATAMA RAWAT INAP KESEHATAN</div>
-                <div class="font-sora font-bold text-xs text-blue-900 uppercase">SURAT KETERANGAN SEHAT & BEBAS BUTA WARNA</div>
+                <div class="font-sora font-bold text-xs text-blue-900 uppercase">SURAT KETERANGAN SEHAT</div>
               </div>
               <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
                 <div class="flex justify-between"><span class="text-slate-500">Nama Pendaftar:</span><span class="font-bold uppercase">{{ activeApplicant.fullName }}</span></div>
                 <div class="flex justify-between"><span class="text-slate-500">Fisik & Tensi:</span><span class="text-emerald-700 font-semibold">Sehat Jasmani (115/75 mmHg)</span></div>
-                <div class="flex justify-between"><span class="text-slate-500">Uji Ishihara:</span><span class="font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded text-[11px]">BEBAS BUTA WARNA TOTAL & PARSIAL ✓</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Kondisi Fisik:</span><span class="font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded text-[11px]">SEHAT JASMANI & BEBAS KELUHAN ✓</span></div>
               </div>
               <div class="pt-2 border-t border-slate-200 flex justify-between items-end text-[11px]">
                 <span class="text-[10px] text-slate-400 font-mono">Reg: MED-BTH-{{ activeApplicant.id.slice(-5) }}</span>
@@ -596,7 +591,7 @@ const quickReasons = [
   'Pindaian dokumen buram / tidak terbaca jelas.',
   'Bagian nilai rapor atau nomor identitas terpotong.',
   'Masa berlaku dokumen telah habis / kedaluwarsa.',
-  'Surat keterangan sehat belum memuat tes buta warna.',
+  'Surat keterangan sehat belum memenuhi ketentuan institusi.',
   'Berkas yang diunggah bukan dokumen asli atau salah format file.',
 ];
 
@@ -606,7 +601,7 @@ const getShortDocTitle = (id) => {
     case 'doc-1': return 'Ijazah / SKL';
     case 'doc-2': return 'KTP / Identitas';
     case 'doc-3': return 'Kartu Keluarga';
-    case 'doc-4': return 'Pas Foto 4x6';
+    case 'doc-4': return 'Pasfoto 4x6';
     case 'doc-5': return 'Surat Sehat';
     default: return 'Dokumen';
   }

@@ -91,7 +91,7 @@
               {{ passRate }}%
             </div>
             <p class="text-xs text-slate-500 mt-1">
-              Passing grade minimal standar BTH: <strong>70.0</strong>
+              Nilai ambang batas minimal standar BTH: <strong>70.0</strong>
             </p>
           </div>
           <div class="text-[11px] text-emerald-600 font-medium mt-3 flex items-center gap-1">
@@ -184,7 +184,7 @@
             <BarChart :chart-data="scoresBarChartData" />
           </div>
           <div class="text-[11px] text-slate-400 text-center pt-2 border-t border-slate-100">
-            Passing grade minimal standar BTH: 70.0
+            Nilai ambang batas minimal standar BTH: 70.0
           </div>
         </div>
       </div>

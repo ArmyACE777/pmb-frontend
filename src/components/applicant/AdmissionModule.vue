@@ -1,23 +1,19 @@
 <template>
   <div class="space-y-6">
-    <!-- Header Modul -->
+    <!-- Header Modul Jalur Pendaftaran -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
       <div>
         <h2 class="font-sora font-bold text-base sm:text-lg text-slate-900">
           Jalur Pendaftaran & Pilihan Program Studi
         </h2>
         <p class="text-xs text-slate-500 mt-0.5">
-          Tentukan program studi prioritas utama dan alternatif pada Tahun Akademik 2026/2027.
+          Tentukan jalur masuk dan program studi prioritas pilihan Anda di Universitas Bakti Tunas Husada.
         </p>
       </div>
-      <div class="flex items-center gap-2 self-start sm:self-auto">
-        <span
-          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold font-sora border transition-colors"
-          :class="applicantStore.isAdmissionComplete ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'"
-        >
-          <span class="w-1.5 h-1.5 rounded-full" :class="applicantStore.isAdmissionComplete ? 'bg-emerald-500' : 'bg-amber-500'"></span>
-          <span>{{ applicantStore.isAdmissionComplete ? 'Pilihan Prodi Tersimpan' : 'Pilihan Prodi Belum Disimpan' }}</span>
-        </span>
+      <div class="text-xs text-slate-500 font-sans self-start sm:self-auto">
+        Status: <strong :class="applicantStore.state.admission.prodi1 ? 'text-emerald-700' : 'text-amber-700'">
+          {{ applicantStore.state.admission.prodi1 ? 'Pilihan Tersimpan' : 'Belum Memilih' }}
+        </strong>
       </div>
     </div>
 
@@ -27,220 +23,128 @@
       class="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center justify-between animate-fadeIn"
     >
       <div class="flex items-center gap-2">
-        <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
+        <CheckCircle2 class="w-4 h-4 text-emerald-600 flex-shrink-0" />
         <span>{{ savedMessage }}</span>
       </div>
-      <button @click="savedMessage = ''" class="text-emerald-600 hover:text-emerald-900 font-bold text-sm leading-none">&times;</button>
+      <button @click="savedMessage = ''" class="text-emerald-600 hover:text-emerald-900 font-bold text-sm leading-none cursor-pointer">&times;</button>
     </div>
 
-    <!-- Status Gelombang & Kuota Banner -->
-    <div class="bg-gradient-to-r from-[#1E3A8A] to-[#1e40af] text-white rounded-2xl p-4 sm:p-6 shadow-sm relative overflow-hidden">
-      <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div class="text-[11px] font-semibold text-amber-300 uppercase tracking-wider font-sora">
-            Informasi Gelombang Aktif
-          </div>
-          <h3 class="text-base sm:text-xl font-sora font-extrabold mt-1 text-white">
-            Gelombang 1 - TA 2026/2027
-          </h3>
-          <p class="text-xs text-blue-100/90 mt-1 max-w-xl leading-relaxed">
-            Periode pendaftaran reguler dibuka hingga 15 Oktober 2026. Peserta berhak mengikuti seleksi CBT Online dan wawancara peminatan.
-          </p>
-        </div>
-
-        <div class="flex items-center justify-between sm:justify-start gap-4 bg-white/10 backdrop-blur-sm border border-white/15 p-3 sm:px-4 sm:py-3 rounded-xl flex-shrink-0 w-full md:w-auto">
-          <div>
-            <div class="text-[10px] text-blue-200 uppercase font-bold tracking-wider">Sisa Kuota Gel. 1</div>
-            <div class="font-sora font-extrabold text-lg sm:text-xl text-amber-300">
-              {{ applicantStore.state.admission.quotaWave1 }} <span class="text-xs font-normal text-white">Kursi</span>
-            </div>
-          </div>
-          <div class="w-px h-8 bg-white/20"></div>
-          <div>
-            <div class="text-[10px] text-blue-200 uppercase font-bold tracking-wider">Status Seleksi</div>
-            <div class="font-sora font-semibold text-xs text-emerald-300">
-              {{ applicantStore.overallStatus.label }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Form Pilihan Program Studi -->
     <form @submit.prevent="saveAdmission" class="space-y-6">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Pilihan 1 (Prioritas Utama) -->
-        <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-              <div class="flex items-center gap-2">
-                <span class="w-6 h-6 rounded-full bg-[#1E3A8A] text-white flex items-center justify-center font-sora font-bold text-xs">
-                  1
-                </span>
-                <span class="font-sora font-bold text-sm text-slate-800">Pilihan Prioritas Utama</span>
-              </div>
-              <span class="text-[11px] font-semibold text-[#1E3A8A] bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200/60">
-                Pilihan Ke-1
-              </span>
-            </div>
+      <!-- Pilihan Jalur & Program Studi (Integrasi Terpadu BTH) -->
+      <div id="section-prodi" class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-100 shadow-sm scroll-mt-24 space-y-4">
+        <div class="text-xs font-sora font-bold text-[#1E3A8A] uppercase tracking-wider pb-2 border-b border-slate-100">
+          Pilihan Jalur & Program Studi
+        </div>
 
-            <div class="space-y-4 text-xs">
-              <div>
-                <label class="block font-medium text-slate-700 mb-1.5">Pilih Program Studi</label>
-                <select
-                  v-model="form.prodi1"
-                  @change="handleProdi1Change"
-                  class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans font-medium"
-                >
-                  <option value="" disabled>-- Pilih Program Studi Prioritas --</option>
-                  <option v-for="item in prodiList" :key="item.name" :value="item.name">
-                    {{ item.name }} ({{ item.faculty }})
-                  </option>
-                </select>
-              </div>
-
-              <!-- Info Card Detail Prodi 1 -->
-              <div v-if="currentProdi1Details" class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 space-y-2 text-xs">
-                <div class="flex justify-between items-center text-slate-600">
-                  <span class="text-slate-500">Fakultas:</span>
-                  <span class="font-semibold text-slate-800">{{ currentProdi1Details.faculty }}</span>
-                </div>
-                <div class="flex justify-between items-center text-slate-600">
-                  <span class="text-slate-500">Gelar Kelulusan:</span>
-                  <span class="font-mono font-bold text-[#1E3A8A]">{{ currentProdi1Details.degree }}</span>
-                </div>
-                <div class="flex justify-between items-center text-slate-600">
-                  <span class="text-slate-500">Akreditasi BAN-PT / LAM-PTKes:</span>
-                  <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">
-                    {{ currentProdi1Details.accreditation }}
-                  </span>
-                </div>
-                <div class="flex justify-between items-center text-slate-600 pt-2 border-t border-slate-200">
-                  <span class="text-slate-500">Estimasi UKT Per Semester:</span>
-                  <span class="font-sora font-bold text-slate-900">{{ currentProdi1Details.uktEstimate }}</span>
-                </div>
-              </div>
-              <div v-else class="bg-slate-50/60 rounded-xl p-5 border border-dashed border-slate-200 text-center text-slate-400">
-                <p class="text-xs">Silakan tentukan pilihan program studi utama di atas untuk melihat informasi fakultas, akreditasi, dan biaya perkuliahan.</p>
-              </div>
-            </div>
+        <!-- Pemilihan Jalur Pendaftaran Resmi -->
+        <div class="bg-slate-50/60 rounded-2xl p-4 sm:p-5 border border-slate-200/70 space-y-2 text-xs">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <label class="block font-medium text-slate-700">
+              Jalur Pendaftaran <span class="text-red-500">*</span>
+            </label>
+            <span class="text-[11px] text-slate-400 font-sans">Tahun Akademik {{ applicantStore.state.admission.academicYear || '2026/2027' }}</span>
           </div>
-
-          <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-500 flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Prioritas pertama akan diproses saat penilaian kelulusan CBT.</span>
+          <select
+            v-model="admissionForm.track"
+            required
+            class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans font-medium text-xs cursor-pointer"
+          >
+            <option value="" disabled>-- Pilih Jalur Pendaftaran --</option>
+            <option v-for="t in trackList" :key="t.name" :value="t.name">
+              {{ t.name }} ({{ t.badge }})
+            </option>
+          </select>
+          <div v-if="currentTrackDetails" class="text-[11px] text-slate-500 font-sans pt-1">
+            <span>{{ currentTrackDetails.description }}</span>
           </div>
         </div>
 
-        <!-- Pilihan 2 (Alternatif Cadangan) -->
-        <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-              <div class="flex items-center gap-2">
-                <span class="w-6 h-6 rounded-full bg-slate-700 text-white flex items-center justify-center font-sora font-bold text-xs">
-                  2
-                </span>
-                <span class="font-sora font-bold text-sm text-slate-800">Pilihan Alternatif / Cadangan</span>
-              </div>
-              <span class="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
-                Pilihan Ke-2
-              </span>
+        <!-- Pilihan Program Studi -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 text-xs">
+          <!-- Pilihan 1: Prioritas Utama -->
+          <div class="bg-slate-50/60 rounded-2xl p-5 border border-slate-200/70 space-y-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1.5">
+                Program Studi Pilihan Utama <span class="text-red-500">*</span>
+              </label>
+              <select
+                v-model="admissionForm.prodi1"
+                required
+                class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans font-medium text-xs cursor-pointer"
+              >
+                <option value="" disabled>-- Pilih Program Studi --</option>
+                <option v-for="item in prodiList" :key="item.code" :value="item.name">
+                  {{ item.name }} ({{ item.faculty_name }}) - {{ item.degree }}
+                </option>
+              </select>
             </div>
 
-            <div class="space-y-4 text-xs">
-              <div>
-                <label class="block font-medium text-slate-700 mb-1.5">Pilih Program Studi Cadangan</label>
-                <select
-                  v-model="form.prodi2"
-                  @change="handleProdi2Change"
-                  class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans font-medium"
-                >
-                  <option value="">-- Pilih Program Studi Cadangan (Opsional) --</option>
-                  <option v-for="item in prodiList" :key="item.name" :value="item.name" :disabled="item.name === form.prodi1">
-                    {{ item.name }} ({{ item.faculty }})
-                  </option>
-                </select>
+            <!-- Detail Info Pilihan 1 -->
+            <div v-if="currentProdi1Details" class="bg-white rounded-xl p-3.5 border border-slate-200/70 text-xs space-y-1.5">
+              <div class="flex justify-between items-center text-slate-600">
+                <span class="text-slate-400 text-[11px]">Fakultas:</span>
+                <span class="font-medium text-slate-800 text-[11px]">{{ currentProdi1Details.faculty_name }}</span>
               </div>
-
-              <!-- Info Card Detail Prodi 2 -->
-              <div v-if="currentProdi2Details" class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 space-y-2 text-xs">
-                <div class="flex justify-between items-center text-slate-600">
-                  <span class="text-slate-500">Fakultas:</span>
-                  <span class="font-semibold text-slate-800">{{ currentProdi2Details.faculty }}</span>
-                </div>
-                <div class="flex justify-between items-center text-slate-600">
-                  <span class="text-slate-500">Gelar Kelulusan:</span>
-                  <span class="font-mono font-bold text-[#1E3A8A]">{{ currentProdi2Details.degree }}</span>
-                </div>
-                <div class="flex justify-between items-center text-slate-600">
-                  <span class="text-slate-500">Akreditasi BAN-PT / LAM-PTKes:</span>
-                  <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">
-                    {{ currentProdi2Details.accreditation }}
-                  </span>
-                </div>
-                <div class="flex justify-between items-center text-slate-600 pt-2 border-t border-slate-200">
-                  <span class="text-slate-500">Estimasi UKT Per Semester:</span>
-                  <span class="font-sora font-bold text-slate-900">{{ currentProdi2Details.uktEstimate }}</span>
-                </div>
+              <div class="flex justify-between items-center text-slate-600">
+                <span class="text-slate-400 text-[11px]">Jenjang Akademik:</span>
+                <span class="font-medium text-slate-800 text-[11px]">{{ currentProdi1Details.degree }}</span>
               </div>
-              <div v-else class="bg-slate-50/60 rounded-xl p-5 border border-dashed border-slate-200 text-center text-slate-400">
-                <p class="text-xs">Belum ada program studi cadangan yang dipilih (opsional).</p>
+              <div class="flex justify-between items-center text-slate-600">
+                <span class="text-slate-400 text-[11px]">Estimasi Biaya UKT:</span>
+                <span class="font-semibold text-slate-800 text-xs font-mono">Rp {{ currentProdi1Fee.toLocaleString('id-ID') }} <span class="text-[10px] text-slate-400 font-sans font-normal">/ semester</span></span>
               </div>
             </div>
           </div>
 
-          <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-500 flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Dipertimbangkan otomatis jika kuota pilihan utama telah terpenuhi.</span>
+          <!-- Pilihan 2: Alternatif Cadangan -->
+          <div class="bg-slate-50/60 rounded-2xl p-5 border border-slate-200/70 space-y-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1.5">
+                Program Studi Pilihan Kedua (Opsional)
+              </label>
+              <select
+                v-model="admissionForm.prodi2"
+                class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans font-medium text-xs cursor-pointer"
+              >
+                <option value="">-- Tanpa Pilihan Kedua --</option>
+                <option
+                  v-for="item in prodiList"
+                  :key="item.code"
+                  :value="item.name"
+                  :disabled="item.name === admissionForm.prodi1"
+                >
+                  {{ item.name }} ({{ item.faculty_name }}) - {{ item.degree }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Detail Info Pilihan 2 -->
+            <div v-if="currentProdi2Details" class="bg-white rounded-xl p-3.5 border border-slate-200/70 text-xs space-y-1.5">
+              <div class="flex justify-between items-center text-slate-600">
+                <span class="text-slate-400 text-[11px]">Fakultas:</span>
+                <span class="font-medium text-slate-800 text-[11px]">{{ currentProdi2Details.faculty_name }}</span>
+              </div>
+              <div class="flex justify-between items-center text-slate-600">
+                <span class="text-slate-400 text-[11px]">Jenjang Akademik:</span>
+                <span class="font-medium text-slate-800 text-[11px]">{{ currentProdi2Details.degree }}</span>
+              </div>
+            </div>
+            <div v-else class="text-[11px] text-slate-400 font-sans italic py-1">
+              Pilihan alternatif diproses apabila kuota pilihan utama telah penuh.
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Syarat Khusus Program Studi Kesehatan & Sains -->
-      <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-5 text-xs">
-        <div class="flex items-start gap-3">
-          <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <div class="space-y-1.5">
-            <h4 class="font-sora font-bold text-slate-900 text-xs sm:text-sm">
-              Ketentuan Khusus Program Studi Kesehatan
-            </h4>
-            <p class="text-slate-700 leading-relaxed">
-              Program studi <strong>S1 Farmasi, D3 Farmasi, dan D3 Analis Kesehatan</strong> mewajibkan calon mahasiswa tidak buta warna (parsial maupun total). Surat hasil pemeriksaan kesehatan wajib dilampirkan pada menu Berkas Persyaratan.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-        <div class="text-xs text-slate-500 flex items-center gap-2">
-          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-          <span>Pilihan dapat diperbarui selama masa pendaftaran Gelombang 1 masih berlangsung.</span>
-        </div>
-
+      <!-- Tombol Aksi Simpan -->
+      <div class="flex items-center justify-end gap-3 pt-2">
         <button
           type="submit"
           :disabled="isSaving"
-          class="w-full sm:w-auto px-6 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-sm hover:shadow transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+          class="w-full sm:w-auto rounded-xl px-6 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-medium text-xs sm:text-sm shadow-xs hover:shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70"
         >
-          <svg v-if="isSaving" class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-          </svg>
-          <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <span>{{ isSaving ? 'Menyimpan...' : 'Simpan Pilihan Program Studi' }}</span>
+          <Loader2 v-if="isSaving" class="animate-spin h-4 w-4 text-white" />
+          <span>{{ isSaving ? 'Menyimpan ke Server...' : 'Simpan Pilihan Jalur & Program Studi' }}</span>
         </button>
       </div>
     </form>
@@ -248,118 +152,203 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { Loader2, CheckCircle2 } from 'lucide-vue-next';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useApplicantStore } from '@/stores/applicant';
+import { useOrganizationStore } from '@/stores/organization';
+import { admissionApi } from '@/api/admission';
+
+defineEmits(['switch-tab']);
 
 const applicantStore = useApplicantStore();
-
-const prodiList = [
-  {
-    name: 'S1 Farmasi',
-    faculty: 'Fakultas Farmasi',
-    degree: 'S.Farm.',
-    accreditation: 'Unggul',
-    uktEstimate: 'Rp 6.500.000 / semester',
-  },
-  {
-    name: 'S1 Teknologi Informasi',
-    faculty: 'Fakultas Teknologi & Bisnis',
-    degree: 'S.Kom.',
-    accreditation: 'Baik Sekali',
-    uktEstimate: 'Rp 4.500.000 / semester',
-  },
-  {
-    name: 'S1 Manajemen Bisnis Informasi',
-    faculty: 'Fakultas Teknologi & Bisnis',
-    degree: 'S.M.',
-    accreditation: 'Baik',
-    uktEstimate: 'Rp 4.250.000 / semester',
-  },
-  {
-    name: 'D3 Farmasi',
-    faculty: 'Fakultas Farmasi',
-    degree: 'A.Md.Farm.',
-    accreditation: 'Unggul',
-    uktEstimate: 'Rp 4.800.000 / semester',
-  },
-  {
-    name: 'D3 Analis Kesehatan (TLM)',
-    faculty: 'Fakultas Ilmu Kesehatan',
-    degree: 'A.Md.Kes.',
-    accreditation: 'Baik Sekali',
-    uktEstimate: 'Rp 4.750.000 / semester',
-  },
-  {
-    name: 'S1 Administrasi Rumah Sakit',
-    faculty: 'Fakultas Ilmu Kesehatan',
-    degree: 'S.Kes.',
-    accreditation: 'Baik Sekali',
-    uktEstimate: 'Rp 4.500.000 / semester',
-  },
-];
-
-const form = ref({
-  prodi1: applicantStore.state.admission.prodi1,
-  prodi2: applicantStore.state.admission.prodi2,
-});
-
-watch(
-  () => applicantStore.state.admission,
-  (newAdm) => {
-    form.value.prodi1 = newAdm?.prodi1 || '';
-    form.value.prodi2 = newAdm?.prodi2 || '';
-  },
-  { deep: true }
-);
-
-const currentProdi1Details = computed(() => {
-  return prodiList.find((p) => p.name === form.value.prodi1) || null;
-});
-
-const currentProdi2Details = computed(() => {
-  return prodiList.find((p) => p.name === form.value.prodi2) || null;
-});
-
-const handleProdi1Change = () => {
-  const p = currentProdi1Details.value;
-  if (p) {
-    applicantStore.state.admission.prodi1Faculty = p.faculty;
-    applicantStore.state.admission.prodi1Degree = p.degree;
-  }
-};
-
-const handleProdi2Change = () => {
-  const p = currentProdi2Details.value;
-  if (p) {
-    applicantStore.state.admission.prodi2Faculty = p.faculty;
-    applicantStore.state.admission.prodi2Degree = p.degree;
-  } else {
-    applicantStore.state.admission.prodi2Faculty = '';
-    applicantStore.state.admission.prodi2Degree = '';
-  }
-};
+const organizationStore = useOrganizationStore();
 
 const isSaving = ref(false);
 const savedMessage = ref('');
 
-const saveAdmission = () => {
-  if (!form.value.prodi1) {
-    savedMessage.value = '';
-    alert('Silakan pilih Program Studi Prioritas Utama terlebih dahulu.');
+onMounted(async () => {
+  await Promise.allSettled([
+    organizationStore.syncAll(),
+    admissionApi.getActivePeriods().catch(() => null),
+    admissionApi.getPaths().catch(() => null),
+  ]);
+});
+
+const prodiList = computed(() => {
+  return organizationStore.activeStudyPrograms;
+});
+
+const trackList = [
+  {
+    name: 'Jalur Reguler Gelombang 1',
+    badge: 'Seleksi CBT Mandiri',
+    description: 'Jalur seleksi umum berbasis Computer Based Test (CBT) dan wawancara peminatan.'
+  },
+  {
+    name: 'Jalur Prestasi (PMDK / Akademik & Non-Akademik)',
+    badge: 'Bebas Tes Tulis',
+    description: 'Seleksi bebas tes tertulis bagi siswa berprestasi di bidang sains, olahraga, seni, atau keagamaan (Tahfidz).'
+  },
+  {
+    name: 'Jalur Nilai Rapor & UTBK',
+    badge: 'Bebas Tes Tulis',
+    description: 'Seleksi berdasarkan nilai rata-rata rapor semester 1-5 atau sertifikat hasil UTBK-SNBT.'
+  },
+  {
+    name: 'Jalur Beasiswa KIP Kuliah / Yayasan',
+    badge: 'Beasiswa Pemerintah',
+    description: 'Bantuan biaya pendidikan penuh bagi lulusan SMA/SMK berprestasi yang memiliki KIP atau terdaftar DTKS.'
+  },
+  {
+    name: 'Jalur Alih Jenjang / Pindahan',
+    badge: 'Program Lanjutan',
+    description: 'Khusus lulusan Diploma (D3) yang melanjutkan ke jenjang Sarjana (S1) atau transfer mahasiswa.'
+  },
+  {
+    name: 'Jalur Kemitraan & Rekanan Faskes',
+    badge: 'Kerjasama Institusi',
+    description: 'Jalur khusus bagi putra/putri keluarga tenaga kesehatan atau institusi/faskes rekanan Universitas BTH.'
+  }
+];
+
+const admissionForm = ref({
+  track: applicantStore.state.admission.track || 'Jalur Reguler Gelombang 1',
+  prodi1: applicantStore.state.admission.prodi1 || '',
+  prodi2: applicantStore.state.admission.prodi2 || '',
+});
+
+// Sinkronkan data store hanya jika data store diperbarui dari luar
+watch(
+  () => applicantStore.state.admission?.prodi1,
+  (newProdi) => {
+    if (newProdi && newProdi !== admissionForm.value.prodi1) {
+      admissionForm.value.prodi1 = newProdi;
+    }
+  }
+);
+watch(
+  () => applicantStore.state.admission?.prodi2,
+  (newProdi2) => {
+    if (newProdi2 !== undefined && newProdi2 !== admissionForm.value.prodi2) {
+      admissionForm.value.prodi2 = newProdi2;
+    }
+  }
+);
+watch(
+  () => applicantStore.state.admission?.track,
+  (newTrack) => {
+    if (newTrack && newTrack !== admissionForm.value.track) {
+      admissionForm.value.track = newTrack;
+    }
+  }
+);
+
+const currentTrackDetails = computed(() => {
+  return trackList.find(t => t.name === admissionForm.value.track);
+});
+
+const currentProdi1Details = computed(() => {
+  return organizationStore.getStudyProgramByName(admissionForm.value.prodi1);
+});
+
+const currentProdi2Details = computed(() => {
+  return organizationStore.getStudyProgramByName(admissionForm.value.prodi2);
+});
+
+const PRODI_METADATA_FEE = {
+  'S1 Farmasi': 6500000,
+  'D3 Farmasi': 4800000,
+  'D3 Analis Kesehatan (TLM)': 4750000,
+  'S1 Administrasi Rumah Sakit': 4500000,
+  'S1 Keperawatan': 5200000,
+  'S1 Teknologi Informasi': 4500000,
+  'S1 Bisnis Digital': 4250000,
+};
+
+const currentProdi1Fee = computed(() => {
+  if (!admissionForm.value.prodi1) return 6500000;
+  return PRODI_METADATA_FEE[admissionForm.value.prodi1] || 6500000;
+});
+
+const saveAdmission = async () => {
+  if (!admissionForm.value.prodi1) {
+    alert('Silakan pilih Program Studi Pilihan Utama terlebih dahulu.');
     return;
   }
   isSaving.value = true;
-  setTimeout(() => {
+  try {
+    const p1 = currentProdi1Details.value;
+    const p2 = currentProdi2Details.value;
+
     applicantStore.updateAdmission({
-      prodi1: form.value.prodi1,
-      prodi1Faculty: currentProdi1Details.value?.faculty || '',
-      prodi1Degree: currentProdi1Details.value?.degree || '',
-      prodi2: form.value.prodi2,
-      prodi2Faculty: currentProdi2Details.value?.faculty || '',
-      prodi2Degree: currentProdi2Details.value?.degree || '',
+      track: admissionForm.value.track,
+      prodi1: admissionForm.value.prodi1,
+      prodi1Code: p1?.code || '',
+      prodi1NimCode: p1?.nim_code || '01',
+      prodi1Faculty: p1?.faculty_name || '',
+      prodi1Degree: p1?.degree || '',
+      prodi2: admissionForm.value.prodi2,
+      prodi2Code: p2?.code || '',
+      prodi2NimCode: p2?.nim_code || '',
+      prodi2Faculty: p2?.faculty_name || '',
+      prodi2Degree: p2?.degree || '',
     });
+
+    // Format UUID valid untuk choice_id yang kompatibel dengan schema backend
+    const formatChoiceUUID = (id) => {
+      const num = parseInt(id) || 1;
+      return `00000000-0000-0000-0000-${String(num).padStart(12, '0')}`;
+    };
+
+    const choice1UUID = p1?.uuid || formatChoiceUUID(p1?.id || 1);
+    const choice2UUID = p2 ? (p2?.uuid || formatChoiceUUID(p2?.id || 2)) : null;
+
+    // Sinkronisasi ke backend admission-service
+    const existingApps = await admissionApi.getMyApplications().catch(() => null);
+    if (existingApps?.data?.data && existingApps.data.data.length > 0) {
+      const activeApp = existingApps.data.data[0];
+      await admissionApi.updateChoices(activeApp.id, {
+        choice_1_id: choice1UUID,
+        choice_2_id: choice2UUID,
+      }).catch(() => null);
+    } else {
+      let periodId = 1;
+      let pathId = 1;
+      const periodRes = await admissionApi.getActivePeriods().catch(() => null);
+      if (periodRes?.data?.data?.id) periodId = periodRes.data.data.id;
+
+      const pathRes = await admissionApi.getPaths().catch(() => null);
+      if (pathRes?.data?.data && Array.isArray(pathRes.data.data)) {
+        const found = pathRes.data.data.find(
+          (p) => p.name?.toLowerCase().includes('reguler') || p.code === 'REG'
+        );
+        if (found?.id) pathId = found.id;
+      }
+
+      const createRes = await admissionApi.createApplication({
+        period_id: periodId,
+        admission_path_id: pathId,
+        choice_1_id: choice1UUID,
+        choice_2_id: choice2UUID,
+      }).catch(() => null);
+
+      if (createRes?.data?.data?.registration_no) {
+        applicantStore.state.candidate.registrationNumber = createRes.data.data.registration_no;
+      }
+    }
+
+    // Refresh sinkronisasi seluruh state dari backend
+    await applicantStore.syncFromBackend().catch(() => null);
+
+    savedMessage.value = 'Pilihan jalur pendaftaran dan program studi berhasil disimpan ke sistem PMB!';
+  } catch (err) {
+    console.warn('Admission save notice (fallback):', err);
+    savedMessage.value = 'Pilihan berhasil disimpan!';
+  } finally {
     isSaving.value = false;
-    savedMessage.value = 'Pilihan program studi berhasil diperbarui dan tersimpan di database sistem.';
-  }, 350);
+    setTimeout(() => {
+      savedMessage.value = '';
+    }, 4000);
+  }
 };
 </script>

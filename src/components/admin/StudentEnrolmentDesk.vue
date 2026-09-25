@@ -4,10 +4,10 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
       <div>
         <h2 class="font-sora font-bold text-base sm:text-lg text-slate-900">
-          Meja Penerbitan NIM & Onboarding Mahasiswa Baru
+          Penerbitan NIM & Registrasi Mahasiswa Baru
         </h2>
         <p class="text-xs text-slate-500 mt-0.5">
-          Penetapan Nomor Induk Mahasiswa resmi, plotting gugus PKKMB 2026, dan aktivasi akun SIAKAD.
+          Penetapan Nomor Induk Mahasiswa resmi, pembagian gugus PKKMB 2026, dan aktivasi akun SIAKAD.
         </p>
       </div>
       <div class="flex items-center gap-2 self-start sm:self-auto">

@@ -417,7 +417,7 @@
           <h3 class="font-sora font-bold text-slate-900 text-sm">
             Buku Besar Kas Masuk Host-to-Host (Rekonsiliasi Otomatis)
           </h3>
-          <span class="text-xs text-emerald-600 font-mono font-semibold">Tersinkronisasi Real-Time</span>
+          <span class="text-xs text-emerald-600 font-mono font-semibold">Tersinkronisasi Otomatis</span>
         </div>
 
         <div class="overflow-x-auto">

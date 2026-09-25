@@ -4,430 +4,525 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
       <div>
         <h2 class="font-sora font-bold text-base sm:text-lg text-slate-900">
-          Portal Ujian Mandiri CBT (Computer Based Test)
+          Proses Seleksi Masuk Calon Mahasiswa Baru
         </h2>
         <p class="text-xs text-slate-500 mt-0.5">
-          Simulasi dan pengerjaan tes kemampuan akademik & potensi skolastik PMB Universitas BTH.
+          Pelaksanaan Seleksi Akademik Mandiri CBT dan Tes Lisan / Wawancara Daring Universitas Bakti Tunas Husada.
         </p>
       </div>
-      <div class="flex items-center gap-2 self-start sm:self-auto">
-        <span
-          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold font-sora border transition-colors"
-          :class="examStatus === 'completed'
-            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-            : isTesting
-              ? 'bg-blue-50 text-[#1E3A8A] border border-blue-200'
-              : !applicantStore.isRegPaymentComplete
-                ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                : 'bg-emerald-50 text-emerald-700 border border-emerald-200'"
-        >
-          <span
-            class="w-1.5 h-1.5 rounded-full"
-            :class="examStatus === 'completed' ? 'bg-emerald-500' : isTesting ? 'bg-blue-500 animate-pulse' : !applicantStore.isRegPaymentComplete ? 'bg-amber-500' : 'bg-emerald-500'"
-          ></span>
-          <span>
-            {{ examStatus === 'completed'
-              ? 'Ujian CBT Selesai'
-              : isTesting
-                ? 'Ujian Sedang Berlangsung'
-                : !applicantStore.isRegPaymentComplete
-                  ? 'Menunggu Pembayaran Formulir'
-                  : 'Sesi Ujian CBT Siap' }}
-          </span>
-        </span>
+      <div class="text-xs text-slate-500 font-sans self-start sm:self-auto">
+        Status: <strong class="text-slate-800 font-semibold">{{ activeSubTab === 'cbt' ? (examStatus === 'completed' ? 'Ujian CBT Selesai' : isTesting ? 'Ujian Sedang Berlangsung' : !applicantStore.isRegPaymentComplete ? 'Menunggu Pembayaran Formulir' : 'Sesi CBT Siap') : (interviewAttended ? 'Presensi Wawancara Terkonfirmasi' : 'Sesi Wawancara Terjadwal') }}</strong>
       </div>
     </div>
 
-    <!-- VIEW 1: SELESAI UJIAN (SCORE SCREEN) -->
-    <div v-if="examStatus === 'completed' && !isTesting" class="space-y-6 animate-fadeIn">
-      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-xs text-center max-w-2xl mx-auto space-y-4">
-        <div class="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto">
-          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-
-        <div>
-          <div class="text-xs font-semibold text-emerald-700 uppercase tracking-wider font-sora">
-            Hasil Penilaian Ujian CBT Online
-          </div>
-          <h3 class="font-sora font-extrabold text-2xl text-slate-900 mt-1">
-            Ujian Berhasil Diselesaikan
-          </h3>
-          <p class="text-xs text-slate-500 mt-1">
-            Waktu Penyelesaian: {{ examState.completedAt }}
-          </p>
-        </div>
-
-        <div class="p-6 bg-slate-50 border border-slate-200/80 rounded-2xl max-w-md mx-auto grid grid-cols-2 gap-4 text-center">
-          <div class="border-r border-slate-200 pr-2">
-            <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Skor Akhir</div>
-            <div class="font-sora font-black text-3xl text-[#1E3A8A] mt-1">
-              {{ examState.score }}<span class="text-sm font-normal text-slate-400">/100</span>
-            </div>
-          </div>
-          <div class="pl-2">
-            <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Jawaban Benar</div>
-            <div class="font-sora font-black text-3xl text-emerald-600 mt-1">
-              {{ examState.correctAnswers }}<span class="text-sm font-normal text-slate-400">/{{ questions.length }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-50 border border-emerald-200 rounded-full text-xs text-emerald-800 font-sora font-semibold">
-          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <span>{{ examState.passedStatus }}</span>
-        </div>
-
-        <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-3">
-          <button
-            @click="restartExam"
-            class="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-sora font-semibold text-xs rounded-xl transition-all cursor-pointer text-center"
-          >
-            Kerjakan Ulang Ujian
-          </button>
-          <button
-            @click="$emit('switch-tab', 'result')"
-            class="w-full sm:w-auto px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
-          >
-            <span>Lihat Pengumuman Kelulusan</span>
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
+    <!-- Alert Toast Feedback -->
+    <div
+      v-if="toastMessage"
+      class="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs flex items-center justify-between animate-fadeIn"
+    >
+      <div class="flex items-center gap-2">
+        <CheckCircle2 class="w-4 h-4 text-emerald-600 flex-shrink-0" />
+        <span>{{ toastMessage }}</span>
       </div>
+      <button @click="toastMessage = ''" class="text-emerald-600 hover:text-emerald-900 font-bold text-base leading-none">&times;</button>
     </div>
 
-    <!-- VIEW 2: SEDANG UJIAN (ACTIVE CBT INTERFACE) -->
-    <div v-else-if="isTesting" class="space-y-4 animate-fadeIn">
-      <!-- Exam Control Bar -->
-      <div class="bg-[#1E3A8A] text-white rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 shadow-sm">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center font-sora font-bold text-base">
-            {{ currentIndex + 1 }}
+    <!-- Sub-Navigasi 2 Tahap Seleksi: CBT Online & Wawancara Daring -->
+    <div v-if="!isTesting" class="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100/90 rounded-2xl w-full sm:w-fit">
+      <button
+        @click="activeSubTab = 'cbt'"
+        class="px-4 py-2 rounded-xl text-xs font-sora font-semibold transition-all flex items-center gap-2 cursor-pointer"
+        :class="activeSubTab === 'cbt'
+          ? 'bg-white text-[#1E3A8A] shadow-xs'
+          : 'text-slate-600 hover:text-slate-900'"
+      >
+        <Monitor class="w-4 h-4" />
+        <span>Ujian CBT Online</span>
+      </button>
+
+      <button
+        @click="activeSubTab = 'interview'"
+        class="px-4 py-2 rounded-xl text-xs font-sora font-semibold transition-all flex items-center gap-2 cursor-pointer"
+        :class="activeSubTab === 'interview'
+          ? 'bg-white text-[#1E3A8A] shadow-xs'
+          : 'text-slate-600 hover:text-slate-900'"
+      >
+        <Video class="w-4 h-4 text-emerald-600" />
+        <span>Wawancara Daring</span>
+      </button>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- BAGIAN 1: UJIAN MANDIRI CBT ONLINE        -->
+    <!-- ========================================== -->
+    <div v-if="activeSubTab === 'cbt'" class="space-y-6">
+      <!-- VIEW 1: SELESAI UJIAN (SCORE SCREEN) -->
+      <div v-if="examStatus === 'completed' && !isTesting" class="space-y-6 animate-fadeIn">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-sm text-center max-w-2xl mx-auto space-y-4">
+          <div class="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto">
+            <CheckCircle2 class="w-8 h-8" />
           </div>
+
           <div>
-            <div class="text-xs text-blue-200 font-sora">Ujian CBT PMB Universitas BTH</div>
-            <div class="text-sm font-bold font-sora text-white">
-              Soal Nomor {{ currentIndex + 1 }} dari {{ questions.length }}
+            <h3 class="font-sora font-extrabold text-2xl text-slate-900 mt-1">
+              Ujian Berhasil Diselesaikan
+            </h3>
+            <p class="text-xs text-slate-500 mt-1">
+              Waktu Penyelesaian: {{ examState.completedAt }}
+            </p>
+          </div>
+
+          <div class="p-6 bg-slate-50 border border-slate-200/80 rounded-2xl max-w-md mx-auto grid grid-cols-2 gap-4 text-center">
+            <div class="border-r border-slate-200 pr-2">
+              <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Skor Akhir</div>
+              <div class="font-sora font-black text-3xl text-[#1E3A8A] mt-1">
+                {{ examState.score }}<span class="text-sm font-normal text-slate-400">/100</span>
+              </div>
+            </div>
+            <div class="pl-2">
+              <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Jawaban Benar</div>
+              <div class="font-sora font-black text-3xl text-emerald-600 mt-1">
+                {{ examState.correctAnswers }}<span class="text-sm font-normal text-slate-400">/{{ questions.length }}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Timer Box -->
-        <div class="flex items-center gap-3 bg-black/30 backdrop-blur-xs px-4 py-2 rounded-xl border border-white/10">
-          <svg class="w-4 h-4 text-amber-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <div class="text-right">
-            <div class="text-[10px] text-blue-200 uppercase font-bold">Sisa Waktu</div>
-            <div class="font-mono font-bold text-sm text-amber-300">
-              {{ formattedTime }}
-            </div>
+          <div class="inline-flex items-center px-3 py-1 bg-emerald-50 border border-emerald-200/80 rounded-md text-xs text-emerald-800 font-medium">
+            <span>{{ examState.passedStatus }}</span>
+          </div>
+
+          <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-3">
+            <button
+              @click="restartExam"
+              class="w-full sm:w-auto rounded-xl px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs transition-all cursor-pointer text-center"
+            >
+              Kerjakan Ulang Ujian
+            </button>
+            <button
+              @click="activeSubTab = 'interview'"
+              class="w-full sm:w-auto rounded-xl px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Video class="w-3.5 h-3.5" />
+              <span>Lanjut ke Wawancara Daring</span>
+            </button>
+            <button
+              @click="$emit('switch-tab', 'result')"
+              class="w-full sm:w-auto rounded-xl px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-medium text-xs transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <span>Lihat Pengumuman Kelulusan</span>
+              <ArrowRight class="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Question & Options Card -->
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <!-- Question Content (Col 3) -->
-        <div class="lg:col-span-3 bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
-          <div class="space-y-5">
-            <!-- Category Tag -->
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider bg-slate-100 px-2.5 py-0.5 rounded">
-                Bidang: {{ currentQuestion.category }}
-              </span>
+      <!-- VIEW 2: SEDANG UJIAN (ACTIVE CBT INTERFACE) -->
+      <div v-else-if="isTesting" class="space-y-4 animate-fadeIn">
+        <!-- Exam Control Bar -->
+        <div class="bg-[#1E3A8A] text-white rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center font-sora font-bold text-base">
+              {{ currentIndex + 1 }}
+            </div>
+            <div>
+              <div class="text-xs text-blue-200 font-sora">Ujian CBT PMB Universitas BTH</div>
+              <div class="text-sm font-bold font-sora text-white">
+                Soal Nomor {{ currentIndex + 1 }} dari {{ questions.length }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Timer Box -->
+          <div class="flex items-center gap-3 bg-black/30 backdrop-blur-xs px-4 py-2 rounded-xl border border-white/10">
+            <Clock class="w-4 h-4 text-amber-400" />
+            <div class="text-right">
+              <div class="text-[10px] text-blue-200 uppercase font-bold">Sisa Waktu</div>
+              <div class="font-mono font-bold text-sm text-amber-300">
+                {{ formattedTime }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Question & Options Card -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <!-- Question Content (Col 3) -->
+          <div class="lg:col-span-3 bg-white rounded-3xl p-6 sm:p-7 border border-slate-100 shadow-sm flex flex-col justify-between">
+            <div class="space-y-5">
+              <!-- Question Header & Mark Button -->
+              <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <span class="text-xs font-semibold text-slate-500">
+                  Pertanyaan {{ currentIndex + 1 }} dari {{ questions.length }}
+                </span>
+                <button
+                  @click="toggleRagu(currentIndex)"
+                  class="text-xs font-semibold px-2.5 py-1 rounded-lg border transition-colors flex items-center gap-1.5 cursor-pointer"
+                  :class="raguList[currentIndex] ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+                >
+                  <span>{{ raguList[currentIndex] ? 'Ragu-ragu (Ditandai)' : 'Tandai Ragu-ragu' }}</span>
+                </button>
+              </div>
+
+              <!-- Question Text -->
+              <div class="text-sm sm:text-base text-slate-900 font-medium leading-relaxed">
+                {{ currentQuestion.question }}
+              </div>
+
+              <!-- Options Radio List -->
+              <div class="space-y-2.5 pt-2">
+                <label
+                  v-for="opt in currentQuestion.options"
+                  :key="opt.key"
+                  class="flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer select-none"
+                  :class="userAnswers[currentIndex] === opt.key ? 'bg-blue-50/80 border-[#1E3A8A] text-[#1E3A8A] font-semibold ring-1 ring-blue-200' : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'"
+                >
+                  <input
+                    type="radio"
+                    :name="'q_' + currentIndex"
+                    :value="opt.key"
+                    v-model="userAnswers[currentIndex]"
+                    class="mt-0.5 text-[#1E3A8A] focus:ring-[#1E3A8A]"
+                  />
+                  <div class="text-xs sm:text-sm">
+                    <strong class="mr-2">{{ opt.key }}.</strong>
+                    <span>{{ opt.text }}</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Bottom Navigation Controls -->
+            <div class="pt-5 border-t border-slate-100 mt-5 flex items-center justify-between gap-2">
               <button
-                @click="toggleRagu(currentIndex)"
-                class="text-xs font-semibold px-2.5 py-1 rounded-lg border transition-colors flex items-center gap-1.5"
-                :class="raguList[currentIndex] ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+                @click="prevQuestion"
+                :disabled="currentIndex === 0"
+                class="rounded-xl px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:pointer-events-none text-slate-700 font-medium text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
               >
-                <span class="w-2 h-2 rounded-full" :class="raguList[currentIndex] ? 'bg-amber-500' : 'bg-slate-300'"></span>
-                <span>{{ raguList[currentIndex] ? 'Ragu-ragu (Ditandai)' : 'Tandai Ragu-ragu' }}</span>
+                <ArrowLeft class="w-3.5 h-3.5 flex-shrink-0" />
+                <span>Sebelumnya</span>
+              </button>
+
+              <button
+                v-if="currentIndex < questions.length - 1"
+                @click="nextQuestion"
+                class="rounded-xl px-5 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-medium text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Berikutnya</span>
+                <ArrowRight class="w-3.5 h-3.5 flex-shrink-0" />
+              </button>
+
+              <button
+                v-else
+                @click="showFinishModal = true"
+                class="rounded-xl px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+              >
+                <Check class="w-4 h-4 flex-shrink-0" />
+                <span>Selesaikan Ujian</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Question Grid Navigator (Col 1) -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm space-y-4">
+            <div class="font-sora font-bold text-xs text-slate-900 pb-2 border-b border-slate-100">
+              Daftar Navigasi Soal
+            </div>
+
+            <div class="grid grid-cols-5 gap-1.5 sm:gap-2">
+              <button
+                v-for="(_, idx) in questions"
+                :key="idx"
+                @click="currentIndex = idx"
+                class="h-9 sm:h-10 w-full rounded-xl font-sora font-bold text-xs flex items-center justify-center border transition-all cursor-pointer"
+                :class="{
+                  'ring-2 ring-[#1E3A8A] ring-offset-2': currentIndex === idx,
+                  'bg-amber-100 border-amber-300 text-amber-900': raguList[idx],
+                  'bg-blue-600 text-white border-blue-700': userAnswers[idx] && !raguList[idx],
+                  'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100': !userAnswers[idx] && !raguList[idx]
+                }"
+              >
+                {{ idx + 1 }}
               </button>
             </div>
 
-            <!-- Question Text -->
-            <div class="text-sm sm:text-base text-slate-900 font-medium leading-relaxed">
-              {{ currentQuestion.question }}
+            <!-- Ringkasan Status Soal -->
+            <div class="pt-3 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
+              <div class="flex items-center justify-between">
+                <span>Sudah Dijawab</span>
+                <strong class="font-semibold text-slate-800">{{ answeredCount }}</strong>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>Ragu-ragu</span>
+                <strong class="font-semibold text-amber-700">{{ raguCount }}</strong>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>Belum Dijawab</span>
+                <strong class="font-semibold text-slate-500">{{ questions.length - answeredCount }}</strong>
+              </div>
             </div>
 
-            <!-- Options Radio List -->
-            <div class="space-y-2.5 pt-2">
-              <label
-                v-for="opt in currentQuestion.options"
-                :key="opt.key"
-                class="flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer select-none"
-                :class="userAnswers[currentIndex] === opt.key ? 'bg-blue-50/80 border-[#1E3A8A] text-[#1E3A8A] font-semibold ring-1 ring-blue-200' : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'"
+            <div class="pt-3 border-t border-slate-100">
+              <button
+                @click="showFinishModal = true"
+                class="w-full rounded-xl py-2.5 bg-slate-900 hover:bg-black text-white font-medium text-xs transition-colors cursor-pointer"
               >
-                <input
-                  type="radio"
-                  :name="'q_' + currentIndex"
-                  :value="opt.key"
-                  v-model="userAnswers[currentIndex]"
-                  class="mt-0.5 text-[#1E3A8A] focus:ring-[#1E3A8A]"
-                />
-                <div class="text-xs sm:text-sm">
-                  <strong class="mr-2">{{ opt.key }}.</strong>
-                  <span>{{ opt.text }}</span>
-                </div>
-              </label>
+                Selesai & Kumpulkan
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 3: SEBELUM MULAI (JADWAL & PETUNJUK CBT) -->
+      <div v-else class="space-y-6 animate-fadeIn">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-slate-100">
+            <div>
+              <h3 class="font-sora font-extrabold text-xl sm:text-2xl text-slate-900">
+                Ujian CBT Online
+              </h3>
+              <p class="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed">
+                Ujian dilaksanakan secara daring. Pastikan koneksi internet stabil sebelum memulai. Hasil nilai akan langsung ditampilkan setelah ujian selesai.
+              </p>
+            </div>
+
+            <div class="flex-shrink-0">
+              <button
+                v-if="applicantStore.isRegPaymentComplete"
+                @click="startExam"
+                class="w-full sm:w-auto rounded-2xl py-3 px-8 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs sm:text-sm font-semibold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Monitor class="w-4 h-4" />
+                <span>Mulai Ujian CBT</span>
+              </button>
+              <button
+                v-else
+                @click="$emit('switch-tab', 'payment')"
+                class="w-full sm:w-auto rounded-2xl py-3 px-8 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs sm:text-sm font-semibold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <CreditCard class="w-4 h-4" />
+                <span>Bayar Biaya Pendaftaran untuk Membuka Sesi</span>
+              </button>
             </div>
           </div>
 
-          <!-- Bottom Navigation Controls -->
-          <div class="pt-5 border-t border-slate-100 mt-5 flex items-center justify-between gap-2">
-            <button
-              @click="prevQuestion"
-              :disabled="currentIndex === 0"
-              class="px-3 sm:px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:pointer-events-none text-slate-700 font-semibold text-xs rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
-            >
-              <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-              </svg>
-              <span><span class="hidden xs:inline">Soal </span>Sebelumnya</span>
-            </button>
+          <!-- Parameter Sesi CBT Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 text-xs">
+            <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+              <div class="text-[11px] text-slate-400 font-medium">Jadwal Sesi</div>
+              <div class="font-sora font-bold text-slate-800 mt-1">{{ schedule.cbt.date }}</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">{{ schedule.cbt.time }}</div>
+            </div>
 
-            <button
-              v-if="currentIndex < questions.length - 1"
-              @click="nextQuestion"
-              class="px-3.5 sm:px-4 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
-            >
-              <span><span class="hidden xs:inline">Soal </span>Berikutnya</span>
-              <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+            <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+              <div class="text-[11px] text-slate-400 font-medium">Durasi & Soal</div>
+              <div class="font-sora font-bold text-slate-800 mt-1">15 Menit</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">5 Soal Pilihan Ganda</div>
+            </div>
 
+            <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+              <div class="text-[11px] text-slate-400 font-medium">Standar Kelulusan</div>
+              <div class="font-sora font-bold text-emerald-700 mt-1">Nilai Minimal 70</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Skor minimal kelulusan</div>
+            </div>
+
+            <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+              <div class="text-[11px] text-slate-400 font-medium">Media Pelaksanaan</div>
+              <div class="font-sora font-bold text-slate-800 mt-1">Portal CBT Daring</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">{{ schedule.cbt.room }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Petunjuk Pengerjaan CBT -->
+        <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-100 shadow-sm space-y-3">
+          <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base pb-3 border-b border-slate-100">
+            Petunjuk Pengerjaan
+          </h3>
+          <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside leading-relaxed">
+            <li>Ujian terdiri dari 5 butir soal pilihan ganda dengan durasi pengerjaan 15 menit.</li>
+            <li>Pilihlah salah satu jawaban yang paling tepat. Jawaban dapat diperbarui selama waktu ujian masih berjalan.</li>
+            <li>Gunakan tombol "Tandai Ragu-ragu" jika Anda belum yakin dengan opsi jawaban yang dipilih.</li>
+            <li>Kerjakan secara mandiri dan pastikan koneksi internet stabil hingga ujian dikumpulkan.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- BAGIAN 2: TES LISAN & WAWANCARA DARING (MEET, ZOOM, DLL)       -->
+    <!-- ============================================================== -->
+    <div v-else-if="activeSubTab === 'interview'" class="space-y-6 animate-fadeIn">
+      <!-- 1. Ruang Virtual Wawancara -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+          <div>
+            <h3 class="font-sora font-extrabold text-xl sm:text-2xl text-slate-900">
+              Wawancara Daring
+            </h3>
+            <p class="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed">
+              Sesi wawancara daring bersama Tim Penguji Universitas Bakti Tunas Husada melalui media video konferensi.
+            </p>
+          </div>
+
+          <!-- Attendance Confirmation Button -->
+          <div class="flex-shrink-0">
+            <div
+              v-if="interviewAttended"
+              class="px-4 py-2.5 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-2 text-emerald-800 text-xs font-semibold"
+            >
+              <CheckCircle2 class="w-4 h-4 text-emerald-600" />
+              <span>Presensi Kehadiran Terverifikasi</span>
+            </div>
             <button
               v-else
-              @click="showFinishModal = true"
-              class="px-4 sm:px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-sora font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+              @click="recordInterviewAttendance"
+              :disabled="isSubmittingAttendance"
+              class="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
-              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              <span>Selesaikan<span class="hidden xs:inline"> Ujian</span></span>
+              <UserCheck class="w-4 h-4" />
+              <span>{{ isSubmittingAttendance ? 'Mencatat Presensi...' : 'Konfirmasi Kehadiran' }}</span>
             </button>
           </div>
         </div>
 
-        <!-- Question Grid Navigator (Col 1) -->
-        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs space-y-4">
-          <div class="font-sora font-bold text-xs text-slate-900 pb-2 border-b border-slate-100">
-            Daftar Navigasi Soal
-          </div>
+        <!-- 2 Pilihan Video Telekonferensi: Google Meet & Zoom -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Opsi 1: Google Meet -->
+          <div class="p-5 sm:p-6 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-all flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-2xs flex-shrink-0 p-2">
+                  <img src="/images/icons/google-meet.svg" alt="Google Meet Logo" class="w-full h-full object-contain" />
+                </div>
+                <h4 class="font-sora font-bold text-slate-900 text-base">Google Meet</h4>
+              </div>
 
-          <div class="grid grid-cols-5 gap-1.5 sm:gap-2">
-            <button
-              v-for="(_, idx) in questions"
-              :key="idx"
-              @click="currentIndex = idx"
-              class="h-9 sm:h-10 w-full rounded-xl font-sora font-bold text-xs flex items-center justify-center border transition-all cursor-pointer"
-              :class="{
-                'ring-2 ring-[#1E3A8A] ring-offset-2': currentIndex === idx,
-                'bg-amber-100 border-amber-300 text-amber-900': raguList[idx],
-                'bg-blue-600 text-white border-blue-700': userAnswers[idx] && !raguList[idx],
-                'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100': !userAnswers[idx] && !raguList[idx]
-              }"
+              <div class="mt-4 p-3 bg-white rounded-xl border border-slate-200/80 space-y-1.5 text-xs font-sans">
+                <div class="flex items-center justify-between text-slate-600">
+                  <span class="text-slate-500">Kode Pertemuan:</span>
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-slate-900">pmb-ubth-2026</span>
+                    <button
+                      @click="copyText('pmb-ubth-2026', 'Kode Google Meet')"
+                      class="text-[11px] font-semibold text-[#1E3A8A] hover:underline cursor-pointer"
+                    >
+                      Salin
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <a
+              href="https://meet.google.com/pmb-ubth-2026"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-full py-2.5 px-4 rounded-xl bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-semibold transition-all shadow-xs flex items-center justify-center gap-2 text-center"
             >
-              {{ idx + 1 }}
-            </button>
+              <span>Masuk Google Meet</span>
+              <ExternalLink class="w-3.5 h-3.5" />
+            </a>
           </div>
 
-          <!-- Legend -->
-          <div class="pt-3 border-t border-slate-100 space-y-1.5 text-[11px] text-slate-600">
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded bg-blue-600"></span>
-              <span>Sudah Dijawab ({{ answeredCount }})</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded bg-amber-100 border border-amber-300"></span>
-              <span>Ragu-ragu ({{ raguCount }})</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded bg-slate-100 border border-slate-200"></span>
-              <span>Belum Dijawab ({{ questions.length - answeredCount }})</span>
-            </div>
-          </div>
+          <!-- Opsi 2: Zoom Meetings -->
+          <div class="p-5 sm:p-6 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-all flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-2xs flex-shrink-0 p-1.5">
+                  <img src="/images/icons/zoom.svg" alt="Zoom Meetings Logo" class="w-full h-full object-contain" />
+                </div>
+                <h4 class="font-sora font-bold text-slate-900 text-base">Zoom Meetings</h4>
+              </div>
 
-          <div class="pt-3 border-t border-slate-100">
-            <button
-              @click="showFinishModal = true"
-              class="w-full py-2 bg-slate-900 hover:bg-black text-white font-sora font-semibold text-xs rounded-xl transition-colors"
+              <div class="mt-4 p-3 bg-white rounded-xl border border-slate-200/80 space-y-1.5 text-xs font-sans">
+                <div class="flex items-center justify-between text-slate-600">
+                  <span class="text-slate-500">Meeting ID:</span>
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-slate-900">894 2026 0042</span>
+                    <button
+                      @click="copyText('894 2026 0042', 'Meeting ID Zoom')"
+                      class="text-[11px] font-semibold text-[#1E3A8A] hover:underline cursor-pointer"
+                    >
+                      Salin
+                    </button>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between text-slate-600">
+                  <span class="text-slate-500">Passcode:</span>
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-slate-900">BTH2026</span>
+                    <button
+                      @click="copyText('BTH2026', 'Passcode Zoom')"
+                      class="text-[11px] font-semibold text-[#1E3A8A] hover:underline cursor-pointer"
+                    >
+                      Salin
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <a
+              href="https://zoom.us/j/89420260042"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold transition-all shadow-xs flex items-center justify-center gap-2 text-center"
             >
-              Selesai & Kumpulkan
-            </button>
+              <span>Masuk Zoom</span>
+              <ExternalLink class="w-3.5 h-3.5" />
+            </a>
           </div>
         </div>
+
+        <!-- Detail Jadwal & Tim Dewan Penguji -->
+        <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200/80 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-sans">
+          <div class="space-y-1">
+            <span class="text-slate-500 block">Jadwal Wawancara:</span>
+            <strong class="font-sora text-slate-900 block text-sm">{{ schedule.interview.date }}</strong>
+            <span class="text-slate-600">{{ schedule.interview.time }}</span>
+          </div>
+
+          <div class="space-y-1">
+            <span class="text-slate-500 block">Pewawancara:</span>
+            <strong class="font-sora text-slate-900 block text-sm">Dr. apt. Keni Idacahyati, M.Farm.</strong>
+            <span class="text-slate-600">Dosen Penguji PMB BTH</span>
+          </div>
+
+          <div class="space-y-1">
+            <span class="text-slate-500 block">Estimasi Durasi:</span>
+            <strong class="font-sora text-slate-900 block text-sm">15 - 20 Menit</strong>
+            <span class="text-slate-600">Sesi tanya jawab</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Tata Tertib & Ketentuan Wawancara -->
+      <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-100 shadow-sm space-y-3">
+        <h4 class="font-sora font-bold text-slate-900 text-sm sm:text-base pb-3 border-b border-slate-100">
+          Tata Tertib & Ketentuan Wawancara
+        </h4>
+        <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside leading-relaxed">
+          <li>Peserta wajib mengenakan pakaian rapi dan sopan (kemeja berkerah).</li>
+          <li>Kamera video (webcam) dan mikrofon harus dalam kondisi aktif selama wawancara berlangsung.</li>
+          <li>Berada di ruangan yang tenang dan memiliki pencahayaan memadai.</li>
+          <li>Menyiapkan kartu identitas atau bukti pendaftaran untuk keperluan verifikasi oleh penguji.</li>
+        </ul>
       </div>
     </div>
 
-    <!-- VIEW 3: SEBELUM MULAI (JADWAL & PETUNJUK UJIAN) -->
-    <div v-else class="space-y-6 animate-fadeIn">
-      <!-- Jadwal Seleksi PMB Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- 1. Jadwal CBT Online -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200/60 font-sora">
-                Tahap 1 • Seleksi Akademik
-              </span>
-              <span class="text-xs text-emerald-600 font-semibold flex items-center gap-1">
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                Siap Diikuti
-              </span>
-            </div>
-
-            <h3 class="font-sora font-bold text-slate-900 text-base mb-1">
-              Ujian CBT Online Mandiri
-            </h3>
-            <p class="text-xs text-slate-500 leading-relaxed mb-4">
-              Tes Potensi Skolastik, Matematika Dasar, Pemahaman Sains/Farmasi, dan Penalaran Logika.
-            </p>
-
-            <div class="space-y-2 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
-              <div class="flex justify-between">
-                <span class="text-slate-500">Tanggal:</span>
-                <strong class="text-slate-800">{{ schedule.cbt.date }}</strong>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-slate-500">Waktu & Sesi:</span>
-                <strong class="text-[#1E3A8A] font-mono">{{ schedule.cbt.time }} ({{ schedule.cbt.sessionName }})</strong>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-slate-500">Lokasi / Akses:</span>
-                <span class="text-slate-700 text-right">{{ schedule.cbt.room }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2. Jadwal Wawancara Peminatan -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-purple-600 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200/60 font-sora">
-                Tahap 2 • Wawancara Peminatan
-              </span>
-              <span class="text-xs text-slate-500 font-semibold">Terkonfirmasi</span>
-            </div>
-
-            <h3 class="font-sora font-bold text-slate-900 text-base mb-1">
-              Wawancara & Uji Buta Warna
-            </h3>
-            <p class="text-xs text-slate-500 leading-relaxed mb-4">
-              Konfirmasi minat studi, komitmen akademik, dan verifikasi berkas program studi kesehatan.
-            </p>
-
-            <div class="space-y-2 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
-              <div class="flex justify-between">
-                <span class="text-slate-500">Tanggal:</span>
-                <strong class="text-slate-800">{{ schedule.interview.date }}</strong>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-slate-500">Waktu:</span>
-                <strong class="text-[#1E3A8A] font-mono">{{ schedule.interview.time }}</strong>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-slate-500">Tempat:</span>
-                <span class="text-slate-700 text-right">{{ schedule.interview.location }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="pt-3 border-t border-slate-100 mt-3">
-            <div class="p-2 bg-slate-50 border border-slate-200 rounded-xl text-center text-xs text-slate-600 font-mono">
-              ID Sesi Daring: 894 2026 0042 (Pass: BTH2026)
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card Petunjuk & Pelaksanaan CBT -->
-      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-xs max-w-3xl mx-auto space-y-5">
-        <div class="text-center space-y-2">
-          <div class="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-200 text-[#1E3A8A] flex items-center justify-center mx-auto">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <h3 class="font-sora font-bold text-xl text-slate-900">
-            Petunjuk & Tata Tertib Ujian CBT Online
-          </h3>
-          <p class="text-xs text-slate-500 max-w-md mx-auto">
-            Ujian ini menguji kemampuan akademik dasar untuk penentuan peringkat dan kelulusan program studi pilihan Universitas BTH.
-          </p>
-        </div>
-
-        <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-2 text-xs text-slate-700">
-          <div class="flex justify-between pb-1.5 border-b border-slate-200">
-            <span class="text-slate-500">Jumlah Soal:</span>
-            <strong>5 Butir Soal Pilihan Ganda</strong>
-          </div>
-          <div class="flex justify-between pb-1.5 border-b border-slate-200">
-            <span class="text-slate-500">Alokasi Waktu:</span>
-            <strong>15 Menit</strong>
-          </div>
-          <div class="flex justify-between pb-1.5 border-b border-slate-200">
-            <span class="text-slate-500">Passing Grade Kelulusan:</span>
-            <strong class="text-emerald-700">Minimal Skor 70</strong>
-          </div>
-          <div class="flex justify-between pb-1.5 border-b border-slate-200">
-            <span class="text-slate-500">Materi Uji:</span>
-            <span>Matematika Terapan, Sains/Farmasi, Bahasa Inggris, Logika</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-500">Tata Tertib:</span>
-            <span class="text-slate-600">Dikerjakan secara mandiri, jujur, dan tidak meninggalkan layar ujian.</span>
-          </div>
-        </div>
-
-        <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <button
-            v-if="applicantStore.isRegPaymentComplete"
-            @click="startExam"
-            class="w-full sm:w-auto px-8 py-3 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Mulai Ujian CBT Sekarang</span>
-          </button>
-          <button
-            v-else
-            @click="$emit('switch-tab', 'payment')"
-            class="w-full sm:w-auto px-8 py-3 bg-amber-500 hover:bg-amber-600 text-white font-sora font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <span>Bayar Biaya Formulir untuk Membuka Sesi Ujian</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal Konfirmasi Selesai Ujian -->
+    <!-- Modal Konfirmasi Selesai Ujian CBT -->
     <div
       v-if="showFinishModal"
       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn"
     >
       <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 text-center">
         <div class="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
+          <AlertTriangle class="w-6 h-6" />
         </div>
 
         <h3 class="font-sora font-bold text-slate-900 text-base">
-          Konfirmasi Pengumpulan Lembar Jawaban
+          Konfirmasi Pengumpulan Lembar Jawaban CBT
         </h3>
 
         <p class="text-xs text-slate-600 leading-relaxed">
@@ -437,13 +532,13 @@
         <div class="flex items-center justify-center gap-3 pt-2">
           <button
             @click="showFinishModal = false"
-            class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-colors"
+            class="rounded-xl px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
           >
             Kembali Memeriksa
           </button>
           <button
             @click="finishExam"
-            class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-sora font-bold text-xs rounded-xl transition-all shadow-xs"
+            class="rounded-xl px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-sora font-bold text-xs transition-all shadow-sm hover:shadow-md cursor-pointer"
           >
             Ya, Kumpulkan Jawaban
           </button>
@@ -454,8 +549,23 @@
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue';
+import {
+  Check,
+  CreditCard,
+  AlertTriangle,
+  Clock,
+  CheckCircle2,
+  ArrowLeft,
+  ArrowRight,
+  Monitor,
+  Video,
+  ExternalLink,
+  UserCheck
+} from 'lucide-vue-next';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useApplicantStore } from '@/stores/applicant';
+import { examApi } from '@/api/exam';
+import { scoringApi } from '@/api/scoring';
 
 defineEmits(['switch-tab']);
 
@@ -464,11 +574,32 @@ const examState = computed(() => applicantStore.state.exam);
 const examStatus = computed(() => examState.value.status);
 const schedule = computed(() => applicantStore.state.schedule);
 
+// Sub-navigasi tab: 'cbt' atau 'interview'
+const activeSubTab = ref('cbt');
+const toastMessage = ref('');
+const interviewAttended = ref(false);
+const isSubmittingAttendance = ref(false);
+
 const isTesting = ref(false);
 const currentIndex = ref(0);
 const timeLeft = ref(900); // 15 minutes = 900 seconds
 let timerInterval = null;
 const showFinishModal = ref(false);
+
+onMounted(async () => {
+  try {
+    const cardRes = await examApi.getMyExamCard().catch(() => null);
+    if (cardRes?.data?.data) {
+      const card = cardRes.data.data;
+      if (card.session_name) applicantStore.state.schedule.cbtSession = card.session_name;
+      if (card.exam_date) applicantStore.state.schedule.cbtDate = card.exam_date;
+      if (card.venue) applicantStore.state.schedule.cbtVenue = card.venue;
+    }
+    await examApi.getMySchedule().catch(() => null);
+  } catch (err) {
+    console.warn('Exam API Notice (fallback):', err?.message);
+  }
+});
 
 const questions = [
   {
@@ -598,6 +729,45 @@ const finishExam = () => {
 
   const finalScore = Math.round((correct / questions.length) * 100);
   applicantStore.submitExam(finalScore, correct);
+
+  scoringApi
+    .submitScore({
+      applicant_id: applicantStore.state.candidate?.registrationNumber || 'BTH-2026-REG-00042',
+      exam_id: 'CBT-ONLINE-01',
+      score: finalScore,
+      component: 'cbt_test',
+      passing_grade: 70,
+    })
+    .catch((err) => {
+      console.warn('Scoring API Notice (fallback):', err?.message);
+    });
+};
+
+const recordInterviewAttendance = async () => {
+  isSubmittingAttendance.value = true;
+  try {
+    await examApi.recordAttendance('SESSION-INT-01', {
+      applicant_id: applicantStore.state.candidate?.registrationNumber || 'BTH-2026-REG-00042',
+      status: 'present',
+      channel: 'google_meet',
+      timestamp: new Date().toISOString(),
+    }).catch(() => null);
+  } catch (err) {
+    console.warn('Interview Attendance API Notice (fallback):', err?.message);
+  } finally {
+    isSubmittingAttendance.value = false;
+    interviewAttended.value = true;
+    toastMessage.value = 'Presensi kehadiran tes lisan berhasil dicatat! Silakan bergabung ke ruang rapat Google Meet atau Zoom.';
+  }
+};
+
+const copyText = async (text, label) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    toastMessage.value = `${label} (${text}) berhasil disalin.`;
+  } catch {
+    toastMessage.value = `${label}: ${text}`;
+  }
 };
 
 onUnmounted(() => {

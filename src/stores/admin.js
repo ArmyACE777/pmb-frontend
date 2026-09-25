@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue';
 import { useApplicantStore, PRODI_METADATA } from './applicant';
 import { useAuthStore } from './auth';
 import axios from 'axios';
+import { admissionApi, financeApi, scoringApi, studentApi, nimApi } from '@/api';
 
 const STORAGE_KEY = 'bth_admin_data_real_v4';
 
@@ -170,16 +171,19 @@ function createDefaultApplicantForUser(u, index = 0) {
       documentStatus: docStatus,
       pendingDocsCount: pendingDocs,
       verifiedDocsCount: verifiedDocs,
-      documents: docs.map((d) => ({
-        id: d.id,
-        title: d.title,
-        filename: d.filename || 'Belum diunggah',
-        filesize: d.filesize || '',
-        fileBlobUrl: d.fileBlobUrl || null,
-        fileType: d.fileType || '',
-        status: d.status || 'unuploaded',
-        notes: d.notes || '',
-      })),
+      documents: docs.map((d) => {
+        const def = defaultDocs.find((x) => x.id === d.id);
+        return {
+          id: d.id,
+          title: def?.title || d.title,
+          filename: d.filename || 'Belum diunggah',
+          filesize: d.filesize || '',
+          fileBlobUrl: d.fileBlobUrl || null,
+          fileType: d.fileType || '',
+          status: d.status || 'unuploaded',
+          notes: def?.notes || d.notes || '',
+        };
+      }),
       payments: {
         registrationFee: {
           id: pays.registrationFee?.id || `INV-REG-${regNo.slice(-5)}`,
@@ -218,8 +222,8 @@ function createDefaultApplicantForUser(u, index = 0) {
     { id: 'doc-1', title: 'Ijazah / Surat Keterangan Lulus (SKL)', filename: 'Belum diunggah', status: 'unuploaded', notes: '', fileBlobUrl: null },
     { id: 'doc-2', title: 'Kartu Tanda Penduduk (KTP) / Kartu Pelajar', filename: 'Belum diunggah', status: 'unuploaded', notes: '', fileBlobUrl: null },
     { id: 'doc-3', title: 'Kartu Keluarga (KK)', filename: 'Belum diunggah', status: 'unuploaded', notes: '', fileBlobUrl: null },
-    { id: 'doc-4', title: 'Pas Foto Resmi 4x6 (Latar Merah)', filename: 'Belum diunggah', status: 'unuploaded', notes: '', fileBlobUrl: null },
-    { id: 'doc-5', title: 'Surat Keterangan Sehat & Bebas Buta Warna', filename: 'Belum diunggah', status: 'unuploaded', notes: '', fileBlobUrl: null },
+    { id: 'doc-4', title: 'Pas Foto Resmi 4x6', filename: 'Belum diunggah', status: 'unuploaded', notes: '', fileBlobUrl: null },
+    { id: 'doc-5', title: 'Surat Keterangan Sehat', filename: 'Belum diunggah', status: 'unuploaded', notes: '', fileBlobUrl: null },
   ];
 
   return {
@@ -535,6 +539,17 @@ export const useAdminStore = defineStore('admin', () => {
     } catch (e) {
       console.warn('Gagal sinkronisasi berkas ke penyimpanan lokal pengguna:', e);
     }
+
+    // 3. Dispatch ke backend admission-service
+    admissionApi
+      .verifyDocument(docId, {
+        applicant_id: applicantId,
+        status,
+        notes,
+      })
+      .catch((e) => {
+        console.warn('Admission API Notice (verifyDocument fallback):', e?.message);
+      });
   };
 
   // Action: Konfirmasi pelunasan tagihan VA oleh admin
@@ -562,6 +577,21 @@ export const useAdminStore = defineStore('admin', () => {
         applicantStore.payRegFee(confirmedBy);
       }
     }
+
+    // Dispatch ke backend finance-service
+    const invoiceId =
+      paymentType === 'uktFee'
+        ? applicant.payments?.uktFee?.id || `INV-UKT-${applicantId.slice(-5)}`
+        : applicant.payments?.registrationFee?.id || `INV-REG-${applicantId.slice(-5)}`;
+    financeApi
+      .verifyManualPayment(invoiceId, {
+        status: 'verified',
+        confirmed_by: confirmedBy,
+        paid_at: nowStr,
+      })
+      .catch((e) => {
+        console.warn('Finance API Notice (verifyManualPayment fallback):', e?.message);
+      });
   };
 
   // Action: Simpan nilai wawancara & status kelulusan seleksi
@@ -588,6 +618,19 @@ export const useAdminStore = defineStore('admin', () => {
       }
       applicantStore.state.admission.status = isPass ? 'Dinyatakan Lulus Seleksi' : 'Tidak Lulus Seleksi';
     }
+
+    // Dispatch ke backend scoring-service
+    scoringApi
+      .submitExaminerScore({
+        applicant_id: applicantId,
+        component: 'interview',
+        score: Number(score),
+        notes,
+        examiner: interviewer || 'Dosen Penguji PMB BTH',
+      })
+      .catch((e) => {
+        console.warn('Scoring API Notice (submitExaminerScore fallback):', e?.message);
+      });
   };
 
   // Action: Terbitkan NIM & plot gugus PKKMB
@@ -603,6 +646,18 @@ export const useAdminStore = defineStore('admin', () => {
       applicantStore.state.onboarding.nim = applicant.onboarding.nim;
       applicantStore.state.onboarding.pkkmbGroup = applicant.onboarding.pkkmbGroup;
     }
+
+    // Dispatch ke backend nim-service
+    nimApi
+      .generateNim({
+        applicant_id: applicantId,
+        nim: applicant.onboarding.nim,
+        faculty: applicant.faculty,
+        prodi: applicant.prodi1,
+      })
+      .catch((e) => {
+        console.warn('NIM API Notice (generateNim fallback):', e?.message);
+      });
   };
 
   // Helper internal: Dapatkan token otorisasi admin untuk mengakses API backend
@@ -668,6 +723,46 @@ export const useAdminStore = defineStore('admin', () => {
           if (u.email) existing.email = u.email;
         }
       });
+
+      // Sinkronisasi data pelengkap dari admission-service & student-service
+      try {
+        const [admissionData, studentData] = await Promise.allSettled([
+          admissionApi.getApplications({ per_page: 100 }),
+          studentApi.getStudents({ per_page: 100 }),
+        ]);
+
+        if (admissionData.status === 'fulfilled' && admissionData.value?.data?.data) {
+          const apps = admissionData.value.data.data;
+          if (Array.isArray(apps)) {
+            apps.forEach((app) => {
+              const found = applicants.value.find(
+                (a) => a.id === app.registration_number || a.backendUserId === app.user_id
+              );
+              if (found) {
+                if (app.track) found.track = app.track;
+                if (app.status === 'verified') found.documentStatus = 'verified';
+              }
+            });
+          }
+        }
+
+        if (studentData.status === 'fulfilled' && studentData.value?.data?.data) {
+          const studs = studentData.value.data.data;
+          if (Array.isArray(studs)) {
+            studs.forEach((stud) => {
+              const found = applicants.value.find(
+                (a) => a.id === stud.registration_number || a.backendUserId === stud.user_id
+              );
+              if (found && stud.nim) {
+                found.onboarding.nim = stud.nim;
+                found.onboarding.isEnrolled = true;
+              }
+            });
+          }
+        }
+      } catch (subErr) {
+        console.warn('Microservices multi-sync notice:', subErr?.message);
+      }
 
       lastSyncTime.value = new Date().toLocaleTimeString('id-ID');
     } catch (err) {

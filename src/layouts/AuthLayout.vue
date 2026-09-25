@@ -40,9 +40,8 @@
         href="https://api.whatsapp.com/send?phone=6282117100200&text=Halo%20Panitia%20PMB%20Universitas%20BTH%2C%20saya%20butuh%20bantuan%20pendaftaran."
         target="_blank"
         rel="noopener noreferrer"
-        class="inline-flex items-center gap-1.5 text-slate-600 hover:text-[#1E3A8A] font-medium transition-colors hover:underline"
+        class="inline-flex items-center text-slate-600 hover:text-[#1E3A8A] font-medium transition-colors hover:underline"
       >
-        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
         <span>Butuh bantuan pendaftaran? <strong>WhatsApp PMB</strong></span>
       </a>
       <div class="text-[11px] text-slate-400">

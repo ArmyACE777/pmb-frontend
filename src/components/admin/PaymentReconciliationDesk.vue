@@ -4,7 +4,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
       <div>
         <h2 class="font-sora font-bold text-base sm:text-lg text-slate-900">
-          Meja Rekonsiliasi Keuangan & Virtual Account
+          Rekonsiliasi Keuangan & Virtual Account
         </h2>
         <p class="text-xs text-slate-500 mt-0.5">
           Pantau transaksi biaya formulir PMB dan pelunasan UKT Semester 1 via BSI & Mandiri.
@@ -50,7 +50,6 @@
       <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs" :class="pendingConfirmationCount > 0 ? 'border-amber-300 ring-1 ring-amber-200 bg-amber-50/30' : ''">
         <div class="text-[11px] font-bold uppercase tracking-wider flex items-center justify-between" :class="pendingConfirmationCount > 0 ? 'text-amber-700' : 'text-slate-400'">
           <span>Perlu Konfirmasi Admin</span>
-          <span v-if="pendingConfirmationCount > 0" class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
         </div>
         <div class="font-sora font-extrabold text-2xl mt-1" :class="pendingConfirmationCount > 0 ? 'text-amber-600' : 'text-slate-900'">
           {{ pendingConfirmationCount }} <span class="text-xs font-normal text-slate-500 font-sans">Transaksi</span>

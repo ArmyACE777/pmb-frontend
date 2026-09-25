@@ -1,6 +1,14 @@
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
 import { useAuthStore } from './auth';
+import {
+  identityApi,
+  admissionApi,
+  financeApi,
+  examApi,
+  selectionApi,
+  studentApi,
+} from '@/api';
 
 /**
  * Generate nomor registrasi resmi format BTH-2026-REG-XXXXX
@@ -95,6 +103,7 @@ function createInitialState(user) {
       motherJob: '',
       parentIncome: '',
       emergencyContact: '',
+      photoUrl: user?.avatar || '',
     },
     admission: {
       track: 'Jalur Reguler Gelombang 1',
@@ -121,7 +130,7 @@ function createInitialState(user) {
         uploadDate: '',
         status: 'unuploaded',
         statusLabel: 'Belum Diunggah',
-        notes: 'Unggah pindaian (scan) Ijazah atau SKL asli berlegalisir.',
+        notes: 'Unggah pindaian Ijazah atau SKL asli terlegalisasi.',
       },
       {
         id: 'doc-2',
@@ -153,7 +162,7 @@ function createInitialState(user) {
       },
       {
         id: 'doc-4',
-        title: 'Pas Foto Resmi 4x6 (Latar Merah)',
+        title: 'Pas Foto Resmi 4x6',
         category: 'Identitas',
         required: true,
         filename: '',
@@ -163,11 +172,11 @@ function createInitialState(user) {
         uploadDate: '',
         status: 'unuploaded',
         statusLabel: 'Belum Diunggah',
-        notes: 'Pas foto formal terbaru dengan pakaian berkerah latar belakang merah.',
+        notes: 'Pasfoto formal pakaian berkerah ukuran 4x6.',
       },
       {
         id: 'doc-5',
-        title: 'Surat Keterangan Sehat & Bebas Buta Warna',
+        title: 'Surat Keterangan Sehat',
         category: 'Kesehatan',
         required: true,
         filename: '',
@@ -250,6 +259,8 @@ function createInitialState(user) {
 
 export const useApplicantStore = defineStore('applicant', () => {
   const authStore = useAuthStore();
+  const isSyncingBackend = ref(false);
+  const lastBackendSync = ref(null);
 
   const getStorageKey = (user = authStore.currentUser) => {
     const userId = user?.id || user?.email;
@@ -264,12 +275,49 @@ export const useApplicantStore = defineStore('applicant', () => {
         const saved = localStorage.getItem(key);
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (user) {
-            parsed.candidate.fullName = user.full_name || parsed.candidate.fullName || '';
-            parsed.candidate.email = user.email || parsed.candidate.email || '';
-            parsed.candidate.phone = user.phone || parsed.candidate.phone || '';
+          const initial = createInitialState(user);
+          const merged = {
+            ...initial,
+            ...parsed,
+            candidate: { ...initial.candidate, ...(parsed.candidate || {}) },
+            admission: { ...initial.admission, ...(parsed.admission || {}) },
+            payments: {
+              ...initial.payments,
+              ...(parsed.payments || {}),
+              regFee: { ...initial.payments.regFee, ...(parsed.payments?.regFee || {}) },
+              uktFee: { ...initial.payments.uktFee, ...(parsed.payments?.uktFee || {}) }
+            },
+            schedule: { ...initial.schedule, ...(parsed.schedule || {}) },
+            exam: { ...initial.exam, ...(parsed.exam || {}) },
+            result: { ...initial.result, ...(parsed.result || {}) },
+            onboarding: { ...initial.onboarding, ...(parsed.onboarding || {}) },
+            documents: (parsed.documents || initial.documents).map((doc) => {
+              const initDoc = initial.documents.find((d) => d.id === doc.id);
+              return {
+                ...doc,
+                title: initDoc?.title || doc.title,
+                notes: initDoc?.notes || doc.notes,
+              };
+            }),
+          };
+
+          // Sinkronisasi foto pasfoto doc-4 ke candidate.photoUrl & avatar pengguna
+          const doc4 = merged.documents.find((d) => d.id === 'doc-4');
+          if (doc4?.fileBlobUrl && !merged.candidate.photoUrl) {
+            merged.candidate.photoUrl = doc4.fileBlobUrl;
+          } else if (merged.candidate.photoUrl && doc4 && !doc4.fileBlobUrl) {
+            doc4.fileBlobUrl = merged.candidate.photoUrl;
           }
-          return parsed;
+          if (merged.candidate.photoUrl && user && !user.avatar && authStore?.updateUserAvatar) {
+            authStore.updateUserAvatar(merged.candidate.photoUrl);
+          }
+
+          if (user) {
+            merged.candidate.fullName = user.full_name || merged.candidate.fullName || '';
+            merged.candidate.email = user.email || merged.candidate.email || '';
+            merged.candidate.phone = user.phone || merged.candidate.phone || '';
+          }
+          return merged;
         }
       } catch (e) {
         console.warn('Gagal memuat data pendaftar dari storage:', e);
@@ -334,16 +382,17 @@ export const useApplicantStore = defineStore('applicant', () => {
   );
 
   const isProfileComplete = computed(() => {
-    const c = state.value.candidate;
+    const c = state.value?.candidate;
+    if (!c) return false;
     return !!(c.fullName && c.nik && c.schoolName && c.phone);
   });
 
   const isAdmissionComplete = computed(() => {
-    return !!state.value.admission.prodi1;
+    return !!(state.value?.admission?.prodi1 && state.value?.admission?.track);
   });
 
   const uploadedDocsCount = computed(() => {
-    return state.value.documents.filter((d) => d.status !== 'unuploaded').length;
+    return (state.value?.documents || []).filter((d) => d.status !== 'unuploaded').length;
   });
 
   const isDocumentsComplete = computed(() => {
@@ -351,11 +400,12 @@ export const useApplicantStore = defineStore('applicant', () => {
   });
 
   const isDocumentsVerified = computed(() => {
-    return state.value.documents.length > 0 && state.value.documents.every((d) => d.status === 'verified');
+    const docs = state.value?.documents || [];
+    return docs.length > 0 && docs.every((d) => d.status === 'verified');
   });
 
   const isRegPaymentComplete = computed(() => {
-    return state.value.payments.registrationFee.status === 'paid';
+    return state.value?.payments?.registrationFee?.status === 'paid';
   });
 
   const isScheduleReady = computed(() => {
@@ -363,17 +413,18 @@ export const useApplicantStore = defineStore('applicant', () => {
   });
 
   const isExamCompleted = computed(() => {
-    return state.value.exam.status === 'completed';
+    return state.value?.exam?.status === 'completed';
   });
 
   const isResultPassed = computed(() => {
-    return state.value.result.isPassed;
+    return !!state.value?.result?.isPassed;
   });
 
   const isUktPaid = computed(() => {
-    return state.value.payments.uktFee.status === 'paid';
+    return state.value?.payments?.uktFee?.status === 'paid';
   });
 
+  // 6 Tahapan Terpadu PMB (Profil -> Jalur Pendaftaran -> Berkas -> Biaya Pendaftaran -> Ujian Seleksi -> Hasil & Daftar Ulang)
   const completedStepsCount = computed(() => {
     let count = 0;
     if (isProfileComplete.value) count++;
@@ -422,7 +473,7 @@ export const useApplicantStore = defineStore('applicant', () => {
         description: 'Biaya formulir lunas dikonfirmasi admin. Silakan ikuti Ujian CBT Online sesuai jadwal yang ditentukan.',
       };
     }
-    if (state.value.payments.registrationFee.status === 'pending_confirmation') {
+    if (state.value?.payments?.registrationFee?.status === 'pending_confirmation') {
       return {
         label: 'Menunggu Konfirmasi Pembayaran Admin',
         shortLabel: 'Verifikasi Bayar',
@@ -438,29 +489,42 @@ export const useApplicantStore = defineStore('applicant', () => {
         description: 'Berkas persyaratan berhasil diunggah (dalam peninjauan panitia). Selesaikan pembayaran formulir untuk aktivasi sesi CBT.',
       };
     }
-    if (isAdmissionComplete.value) {
+    if (isProfileComplete.value && isAdmissionComplete.value) {
       return {
         label: 'Pemberkasan Dokumen',
         shortLabel: 'Pemberkasan',
-        theme: 'amber',
-        description: 'Program studi terpilih. Silakan lengkapi dan unggah berkas persyaratan pendaftaran.',
+        theme: 'blue',
+        description: 'Formulir biodata & pilihan prodi lengkap. Silakan lengkapi dan unggah berkas persyaratan pendaftaran.',
       };
     }
     if (isProfileComplete.value) {
       return {
-        label: 'Pemilihan Program Studi',
-        shortLabel: 'Pilih Prodi',
+        label: 'Pilihan Jalur Pendaftaran',
+        shortLabel: 'Pilih Jalur',
         theme: 'blue',
-        description: 'Biodata terisi. Silakan pilih program studi prioritas Anda.',
+        description: 'Biodata profil telah lengkap. Silakan tentukan jalur pendaftaran dan pilihan program studi Anda.',
       };
     }
     return {
-      label: 'Pengisian Formulir Pendaftaran',
-      shortLabel: 'Isi Formulir',
+      label: 'Pengisian Formulir Biodata',
+      shortLabel: 'Isi Biodata',
       theme: 'slate',
-      description: 'Lengkapi identitas diri dan asal sekolah untuk memulai proses seleksi PMB.',
+      description: 'Lengkapi identitas diri, domisili, orang tua, dan asal sekolah Anda.',
     };
   });
+
+  // Foto profil calon mahasiswa terhubung langsung dari pasfoto (doc-4) atau akun
+  const candidatePhoto = computed(() => {
+    const doc4 = state.value?.documents?.find((d) => d.id === 'doc-4');
+    return (
+      doc4?.fileBlobUrl ||
+      state.value?.candidate?.photoUrl ||
+      authStore.currentUser?.avatar ||
+      null
+    );
+  });
+
+  const hasCandidatePhoto = computed(() => !!candidatePhoto.value);
 
   watch(
     overallStatus,
@@ -480,16 +544,24 @@ export const useApplicantStore = defineStore('applicant', () => {
     state.value.admission = { ...state.value.admission, ...data };
     if (data.prodi1) {
       const meta = PRODI_METADATA[data.prodi1];
-      const faculty = meta?.faculty || data.prodi1Faculty || state.value.admission.prodi1Faculty;
-      const degree = meta?.degree || data.prodi1Degree || state.value.admission.prodi1Degree;
+      const faculty = data.prodi1Faculty || meta?.faculty || state.value.admission.prodi1Faculty;
+      const degree = data.prodi1Degree || meta?.degree || state.value.admission.prodi1Degree;
+      const nimCode = data.prodi1NimCode || meta?.code || '01';
+      const prodiCode = data.prodi1Code || meta?.code || 'FARM';
 
+      state.value.admission.prodi1Code = prodiCode;
+      state.value.admission.prodi1NimCode = nimCode;
       state.value.admission.prodi1Faculty = faculty;
       state.value.admission.prodi1Degree = degree;
-      state.value.result.acceptedProdi = data.prodi1;
-      state.value.result.acceptedFaculty = faculty;
-      state.value.result.acceptedDegree = degree;
-      state.value.onboarding.studyProgram = data.prodi1;
-      state.value.onboarding.faculty = faculty;
+      if (state.value.result) {
+        state.value.result.acceptedProdi = data.prodi1;
+        state.value.result.acceptedFaculty = faculty;
+        state.value.result.acceptedDegree = degree;
+      }
+      if (state.value.onboarding) {
+        state.value.onboarding.studyProgram = data.prodi1;
+        state.value.onboarding.faculty = faculty;
+      }
 
       // Update nominal tagihan UKT dinamis sesuai prodi pilihan
       if (meta?.uktFee && state.value.payments?.uktFee) {
@@ -509,6 +581,17 @@ export const useApplicantStore = defineStore('applicant', () => {
       doc.status = 'pending';
       doc.statusLabel = 'Sedang Ditinjau';
       doc.notes = fileInfo.notes || 'Berkas berhasil diunggah. Menunggu pemeriksaan dan verifikasi tim panitia PMB.';
+    }
+
+    // Jika berkas yang diunggah adalah doc-4 (pasfoto), otomatis set sebagai foto profil akun
+    if (docId === 'doc-4') {
+      const photoUrl = fileInfo.fileBlobUrl || fileInfo.blobUrl || null;
+      if (photoUrl) {
+        state.value.candidate.photoUrl = photoUrl;
+        if (authStore?.updateUserAvatar) {
+          authStore.updateUserAvatar(photoUrl);
+        }
+      }
     }
   };
 
@@ -541,6 +624,8 @@ export const useApplicantStore = defineStore('applicant', () => {
 
     if (!state.value.onboarding.nim) {
       const regSuffix = state.value.candidate.registrationNumber.split('-').pop() || '0042';
+      // Format Standar PRD Fase 2 (Bagian 4.10): {YY}{nim_code_prodi}{jalur_digit}{urut 4}
+      // Contoh: 26 (Tahun) + 55 (Prodi TI) + 1 (Reguler) + 0042 (Urut) = 265510042
       const yearPrefix = '26';
       const selectedProdi = state.value.admission.prodi1 || 'S1 Farmasi';
       const meta = PRODI_METADATA[selectedProdi] || {
@@ -550,8 +635,18 @@ export const useApplicantStore = defineStore('applicant', () => {
         uktFee: 6500000,
         gugus: 'Gugus 01 - Hygeia Farmasi',
       };
-      const prodiCode = meta.code;
-      state.value.onboarding.nim = `${yearPrefix}${prodiCode}${regSuffix.slice(-4)}`;
+      
+      const nimCode = String(state.value.admission.prodi1NimCode || meta.code || '01').padStart(2, '0');
+      
+      // Jalur digit: 1=reguler, 2=prestasi, 3=beasiswa, 4=pindahan (PRD Fase 2)
+      let jalurDigit = '1';
+      const trackName = (state.value.admission.track || '').toLowerCase();
+      if (trackName.includes('prestasi')) jalurDigit = '2';
+      else if (trackName.includes('beasiswa')) jalurDigit = '3';
+      else if (trackName.includes('pindahan')) jalurDigit = '4';
+
+      const sequence = regSuffix.slice(-4).padStart(4, '0');
+      state.value.onboarding.nim = `${yearPrefix}${nimCode}${jalurDigit}${sequence}`;
       
       const emailName = (state.value.candidate.fullName || 'mahasiswa')
         .toLowerCase()
@@ -559,7 +654,7 @@ export const useApplicantStore = defineStore('applicant', () => {
       state.value.onboarding.studentEmail = `${emailName}@bth.ac.id`;
       state.value.onboarding.studyProgram = selectedProdi;
       state.value.onboarding.faculty = meta.faculty || state.value.admission.prodi1Faculty;
-      state.value.onboarding.pkkmbGroup = meta.gugus;
+      state.value.onboarding.pkkmbGroup = meta.gugus || 'Gugus Mahasiswa Baru BTH';
     }
   };
 
@@ -570,7 +665,7 @@ export const useApplicantStore = defineStore('applicant', () => {
     state.value.exam.completedAt = new Date().toLocaleString('id-ID');
 
     const isPass = score >= 70;
-    state.value.exam.passedStatus = isPass ? 'Lulus Passing Grade (Min. 70)' : 'Belum Memenuhi Passing Grade';
+    state.value.exam.passedStatus = isPass ? 'Lulus Nilai Ambang Batas (Min. 70)' : 'Belum Memenuhi Nilai Ambang Batas';
     
     state.value.result.isAnnounced = true;
     state.value.result.isPassed = isPass;
@@ -594,6 +689,185 @@ export const useApplicantStore = defineStore('applicant', () => {
       localStorage.removeItem('bth_applicant_v3_default');
     } catch (e) {
       console.warn('Gagal menghapus storage pendaftar:', e);
+    }
+  };
+
+  // Sinkronisasi data menyeluruh dari microservices backend
+  const syncFromBackend = async () => {
+    if (!authStore.isAuthenticated) return;
+    isSyncingBackend.value = true;
+    try {
+      // 1. Identity Service (Profil, Alamat, Orang Tua, Pendidikan)
+      const profileRes = await identityApi.getProfile().catch(() => null);
+      if (profileRes?.data?.data) {
+        const p = profileRes.data.data;
+        if (p.full_name) state.value.candidate.fullName = p.full_name;
+        if (p.nik) state.value.candidate.nik = p.nik;
+        if (p.birth_place) state.value.candidate.birthPlace = p.birth_place;
+        if (p.birth_date) state.value.candidate.birthDate = p.birth_date;
+        if (p.gender) state.value.candidate.gender = p.gender === 'L' ? 'Laki-laki' : 'Perempuan';
+        if (p.phone) state.value.candidate.phone = p.phone;
+        if (p.religion) state.value.candidate.religion = p.religion;
+        if (p.photo_url) {
+          state.value.candidate.photoUrl = p.photo_url;
+          const doc4 = state.value.documents.find((d) => d.id === 'doc-4');
+          if (doc4 && !doc4.fileBlobUrl) doc4.fileBlobUrl = p.photo_url;
+          if (authStore?.updateUserAvatar) authStore.updateUserAvatar(p.photo_url);
+        }
+      }
+
+      const addrRes = await identityApi.getAddresses().catch(() => null);
+      if (addrRes?.data?.data && addrRes.data.data.length > 0) {
+        const a = addrRes.data.data[0];
+        if (a.street) state.value.candidate.address = a.street;
+        if (a.city) state.value.candidate.city = a.city;
+        if (a.province) state.value.candidate.province = a.province;
+        if (a.postal_code) state.value.candidate.postalCode = a.postal_code;
+      }
+
+      const guardianRes = await identityApi.getGuardians().catch(() => null);
+      if (guardianRes?.data?.data && guardianRes.data.data.length > 0) {
+        guardianRes.data.data.forEach((g) => {
+          if (g.relation === 'ayah') {
+            state.value.candidate.fatherName = g.name;
+            state.value.candidate.fatherJob = g.occupation;
+            state.value.candidate.parentIncome = g.income_range;
+          } else if (g.relation === 'ibu') {
+            state.value.candidate.motherName = g.name;
+            state.value.candidate.motherJob = g.occupation;
+          }
+        });
+      }
+
+      const eduRes = await identityApi.getEducation().catch(() => null);
+      if (eduRes?.data?.data) {
+        const e = eduRes.data.data;
+        if (e.school_name) state.value.candidate.schoolName = e.school_name;
+        if (e.major) state.value.candidate.schoolMajor = e.major;
+        if (e.graduation_year) state.value.candidate.graduationYear = String(e.graduation_year);
+      }
+
+      // 2. Admission Service (Pilihan Prodi, Status, & Berkas Dokumen)
+      const appRes = await admissionApi.getMyApplications().catch(() => null);
+      if (appRes?.data?.data && appRes.data.data.length > 0) {
+        const app = appRes.data.data[0];
+        if (app.id) state.value.admission.applicationId = app.id;
+        if (app.registration_no || app.application_number) {
+          state.value.candidate.registrationNumber = app.registration_no || app.application_number;
+        }
+        if (app.admission_path?.name) state.value.admission.track = app.admission_path.name;
+        if (app.choice_1_name) state.value.admission.prodi1 = app.choice_1_name;
+        if (app.choice_2_name) state.value.admission.prodi2 = app.choice_2_name;
+        if (app.status) state.value.admission.backendStatus = app.status;
+
+        // Muat detail berkas terunggah & status verifikasi dari backend
+        if (app.id) {
+          const detailRes = await admissionApi.getApplicationById(app.id).catch(() => null);
+          const docs = detailRes?.data?.data?.documents || app.documents;
+          if (docs && Array.isArray(docs)) {
+            const DOC_MAP = {
+              ijazah: 'doc-1',
+              ktp: 'doc-2',
+              kk: 'doc-3',
+              pas_foto: 'doc-4',
+              surat_sehat: 'doc-5',
+              rapor: 'doc-6',
+              sertifikat_prestasi: 'doc-6',
+            };
+            docs.forEach((ad) => {
+              const targetDocId = DOC_MAP[ad.document_type] || ad.document_type;
+              const doc = state.value.documents.find((d) => d.id === targetDocId);
+              if (doc) {
+                if (ad.file_name) doc.filename = ad.file_name;
+                if (ad.file_size) {
+                  doc.filesize = ad.file_size > 1048576
+                    ? `${(ad.file_size / 1048576).toFixed(1)} MB`
+                    : `${Math.round(ad.file_size / 1024)} KB`;
+                }
+                if (ad.file_url) doc.fileBlobUrl = ad.file_url;
+                if (ad.status === 'valid') {
+                  doc.status = 'verified';
+                  doc.statusLabel = 'Terverifikasi';
+                } else if (ad.status === 'invalid') {
+                  doc.status = 'rejected';
+                  doc.statusLabel = 'Perlu Revisi';
+                } else {
+                  doc.status = 'pending';
+                  doc.statusLabel = 'Sedang Ditinjau';
+                }
+                if (ad.notes) doc.notes = ad.notes;
+              }
+            });
+          }
+        }
+      }
+
+      // 3. Finance Service (Tagihan Formulir & UKT)
+      const invRes = await financeApi.getMyInvoices().catch(() => null);
+      if (invRes?.data?.data && Array.isArray(invRes.data.data)) {
+        invRes.data.data.forEach((inv) => {
+          let vaNum = inv.va_number || '';
+          if (!vaNum && inv.payments && inv.payments.length > 0) {
+            const activePay = inv.payments.find((p) => p.va_number);
+            if (activePay) vaNum = activePay.va_number;
+          }
+
+          if (inv.fee_type === 'registration') {
+            state.value.payments.registrationFee.id = inv.id;
+            if (inv.status === 'paid') state.value.payments.registrationFee.status = 'paid';
+            if (inv.amount) state.value.payments.registrationFee.amount = inv.amount;
+            if (vaNum) state.value.payments.registrationFee.vaNumber = vaNum;
+          } else if (inv.fee_type === 'reregistration') {
+            state.value.payments.uktFee.id = inv.id;
+            if (inv.status === 'paid') state.value.payments.uktFee.status = 'paid';
+            if (inv.amount) state.value.payments.uktFee.amount = inv.amount;
+            if (vaNum) state.value.payments.uktFee.vaNumber = vaNum;
+          }
+        });
+      }
+
+      // 4. Exam Service (Jadwal & Kartu Ujian Peserta)
+      const examScheduleRes = await examApi.getMySchedule().catch(() => null);
+      if (examScheduleRes?.data?.data) {
+        const es = examScheduleRes.data.data;
+        if (es.session_name) state.value.schedule.cbtSession = es.session_name;
+        if (es.start_time) {
+          const dateObj = new Date(es.start_time);
+          state.value.schedule.cbtDate = dateObj.toLocaleDateString('id-ID', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          });
+        }
+        if (es.venue) state.value.schedule.cbtVenue = es.venue;
+      }
+
+      // 5. Selection Service (Pengumuman Kelulusan)
+      const selRes = await selectionApi.getMyResult().catch(() => null);
+      if (selRes?.data?.data) {
+        const res = selRes.data.data;
+        state.value.result.isAnnounced = true;
+        if (res.is_passed !== undefined) state.value.result.isPassed = res.is_passed;
+        if (res.status === 'passed') state.value.result.isPassed = true;
+        if (res.prodi_name) state.value.result.acceptedProdi = res.prodi_name;
+        if (res.decision_letter_no) state.value.result.decisionLetterNo = res.decision_letter_no;
+      }
+
+      // 6. Student Service (NIM & Status Registrasi Ulang)
+      const stdRes = await studentApi.getMyReregistration().catch(() => null);
+      if (stdRes?.data?.data) {
+        const s = stdRes.data.data;
+        if (s.nim) state.value.onboarding.nim = s.nim;
+        if (s.pkkmb_group) state.value.onboarding.pkkmbGroup = s.pkkmb_group;
+        if (s.is_completed) state.value.onboarding.isCompleted = true;
+      }
+
+      lastBackendSync.value = new Date().toLocaleTimeString('id-ID');
+    } catch (err) {
+      console.warn('Gagal sinkronisasi data pendaftar dari backend:', err);
+    } finally {
+      isSyncingBackend.value = false;
     }
   };
 
@@ -624,5 +898,10 @@ export const useApplicantStore = defineStore('applicant', () => {
     payUktFee,
     submitExam,
     resetAllData,
+    syncFromBackend,
+    isSyncingBackend,
+    lastBackendSync,
+    candidatePhoto,
+    hasCandidatePhoto,
   };
 });

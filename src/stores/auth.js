@@ -64,6 +64,17 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('user');
   };
 
+  const updateUserAvatar = (avatarUrl) => {
+    if (user.value) {
+      user.value.avatar = avatarUrl;
+      try {
+        localStorage.setItem('user', JSON.stringify(user.value));
+      } catch (e) {
+        console.warn('Gagal menyimpan avatar user ke storage:', e);
+      }
+    }
+  };
+
   const register = async (form) => {
     isLoading.value = true;
     clearApiError();
@@ -331,5 +342,6 @@ export const useAuthStore = defineStore('auth', () => {
     updateAdminUser,
     updateAdminUserRoles,
     updateAdminUserStatus,
+    updateUserAvatar,
   };
 });

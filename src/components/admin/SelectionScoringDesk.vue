@@ -4,7 +4,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
       <div>
         <h2 class="font-sora font-bold text-base sm:text-lg text-slate-900">
-          Meja Seleksi Akademik, Nilai CBT & Wawancara
+          Seleksi Akademik, Nilai CBT & Wawancara
         </h2>
         <p class="text-xs text-slate-500 mt-0.5">
           Rekapitulasi skor ujian komputer, penilaian wawancara dosen penguji, dan penetapan SK Kelulusan.
@@ -12,7 +12,7 @@
       </div>
       <div class="flex items-center gap-2 self-start sm:self-auto">
         <span class="px-3 py-1 bg-blue-50 text-[#1E3A8A] border border-blue-200 rounded-full text-xs font-semibold font-sora">
-          Passing Grade Minimal: 70.0
+          Nilai Ambang Batas Minimal: 70.0
         </span>
       </div>
     </div>
@@ -140,9 +140,8 @@
                 </span>
                 <span
                   v-else
-                  class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[11px] font-semibold font-sora"
+                  class="inline-flex items-center px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[11px] font-semibold font-sora"
                 >
-                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                   <span>Evaluasi Pleno</span>
                 </span>
               </td>
