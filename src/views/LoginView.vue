@@ -94,16 +94,42 @@
         <div class="pt-1.5">
           <button
             type="submit"
-            :disabled="isLoading"
-            class="w-full py-3 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg active:scale-[0.99] transition-all flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+            :disabled="isLoading || isGoogleLoading"
+            class="w-full py-3 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow-sm active:scale-[0.99] transition-all flex justify-center items-center gap-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer"
           >
             <span v-if="!isLoading">Masuk ke Akun</span>
             <span v-else class="flex items-center gap-2">
-              <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-              </svg>
-              Memverifikasi...
+              <Loader2 class="w-4 h-4 animate-spin text-white" />
+              <span>Memverifikasi...</span>
+            </span>
+          </button>
+        </div>
+
+        <!-- Divider Atau -->
+        <div class="relative my-3.5 flex items-center justify-center">
+          <div class="w-full border-t border-slate-200/80"></div>
+          <span class="absolute bg-white px-3 text-[11px] font-sans text-slate-400">
+            atau
+          </span>
+        </div>
+
+        <!-- Google Login Button -->
+        <div>
+          <button
+            type="button"
+            @click="handleGoogleLogin"
+            :disabled="isGoogleLoading || isLoading"
+            class="w-full py-3 bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-slate-300 text-slate-700 font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-2xs hover:shadow-xs active:scale-[0.99] transition-all flex justify-center items-center gap-2.5 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <img
+              src="/images/icons/google.svg"
+              alt="Logo Google"
+              class="w-4 h-4 sm:w-4.5 sm:h-4.5 object-contain flex-shrink-0"
+            />
+            <span v-if="!isGoogleLoading">Masuk dengan Google</span>
+            <span v-else class="flex items-center gap-2 text-slate-500">
+              <Loader2 class="w-4 h-4 animate-spin text-slate-500" />
+              <span>Menghubungkan...</span>
             </span>
           </button>
         </div>
@@ -126,6 +152,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute, RouterLink } from 'vue-router';
+import { Loader2 } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 
@@ -138,6 +165,7 @@ const password = ref('');
 const rememberMe = ref(false);
 const showPassword = ref(false);
 const isLoading = ref(false);
+const isGoogleLoading = ref(false);
 const errorMessage = ref('');
 const successMessage = ref('');
 
@@ -191,5 +219,14 @@ const handleLogin = async () => {
   } finally {
     isLoading.value = false;
   }
+};
+
+const handleGoogleLogin = () => {
+  isGoogleLoading.value = true;
+  errorMessage.value = '';
+  setTimeout(() => {
+    isGoogleLoading.value = false;
+    errorMessage.value = 'Fitur Masuk dengan Akun Google (SSO) sedang dalam tahap sinkronisasi domain kampus @bth.ac.id. Silakan masuk menggunakan email dan kata sandi terdaftar.';
+  }, 500);
 };
 </script>
