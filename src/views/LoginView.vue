@@ -1,7 +1,7 @@
 <template>
   <AuthLayout
     headline="Masuk ke Akun"
-    subheadline="Gunakan email dan kata sandi yang telah Anda daftarkan di PMB Universitas BTH."
+    subheadline="Silakan masukkan email dan kata sandi terdaftar Anda."
   >
     <div class="w-full">
       <!-- Error Alert -->
@@ -90,14 +90,14 @@
           </label>
         </div>
 
-        <!-- Submit Button (High-Contrast Solid BTH Navy with Explicit Hex) -->
+        <!-- Submit Button -->
         <div class="pt-1.5">
           <button
             type="submit"
             :disabled="isLoading || isGoogleLoading"
             class="w-full py-3 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow-sm active:scale-[0.99] transition-all flex justify-center items-center gap-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer"
           >
-            <span v-if="!isLoading">Masuk ke Akun</span>
+            <span v-if="!isLoading">Masuk</span>
             <span v-else class="flex items-center gap-2">
               <Loader2 class="w-4 h-4 animate-spin text-white" />
               <span>Memverifikasi...</span>
@@ -141,7 +141,7 @@
             to="/register"
             class="font-semibold text-[#1E3A8A] hover:text-[#2563EB] hover:underline ml-1 font-sora"
           >
-            Daftar PMB Baru
+            Daftar Akun Baru
           </RouterLink>
         </div>
       </form>

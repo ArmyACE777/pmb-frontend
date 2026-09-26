@@ -1,7 +1,7 @@
 <template>
   <AuthLayout
-    headline="Daftar Akun Calon Mahasiswa"
-    subheadline="Lengkapi formulir di bawah ini untuk memulai registrasi PMB Universitas BTH."
+    headline="Daftar Akun Baru"
+    subheadline="Lengkapi formulir di bawah ini untuk membuat akun pendaftaran Anda."
   >
     <div class="w-full">
       <!-- Error Alert -->
