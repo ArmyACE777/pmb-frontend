@@ -31,21 +31,21 @@
           </div>
         </div>
 
-        <!-- Tipografi Institusional Bawah (Menyatu Alami dengan Foto, Bersih & Berwibawa) -->
-        <div class="relative z-10 text-white space-y-3 max-w-lg">
-          <div class="text-[11px] font-bold uppercase tracking-widest text-blue-300 font-sora">
-            Tahun Akademik 2026/2027
+        <!-- Tipografi Institusional Bawah (Otentik, Bersih, Tanpa Emoji & Bebas Kesan AI) -->
+        <div class="relative z-10 text-white space-y-2.5 max-w-lg">
+          <div class="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-300 font-sora">
+            PMB Tahun Akademik 2026/2027
           </div>
-          <h2 class="text-2xl xl:text-3xl font-extrabold text-white font-sora leading-snug tracking-tight">
-            Membentuk Generasi Unggul, Profesional & Berkarakter
+          <h2 class="text-2xl xl:text-3xl font-extrabold text-white font-sora tracking-tight leading-tight">
+            Transforming New Generation
           </h2>
-          <p class="text-xs xl:text-sm text-slate-300/90 leading-relaxed font-sans max-w-md">
-            Layanan terpadu pendaftaran mandiri, verifikasi berkas, dan seleksi calon mahasiswa baru secara transparan.
+          <p class="text-xs xl:text-sm text-slate-300/85 font-sans leading-relaxed">
+            Fakultas Farmasi &bull; Fakultas Ilmu Kesehatan &bull; Fakultas Teknologi & Bisnis
           </p>
-          <div class="pt-3 text-xs text-slate-400 font-sans flex items-center gap-3 border-t border-white/10">
-            <span>🏛️ Terakreditasi BAN-PT & LAM-PTKes</span>
-            <span>•</span>
-            <span>📍 Tasikmalaya, Jawa Barat</span>
+          <div class="pt-3 text-[11px] text-slate-400 font-sans flex flex-wrap items-center gap-2.5 border-t border-white/10">
+            <span>Akreditasi Institusi BAN-PT & LAM-PTKes</span>
+            <span class="text-slate-600">&bull;</span>
+            <span>Tasikmalaya, Jawa Barat</span>
           </div>
         </div>
       </aside>
