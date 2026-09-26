@@ -43,7 +43,7 @@
             Fakultas Farmasi &bull; Fakultas Ilmu Kesehatan &bull; Fakultas Teknologi & Bisnis
           </p>
           <div class="pt-3 text-[11px] text-slate-400 font-sans flex flex-wrap items-center gap-2.5 border-t border-white/10">
-            <span>Akreditasi Institusi BAN-PT & LAM-PTKes</span>
+            <span>Terakreditasi BAN-PT & LAM-PTKes</span>
             <span class="text-slate-600">&bull;</span>
             <span>Tasikmalaya, Jawa Barat</span>
           </div>
