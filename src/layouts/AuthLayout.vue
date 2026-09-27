@@ -50,11 +50,11 @@
         </div>
       </aside>
 
-      <!-- SISI KANAN: Kanvas Formulir (Clean, Airy, Enterprise-Grade) -->
-      <main class="flex-1 flex flex-col justify-between items-center px-6 py-8 sm:px-12 sm:py-10 lg:px-14 xl:px-20 bg-white min-h-screen overflow-y-auto">
+      <!-- SISI KANAN: Kanvas Formulir (Clean, Compact, Zero Scroll) -->
+      <main class="flex-1 flex flex-col justify-between items-center px-6 py-4 sm:px-10 sm:py-6 lg:px-12 xl:px-16 bg-white h-screen max-h-screen overflow-y-auto lg:overflow-hidden">
         
         <!-- Header Ringkas Khusus Mobile (Tampil di Layar HP/Tablet) -->
-        <div class="w-full max-w-[420px] lg:hidden flex items-center justify-between pb-5 mb-2 border-b border-slate-100">
+        <div class="w-full max-w-[420px] lg:hidden flex items-center justify-between pb-3 mb-2 border-b border-slate-100 flex-shrink-0">
           <RouterLink to="/login" class="flex items-center gap-2.5">
             <img src="/assets/icons/bth.png" alt="Logo Universitas BTH" class="h-8 w-auto object-contain" />
             <div>
@@ -73,18 +73,18 @@
           </a>
         </div>
 
-        <div class="hidden lg:block"></div>
+        <div class="hidden lg:block flex-shrink-0"></div>
 
         <!-- Kontainer Formulir Terpusat -->
-        <div :class="['w-full my-auto py-4', cardMaxWidth]">
+        <div :class="['w-full my-auto py-1 sm:py-2', cardMaxWidth]">
           <!-- Header Judul Formulir -->
-          <div class="text-left mb-6 sm:mb-8">
-            <h2 class="font-sora text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight leading-tight">
+          <div class="text-left mb-4 sm:mb-5">
+            <h2 class="font-sora text-2xl sm:text-[26px] font-bold text-slate-900 tracking-tight leading-tight">
               {{ headline }}
             </h2>
 
             <slot name="subheadline">
-              <p v-if="subheadline" class="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed font-sans">
+              <p v-if="subheadline" class="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed font-sans">
                 {{ subheadline }}
               </p>
             </slot>
@@ -94,8 +94,8 @@
           <slot />
         </div>
 
-        <!-- Footer Bersih & Minimalis -->
-        <footer class="w-full max-w-[420px] pt-6 pb-2 text-center text-xs text-slate-400 font-sans border-t border-slate-100 mt-8">
+        <!-- Footer Bersih & Kompak -->
+        <footer class="w-full max-w-[420px] pt-3 pb-1 text-center text-[11px] text-slate-400 font-sans border-t border-slate-100 mt-2 sm:mt-3 flex-shrink-0">
           <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
             <span>&copy; 2026 Universitas BTH</span>
             <span>•</span>

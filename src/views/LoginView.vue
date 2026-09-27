@@ -22,7 +22,7 @@
         <div class="leading-relaxed flex-1">{{ successMessage }}</div>
       </div>
 
-      <form @submit.prevent="handleLogin" class="space-y-3.5">
+      <form @submit.prevent="handleLogin" class="space-y-3">
         <!-- Email Input -->
         <div>
           <label for="email" class="block font-sans font-medium text-slate-700 text-xs mb-1">
@@ -34,23 +34,15 @@
             type="email"
             placeholder="nama@email.com"
             required
-            class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-xs sm:text-sm text-slate-900 transition-all font-sans placeholder:text-slate-400"
+            class="w-full px-3.5 py-2 h-10 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-xs sm:text-sm text-slate-900 transition-all font-sans placeholder:text-slate-400"
           />
         </div>
 
         <!-- Password Input -->
         <div>
-          <div class="flex items-center justify-between mb-1">
-            <label for="password" class="block font-sans font-medium text-slate-700 text-xs">
-              Kata Sandi
-            </label>
-            <RouterLink
-              to="/forgot-password"
-              class="text-[11px] text-[#2563EB] hover:text-[#1E3A8A] hover:underline font-sans"
-            >
-              Lupa sandi?
-            </RouterLink>
-          </div>
+          <label for="password" class="block font-sans font-medium text-slate-700 text-xs mb-1">
+            Kata Sandi
+          </label>
           <div class="relative">
             <input
               id="password"
@@ -58,7 +50,7 @@
               :type="showPassword ? 'text' : 'password'"
               placeholder="Masukkan kata sandi"
               required
-              class="w-full px-3.5 pr-10 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-xs sm:text-sm text-slate-900 transition-all font-sans placeholder:text-slate-400"
+              class="w-full px-3.5 pr-10 py-2 h-10 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-xs sm:text-sm text-slate-900 transition-all font-sans placeholder:text-slate-400"
             />
             <button
               type="button"
@@ -78,8 +70,8 @@
           </div>
         </div>
 
-        <!-- Ingat Saya Checkbox -->
-        <div class="pt-0.5">
+        <!-- Ingat Saya & Lupa Sandi Row -->
+        <div class="flex items-center justify-between pt-0.5">
           <label class="inline-flex items-center gap-2 cursor-pointer select-none">
             <input
               type="checkbox"
@@ -88,14 +80,20 @@
             />
             <span class="text-xs text-slate-600 font-sans">Ingat perangkat ini</span>
           </label>
+          <RouterLink
+            to="/forgot-password"
+            class="text-xs text-[#2563EB] hover:text-[#1E3A8A] hover:underline font-sans"
+          >
+            Lupa sandi?
+          </RouterLink>
         </div>
 
         <!-- Submit Button -->
-        <div class="pt-1.5">
+        <div class="pt-1">
           <button
             type="submit"
             :disabled="isLoading || isGoogleLoading"
-            class="w-full py-3 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow-sm active:scale-[0.99] transition-all flex justify-center items-center gap-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer"
+            class="w-full h-10.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow-sm active:scale-[0.99] transition-all flex justify-center items-center gap-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer"
           >
             <span v-if="!isLoading">Masuk</span>
             <span v-else class="flex items-center gap-2">
@@ -106,9 +104,9 @@
         </div>
 
         <!-- Divider Atau -->
-        <div class="relative my-3.5 flex items-center justify-center">
+        <div class="relative my-2.5 flex items-center justify-center">
           <div class="w-full border-t border-slate-200/80"></div>
-          <span class="absolute bg-white px-3 text-[11px] font-sans text-slate-400">
+          <span class="absolute bg-white px-2.5 text-[11px] font-sans text-slate-400">
             atau
           </span>
         </div>
@@ -119,7 +117,7 @@
             type="button"
             @click="handleGoogleLogin"
             :disabled="isGoogleLoading || isLoading"
-            class="w-full py-3 bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-slate-300 text-slate-700 font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-2xs hover:shadow-xs active:scale-[0.99] transition-all flex justify-center items-center gap-2.5 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            class="w-full h-10.5 bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-slate-300 text-slate-700 font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-2xs hover:shadow-xs active:scale-[0.99] transition-all flex justify-center items-center gap-2.5 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <img
               src="/images/icons/google.svg"
@@ -135,7 +133,7 @@
         </div>
 
         <!-- Tautan Registrasi Akun Baru -->
-        <div class="pt-3 border-t border-slate-100 text-center text-xs text-slate-500 font-sans">
+        <div class="pt-2.5 border-t border-slate-100 text-center text-xs text-slate-500 font-sans">
           <span>Belum memiliki akun?</span>
           <RouterLink
             to="/register"
