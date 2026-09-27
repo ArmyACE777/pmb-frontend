@@ -538,7 +538,7 @@
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-1">
                 <span class="text-slate-500">Telah Diterima Dari:</span>
                 <span class="sm:col-span-2 font-bold text-slate-900 uppercase tracking-wide">
-                  {{ candidate.fullName || 'Ahmad Fauzi' }}
+                  {{ candidate.fullName || 'Kemal Ramadhan' }}
                 </span>
               </div>
 

@@ -1,5 +1,8 @@
 <template>
-  <div class="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800 antialiased selection:bg-[#2563EB] selection:text-white">
+  <div class="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800 antialiased selection:bg-[#2563EB] selection:text-white relative">
+    <!-- Subtle Ambient & Institutional Watermark Background -->
+    <DashboardBackground />
+
     <!-- Top Institutional Navbar for Admin -->
     <header class="bg-white border-b border-slate-200/80 sticky top-0 z-40 shadow-2xs backdrop-blur-md bg-white/95">
       <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-2">
@@ -60,7 +63,7 @@
     </header>
 
     <!-- Main Container -->
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 flex-1 w-full">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 flex-1 w-full relative z-10">
       <!-- Admin Sub-Navigation Desks Bar -->
       <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-3.5 sm:p-4 mb-5 sm:mb-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-3 border-b border-slate-100 gap-2">
@@ -164,7 +167,7 @@
     </div>
 
     <!-- Institutional Footer -->
-    <footer class="bg-white border-t border-slate-200/80 py-4 text-center text-xs text-slate-500">
+    <footer class="bg-white border-t border-slate-200/80 py-4 text-center text-xs text-slate-500 relative z-10">
       <div class="max-w-7xl mx-auto px-4">
         &copy; 2026 Sekretariat PMB Universitas Bakti Tunas Husada. Sistem Informasi Penerimaan Mahasiswa Baru Terpadu.
       </div>
@@ -176,6 +179,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useAdminStore } from '@/stores/admin';
 import { useOrganizationStore } from '@/stores/organization';
+import DashboardBackground from '@/components/common/DashboardBackground.vue';
 
 import AdminOverviewDesk from '@/components/admin/AdminOverviewDesk.vue';
 import DocumentVerificationDesk from '@/components/admin/DocumentVerificationDesk.vue';

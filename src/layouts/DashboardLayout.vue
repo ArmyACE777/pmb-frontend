@@ -1,5 +1,8 @@
 <template>
-  <div class="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800 antialiased selection:bg-bth-blue selection:text-white">
+  <div class="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800 antialiased selection:bg-bth-blue selection:text-white relative">
+    <!-- Subtle Ambient & Institutional Watermark Background (Semua Halaman Dashboard) -->
+    <DashboardBackground />
+
     <!-- Main Sticky Dual-Tier Header -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
       <!-- Tier 1: Header Atas / Bawaan (Institutional Logo + User Identity) -->
@@ -77,10 +80,10 @@
                 >
                   <div class="hidden sm:flex flex-col text-right">
                     <div class="font-sora font-semibold text-slate-900 text-xs sm:text-sm group-hover:text-[#1E3A8A] transition-colors leading-tight truncate max-w-[190px]">
-                      {{ authStore.currentUser?.full_name || 'Ahmad Bin Fulan' }}
+                      {{ authStore.currentUser?.full_name || applicantStore.state.candidate?.fullName || 'Kemal Ramadhan' }}
                     </div>
                     <div class="text-[11px] text-slate-400 group-hover:text-slate-500 transition-colors leading-tight font-sans truncate max-w-[190px]">
-                      {{ authStore.currentUser?.email || 'ahmad@universitas-bth.ac.id' }}
+                      {{ authStore.currentUser?.email || 'kemal.ramadhan@universitas-bth.ac.id' }}
                     </div>
                   </div>
                   <!-- Avatar Circle matching mockup image -->
@@ -583,12 +586,12 @@
     </div>
 
     <!-- Main Content Body -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8 relative z-10">
       <slot />
     </main>
 
     <!-- Official BTH Institutional Footer -->
-    <footer class="bg-white border-t border-slate-200/80 py-6 text-slate-500 text-xs">
+    <footer class="bg-white border-t border-slate-200/80 py-6 text-slate-500 text-xs relative z-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
         <div class="flex items-center gap-3">
           <img src="/assets/icons/bth.png" alt="BTH" class="w-8 h-8 object-contain" />
@@ -623,8 +626,8 @@ import {
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
-
 import { useApplicantStore } from '@/stores/applicant';
+import DashboardBackground from '@/components/common/DashboardBackground.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();

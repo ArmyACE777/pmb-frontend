@@ -51,7 +51,10 @@
       </aside>
 
       <!-- SISI KANAN: Kanvas Formulir (Clean, Compact, Zero Scroll) -->
-      <main class="flex-1 flex flex-col justify-between items-center px-6 py-4 sm:px-10 sm:py-6 lg:px-12 xl:px-16 bg-white h-screen max-h-screen overflow-y-auto lg:overflow-hidden">
+      <main class="flex-1 flex flex-col justify-between items-center px-6 py-4 sm:px-10 sm:py-6 lg:px-12 xl:px-16 bg-white h-screen max-h-screen overflow-y-auto lg:overflow-hidden relative">
+        <!-- Ambient Subtle Color Pemanis Sisi Formulir -->
+        <div class="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-gradient-to-br from-blue-900/[0.03] via-blue-600/[0.015] to-transparent blur-2xl pointer-events-none -z-0"></div>
+        <div class="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-gradient-to-tr from-sky-500/[0.02] to-transparent blur-2xl pointer-events-none -z-0"></div>
         
         <!-- Header Ringkas Khusus Mobile (Tampil di Layar HP/Tablet) -->
         <div class="w-full max-w-[420px] lg:hidden flex items-center justify-between pb-3 mb-2 border-b border-slate-100 flex-shrink-0">
