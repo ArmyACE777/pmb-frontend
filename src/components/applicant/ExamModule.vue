@@ -59,15 +59,19 @@
       <!-- VIEW 1: SELESAI UJIAN (SCORE SCREEN) -->
       <div v-if="examStatus === 'completed' && !isTesting" class="space-y-6 animate-fadeIn">
         <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-sm text-center max-w-2xl mx-auto space-y-4">
-          <div class="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto">
-            <CheckCircle2 class="w-8 h-8" />
+          <div
+            class="w-16 h-16 rounded-full flex items-center justify-center mx-auto border"
+            :class="examState.score >= 70 ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-rose-50 border-rose-200 text-rose-600'"
+          >
+            <CheckCircle2 v-if="examState.score >= 70" class="w-8 h-8" />
+            <AlertTriangle v-else class="w-8 h-8" />
           </div>
 
           <div>
             <h3 class="font-sora font-extrabold text-2xl text-slate-900 mt-1">
-              Ujian Berhasil Diselesaikan
+              {{ examState.score >= 70 ? 'Ujian Berhasil Diselesaikan' : 'Ujian Selesai - Belum Mencapai Passing Grade' }}
             </h3>
-            <p class="text-xs text-slate-500 mt-1">
+            <p class="text-xs text-slate-500 mt-1 font-sans">
               Waktu Penyelesaian: {{ examState.completedAt }}
             </p>
           </div>
@@ -75,7 +79,10 @@
           <div class="p-6 bg-slate-50 border border-slate-200/80 rounded-2xl max-w-md mx-auto grid grid-cols-2 gap-4 text-center">
             <div class="border-r border-slate-200 pr-2">
               <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Skor Akhir</div>
-              <div class="font-sora font-black text-3xl text-[#1E3A8A] mt-1">
+              <div
+                class="font-sora font-black text-3xl mt-1"
+                :class="examState.score >= 70 ? 'text-[#1E3A8A]' : 'text-rose-600'"
+              >
                 {{ examState.score }}<span class="text-sm font-normal text-slate-400">/100</span>
               </div>
             </div>
@@ -87,8 +94,22 @@
             </div>
           </div>
 
-          <div class="inline-flex items-center px-3 py-1 bg-emerald-50 border border-emerald-200/80 rounded-md text-xs text-emerald-800 font-medium">
+          <div
+            class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium"
+            :class="examState.score >= 70 ? 'bg-emerald-50 border border-emerald-200/80 text-emerald-800' : 'bg-rose-50 border border-rose-200/80 text-rose-800'"
+          >
             <span>{{ examState.passedStatus }}</span>
+          </div>
+
+          <!-- Notice peluang jika tidak lulus -->
+          <div v-if="examState.score < 70" class="p-3.5 bg-rose-50/70 border border-rose-200/70 rounded-2xl text-xs text-rose-800 text-left space-y-1">
+            <div class="font-semibold flex items-center gap-1.5 text-rose-900">
+              <AlertTriangle class="w-4 h-4 text-rose-600" />
+              <span>Nilai Belum Memenuhi Ambang Batas (Min. 70)</span>
+            </div>
+            <p class="text-[11px] text-rose-700 font-sans leading-relaxed">
+              Anda dapat mengulang tes CBT secara mandiri atau langsung <strong>menambah pendaftaran baru</strong> untuk memilih jalur atau program studi lain tanpa kehilangan berkas & profil biodata Anda.
+            </p>
           </div>
 
           <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-3">
@@ -99,11 +120,20 @@
               Kerjakan Ulang Ujian
             </button>
             <button
+              v-if="examState.score >= 70"
               @click="activeSubTab = 'interview'"
               class="w-full sm:w-auto rounded-xl px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Video class="w-3.5 h-3.5" />
               <span>Lanjut ke Wawancara Daring</span>
+            </button>
+            <button
+              v-if="examState.score < 70"
+              @click="handleReapplyTrack"
+              class="w-full sm:w-auto rounded-xl px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <RotateCcw class="w-3.5 h-3.5" />
+              <span>Tambah Pendaftaran Jalur / Pilihan Lain</span>
             </button>
             <button
               @click="$emit('switch-tab', 'result')"
@@ -439,9 +469,9 @@
                 <div class="flex items-center justify-between text-slate-600">
                   <span class="text-slate-500">Meeting ID:</span>
                   <div class="flex items-center gap-2">
-                    <span class="font-mono font-bold text-slate-900">894 2026 0042</span>
+                    <span class="font-mono font-bold text-slate-900">{{ zoomMeetingId }}</span>
                     <button
-                      @click="copyText('894 2026 0042', 'Meeting ID Zoom')"
+                      @click="copyText(zoomMeetingId, 'Meeting ID Zoom')"
                       class="text-[11px] font-semibold text-[#1E3A8A] hover:underline cursor-pointer"
                     >
                       Salin
@@ -464,7 +494,7 @@
             </div>
 
             <a
-              href="https://zoom.us/j/89420260042"
+              :href="'https://zoom.us/j/' + zoomMeetingId.replace(/\s+/g, '')"
               target="_blank"
               rel="noopener noreferrer"
               class="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold transition-all shadow-xs flex items-center justify-center gap-2 text-center"
@@ -511,40 +541,64 @@
       </div>
     </div>
 
-    <!-- Modal Konfirmasi Selesai Ujian CBT -->
-    <div
-      v-if="showFinishModal"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn"
-    >
-      <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 text-center">
-        <div class="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto">
-          <AlertTriangle class="w-6 h-6" />
-        </div>
+    <!-- Modal Konfirmasi Selesai Ujian CBT Resmi Institusional -->
+    <Teleport to="body">
+      <div
+        v-if="showFinishModal"
+        class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/65 backdrop-blur-sm animate-fadeIn"
+        @click.self="showFinishModal = false"
+      >
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200/90 space-y-4">
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle class="w-4 h-4" />
+            </div>
+            <div>
+              <h3 class="font-sora font-bold text-slate-900 text-base">
+                Konfirmasi Pengumpulan Ujian CBT
+              </h3>
+              <p class="text-xs text-slate-500 font-sans mt-0.5">
+                Pengakhiran sesi seleksi potensi akademik online
+              </p>
+            </div>
+          </div>
 
-        <h3 class="font-sora font-bold text-slate-900 text-base">
-          Konfirmasi Pengumpulan Lembar Jawaban CBT
-        </h3>
+          <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 text-xs space-y-1.5">
+            <div class="flex justify-between items-center text-slate-600">
+              <span>Status Pengerjaan:</span>
+              <span class="font-semibold text-slate-900">{{ answeredCount }} dari {{ questions.length }} Soal Terjawab</span>
+            </div>
+            <div class="flex justify-between items-center text-slate-600">
+              <span>Sisa Soal Kosong:</span>
+              <span class="font-medium" :class="questions.length - answeredCount > 0 ? 'text-amber-600 font-semibold' : 'text-emerald-600'">
+                {{ questions.length - answeredCount }} Soal
+              </span>
+            </div>
+          </div>
 
-        <p class="text-xs text-slate-600 leading-relaxed">
-          Anda telah menjawab <strong>{{ answeredCount }} dari {{ questions.length }} soal</strong>. Apakah Anda yakin ingin mengakhiri sesi ujian CBT sekarang?
-        </p>
+          <p class="text-xs text-slate-600 leading-relaxed font-sans">
+            Setelah lembar jawaban dikumpulkan, sesi ujian CBT akan ditutup secara permanen dan sistem akan langsung merekam skor Anda ke panitia seleksi.
+          </p>
 
-        <div class="flex items-center justify-center gap-3 pt-2">
-          <button
-            @click="showFinishModal = false"
-            class="rounded-xl px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
-          >
-            Kembali Memeriksa
-          </button>
-          <button
-            @click="finishExam"
-            class="rounded-xl px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-sora font-bold text-xs transition-all shadow-sm hover:shadow-md cursor-pointer"
-          >
-            Ya, Kumpulkan Jawaban
-          </button>
+          <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+            <button
+              type="button"
+              @click="showFinishModal = false"
+              class="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold font-sora transition-colors cursor-pointer"
+            >
+              Kembali Memeriksa
+            </button>
+            <button
+              type="button"
+              @click="finishExam"
+              class="px-5 py-2.5 rounded-xl bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-semibold font-sora shadow-sm hover:shadow transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>Ya, Kumpulkan Jawaban</span>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 
@@ -560,19 +614,25 @@ import {
   Monitor,
   Video,
   ExternalLink,
-  UserCheck
+  UserCheck,
+  RotateCcw
 } from 'lucide-vue-next';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useApplicantStore } from '@/stores/applicant';
 import { examApi } from '@/api/exam';
 import { scoringApi } from '@/api/scoring';
 
-defineEmits(['switch-tab']);
+const emit = defineEmits(['switch-tab']);
 
 const applicantStore = useApplicantStore();
 const examState = computed(() => applicantStore.state.exam);
 const examStatus = computed(() => examState.value.status);
 const schedule = computed(() => applicantStore.state.schedule);
+
+const candidateRegDigits = computed(() => {
+  return applicantStore.state.candidate?.registrationNumber?.replace(/\D/g, '').slice(-4) || '1001';
+});
+const zoomMeetingId = computed(() => `894 2026 ${candidateRegDigits.value}`);
 
 // Sub-navigasi tab: 'cbt' atau 'interview'
 const activeSubTab = ref('cbt');
@@ -732,7 +792,7 @@ const finishExam = () => {
 
   scoringApi
     .submitScore({
-      applicant_id: applicantStore.state.candidate?.registrationNumber || 'BTH-2026-REG-00042',
+      applicant_id: applicantStore.state.candidate?.registrationNumber || 'BTH-2026-REG-PENDING',
       exam_id: 'CBT-ONLINE-01',
       score: finalScore,
       component: 'cbt_test',
@@ -747,7 +807,7 @@ const recordInterviewAttendance = async () => {
   isSubmittingAttendance.value = true;
   try {
     await examApi.recordAttendance('SESSION-INT-01', {
-      applicant_id: applicantStore.state.candidate?.registrationNumber || 'BTH-2026-REG-00042',
+      applicant_id: applicantStore.state.candidate?.registrationNumber || 'BTH-2026-REG-PENDING',
       status: 'present',
       channel: 'google_meet',
       timestamp: new Date().toISOString(),
@@ -768,6 +828,11 @@ const copyText = async (text, label) => {
   } catch {
     toastMessage.value = `${label}: ${text}`;
   }
+};
+
+const handleReapplyTrack = async () => {
+  await applicantStore.reapplyNewTrack();
+  emit('switch-tab', 'admission');
 };
 
 onUnmounted(() => {

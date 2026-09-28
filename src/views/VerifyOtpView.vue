@@ -107,7 +107,13 @@
             </button>
           </div>
 
-          <div class="pt-1">
+          <div class="pt-2 flex flex-col items-center gap-1.5">
+            <RouterLink
+              to="/login"
+              class="text-xs text-[#1E3A8A] font-semibold hover:underline"
+            >
+              Sudah pernah verifikasi sebelumnya? Masuk ke Portal
+            </RouterLink>
             <RouterLink
               to="/register"
               class="text-[11px] text-slate-400 hover:text-slate-700 transition-colors"
@@ -132,7 +138,19 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 
-const email = ref(route.query.email || '');
+const email = ref(
+  (route.query.email ? String(route.query.email).trim() : '') ||
+  localStorage.getItem('bth_pending_verification_email') ||
+  ''
+);
+
+// Simpan email ke localStorage jika didapat dari query agar tidak hilang saat refresh
+if (route.query.email) {
+  try {
+    localStorage.setItem('bth_pending_verification_email', String(route.query.email).trim());
+  } catch (e) {}
+}
+
 const otpDigits = ref(['', '', '', '', '', '']);
 const otpInputs = ref([]);
 const isLoading = ref(false);
@@ -220,12 +238,19 @@ const handleVerifyOtp = async () => {
     router.push('/dashboard');
   } catch (err) {
     const data = err.response?.data;
+    if (data?.error_code === 'ACCOUNT_ALREADY_ACTIVE') {
+      successToast.value = 'Akun Anda sudah aktif dan terverifikasi! Mengalihkan ke halaman login...';
+      setTimeout(() => {
+        router.push(`/login?email=${encodeURIComponent(email.value)}`);
+      }, 1500);
+      return;
+    }
     if (data?.error_code === 'OTP_LOCKED') {
       errorMessage.value = 'Kode OTP telah terkunci karena salah 5 kali berturut-turut. Silakan klik "Kirim Ulang Kode OTP".';
       return;
     }
     if (data?.error_code === 'OTP_EXPIRED') {
-      errorMessage.value = 'Masa berlaku kode OTP telah habis (10 menit). Silakan minta kode baru.';
+      errorMessage.value = 'Masa berlaku kode OTP telah habis (10 menit). Silakan klik "Kirim Ulang Kode OTP".';
       return;
     }
     if (data?.error_code === 'OTP_INVALID') {
@@ -244,16 +269,31 @@ const handleVerifyOtp = async () => {
 
 const handleResendOtp = async () => {
   if (resendCooldown.value > 0) return;
+  if (!email.value) {
+    errorMessage.value = 'Alamat email tidak terdeteksi. Silakan kembali ke halaman pendaftaran.';
+    return;
+  }
   isResending.value = true;
   errorMessage.value = '';
   successToast.value = '';
 
   try {
     await authStore.resendOtp(email.value);
-    successToast.value = 'Kode OTP baru telah berhasil dikirim ke email Anda!';
+    successToast.value = 'Kode OTP baru telah berhasil dikirim ke email Anda! Periksa inbox/spam atau Mailpit.';
     startCooldown();
   } catch (err) {
     const data = err.response?.data;
+    if (data?.error_code === 'ACCOUNT_ALREADY_ACTIVE') {
+      successToast.value = 'Akun Anda sudah aktif dan terverifikasi sebelumnya! Mengalihkan ke halaman Login...';
+      setTimeout(() => {
+        router.push(`/login?email=${encodeURIComponent(email.value)}`);
+      }, 1500);
+      return;
+    }
+    if (data?.error_code === 'NOT_FOUND') {
+      errorMessage.value = 'Alamat email belum terdaftar di sistem. Silakan mendaftar akun baru.';
+      return;
+    }
     if (data?.error_code === 'OTP_RESEND_COOLDOWN') {
       errorMessage.value = 'Mohon tunggu beberapa detik sebelum meminta kode OTP baru lagi.';
     } else {

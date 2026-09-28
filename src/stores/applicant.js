@@ -70,11 +70,29 @@ export const PRODI_METADATA = {
 };
 
 /**
+ * Helper tanggal relatif dinamis dalam format resmi Indonesia
+ */
+export function getUpcomingDateString(daysFromNow, weekdayPrefix = true) {
+  const d = new Date();
+  d.setDate(d.getDate() + daysFromNow);
+  const options = {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  };
+  if (weekdayPrefix) {
+    options.weekday = 'long';
+  }
+  return d.toLocaleDateString('id-ID', options);
+}
+
+/**
  * Inisialisasi state awal pendaftaran calon mahasiswa
  */
 function createInitialState(user) {
   const regNo = generateRegNumber(user?.id, user?.email);
   const regSuffix = regNo.split('-').pop() || String(Math.floor(10000 + Math.random() * 90000));
+  const currentYear = new Date().getFullYear();
 
   return {
     candidate: {
@@ -107,7 +125,7 @@ function createInitialState(user) {
     },
     admission: {
       track: 'Jalur Reguler Gelombang 1',
-      academicYear: '2026/2027',
+      academicYear: `${currentYear}/${currentYear + 1}`,
       prodi1: '',
       prodi1Faculty: '',
       prodi1Degree: '',
@@ -191,41 +209,41 @@ function createInitialState(user) {
     ],
     payments: {
       registrationFee: {
-        id: `INV-REG-2026-${regSuffix}`,
+        id: `INV-REG-${currentYear}-${regSuffix}`,
         title: 'Biaya Formulir Pendaftaran PMB',
         amount: 250000,
         status: 'pending',
         statusLabel: 'Menunggu Pembayaran',
         paidAt: null,
         paymentMethod: 'Virtual Account BSI',
-        vaNumber: `900 1208 ${regSuffix} 0128`,
+        vaNumber: `988 2026 01 ${regSuffix}`,
       },
       uktFee: {
-        id: `INV-UKT-2026-${regSuffix}`,
+        id: `INV-UKT-${currentYear}-${regSuffix}`,
         title: 'Biaya Daftar Ulang & UKT Semester 1',
-        amount: 6500000,
+        amount: 0,
         status: 'pending',
         statusLabel: 'Menunggu Pembayaran',
-        dueDate: '28 Oktober 2026',
-        vaBsi: `900 7800 0026 ${regSuffix}`,
-        vaMandiri: `8870 8260 1004 ${regSuffix}`,
+        dueDate: getUpcomingDateString(25, false),
+        vaBsi: `988 2026 01 ${regSuffix}`,
+        vaMandiri: `88908 2026 ${regSuffix}`,
         paidAt: null,
       },
     },
     schedule: {
       cbt: {
-        date: 'Sabtu, 18 Oktober 2026',
+        date: getUpcomingDateString(5),
         time: '08:30 - 10:00 WIB',
         room: 'Laboratorium CBT Kampus BTH / Daring Mandiri',
         serverUrl: 'https://cbt.universitas-bth.ac.id',
         sessionName: 'Sesi 1 (Pagi)',
       },
       interview: {
-        date: 'Senin, 20 Oktober 2026',
+        date: getUpcomingDateString(7),
         time: '09:00 - 11:30 WIB',
         location: 'Ruang Wawancara Kampus BTH / Daring PMB',
       },
-      announcementDate: 'Jumat, 24 Oktober 2026',
+      announcementDate: getUpcomingDateString(10),
     },
     exam: {
       status: 'scheduled',
@@ -243,8 +261,8 @@ function createInitialState(user) {
       acceptedFaculty: '',
       acceptedDegree: '',
       decisionLetterNo: '',
-      decisionDate: '24 Oktober 2026',
-      reRegistrationPeriod: '25 Oktober - 05 November 2026',
+      decisionDate: getUpcomingDateString(10, false),
+      reRegistrationPeriod: `${getUpcomingDateString(11, false)} - ${getUpcomingDateString(25, false)}`,
     },
     onboarding: {
       nim: '',
@@ -284,14 +302,14 @@ export const useApplicantStore = defineStore('applicant', () => {
             payments: {
               ...initial.payments,
               ...(parsed.payments || {}),
-              regFee: { ...initial.payments.regFee, ...(parsed.payments?.regFee || {}) },
-              uktFee: { ...initial.payments.uktFee, ...(parsed.payments?.uktFee || {}) }
+              registrationFee: { ...(initial.payments.registrationFee || {}), ...(parsed.payments?.registrationFee || {}) },
+              uktFee: { ...(initial.payments.uktFee || {}), ...(parsed.payments?.uktFee || {}) }
             },
             schedule: { ...initial.schedule, ...(parsed.schedule || {}) },
             exam: { ...initial.exam, ...(parsed.exam || {}) },
             result: { ...initial.result, ...(parsed.result || {}) },
             onboarding: { ...initial.onboarding, ...(parsed.onboarding || {}) },
-            documents: (parsed.documents || initial.documents).map((doc) => {
+            documents: ((Array.isArray(parsed.documents) ? parsed.documents : null) || initial.documents).map((doc) => {
               const initDoc = initial.documents.find((d) => d.id === doc.id);
               return {
                 ...doc,
@@ -424,6 +442,22 @@ export const useApplicantStore = defineStore('applicant', () => {
     return state.value?.payments?.uktFee?.status === 'paid';
   });
 
+  // Syarat Fitur Batalkan Pendaftaran (CR Revisian):
+  // Aktif HANYA SEBELUM dia bayar biaya pendaftaran (sudah pilih prodi tapi biaya pendaftaran belum lunas)
+  const canCancelAdmission = computed(() => {
+    return !!state.value?.admission?.prodi1 && !isRegPaymentComplete.value;
+  });
+
+  // Jika sudah bayar biaya pendaftaran, pendaftaran terkunci permanen dan tidak bisa dibatalkan
+  const isAdmissionLocked = computed(() => {
+    return isRegPaymentComplete.value;
+  });
+
+  // Kondisi jika dinyatakan tidak lulus seleksi
+  const isExamFailed = computed(() => {
+    return state.value?.exam?.status === 'completed' && state.value?.result?.isAnnounced && !state.value?.result?.isPassed;
+  });
+
   // 6 Tahapan Terpadu PMB (Profil -> Jalur Pendaftaran -> Berkas -> Biaya Pendaftaran -> Ujian Seleksi -> Hasil & Daftar Ulang)
   const completedStepsCount = computed(() => {
     let count = 0;
@@ -455,6 +489,14 @@ export const useApplicantStore = defineStore('applicant', () => {
         shortLabel: 'Lulus Seleksi',
         theme: 'emerald',
         description: 'Dinyatakan diterima. Silakan unduh Surat Penerimaan (LoA) dan selesaikan daftar ulang.',
+      };
+    }
+    if (isExamFailed.value) {
+      return {
+        label: 'Belum Lulus Seleksi',
+        shortLabel: 'Belum Lulus',
+        theme: 'rose',
+        description: 'Nilai ujian belum memenuhi ambang batas kelulusan. Anda dapat mendaftar kembali ke jalur atau program studi lain.',
       };
     }
     if (isExamCompleted.value) {
@@ -623,17 +665,16 @@ export const useApplicantStore = defineStore('applicant', () => {
     state.value.payments.uktFee.paidAt = new Date().toLocaleString('id-ID');
 
     if (!state.value.onboarding.nim) {
-      const regSuffix = state.value.candidate.registrationNumber.split('-').pop() || '0042';
+      const regSuffix = state.value.candidate.registrationNumber.split('-').pop() || '1001';
       // Format Standar PRD Fase 2 (Bagian 4.10): {YY}{nim_code_prodi}{jalur_digit}{urut 4}
-      // Contoh: 26 (Tahun) + 55 (Prodi TI) + 1 (Reguler) + 0042 (Urut) = 265510042
-      const yearPrefix = '26';
-      const selectedProdi = state.value.admission.prodi1 || 'S1 Farmasi';
+      const yearPrefix = new Date().getFullYear().toString().slice(-2);
+      const selectedProdi = state.value.admission.prodi1 || 'Program Studi Terpilih';
       const meta = PRODI_METADATA[selectedProdi] || {
         code: '01',
-        faculty: 'Fakultas Farmasi',
-        degree: 'S.Farm.',
-        uktFee: 6500000,
-        gugus: 'Gugus 01 - Hygeia Farmasi',
+        faculty: 'Universitas BTH',
+        degree: 'Sarjana',
+        uktFee: 4500000,
+        gugus: 'Gugus Mahasiswa Baru BTH',
       };
       
       const nimCode = String(state.value.admission.prodi1NimCode || meta.code || '01').padStart(2, '0');
@@ -653,7 +694,7 @@ export const useApplicantStore = defineStore('applicant', () => {
         .replace(/[^a-z0-9]/g, '.');
       state.value.onboarding.studentEmail = `${emailName}@bth.ac.id`;
       state.value.onboarding.studyProgram = selectedProdi;
-      state.value.onboarding.faculty = meta.faculty || state.value.admission.prodi1Faculty;
+      state.value.onboarding.faculty = meta.faculty || state.value.admission.prodi1Faculty || 'Universitas BTH';
       state.value.onboarding.pkkmbGroup = meta.gugus || 'Gugus Mahasiswa Baru BTH';
     }
   };
@@ -669,14 +710,114 @@ export const useApplicantStore = defineStore('applicant', () => {
     
     state.value.result.isAnnounced = true;
     state.value.result.isPassed = isPass;
-    state.value.result.acceptedProdi = state.value.admission.prodi1;
-    state.value.result.acceptedFaculty = state.value.admission.prodi1Faculty;
-    state.value.result.acceptedDegree = state.value.admission.prodi1Degree;
+    state.value.result.acceptedProdi = state.value.admission.prodi1 || 'Program Studi Terpilih';
+    state.value.result.acceptedFaculty = state.value.admission.prodi1Faculty || 'Universitas BTH';
+    state.value.result.acceptedDegree = state.value.admission.prodi1Degree || 'S1';
     if (isPass) {
-      const regSuffix = state.value.candidate.registrationNumber.split('-').pop() || '082';
-      state.value.result.decisionLetterNo = `${regSuffix.slice(-3)}/SK-PMB/UBTH/X/2026`;
+      const regSuffix = state.value.candidate.registrationNumber.split('-').pop() || '101';
+      state.value.result.decisionLetterNo = `${regSuffix.slice(-3)}/SK-PMB/UBTH/X/${new Date().getFullYear()}`;
     }
-    state.value.admission.status = isPass ? 'Dinyatakan Lulus Seleksi' : 'Selesai Ujian CBT';
+    state.value.admission.status = isPass ? 'Dinyatakan Lulus Seleksi' : 'Belum Memenuhi Syarat Kelulusan';
+  };
+
+  /**
+   * Fitur Batalkan Pendaftaran:
+   * Syarat: HANYA AKTIF SEBELUM BAYAR BIAYA PENDAFTARAN.
+   * Jika sudah bayar biaya pendaftaran, pendaftaran terkunci dan tidak bisa dibatalkan.
+   */
+  const cancelAdmission = async (reason = 'Dibatalkan oleh pendaftar untuk memilih prodi / jalur lain') => {
+    if (isRegPaymentComplete.value) {
+      throw new Error('Pendaftaran tidak dapat dibatalkan karena biaya pendaftaran sudah dibayar.');
+    }
+
+    // 1. Reset pilihan prodi & status pendaftaran pada state
+    state.value.admission.prodi1 = '';
+    state.value.admission.prodi1Code = '';
+    state.value.admission.prodi1NimCode = '';
+    state.value.admission.prodi1Faculty = '';
+    state.value.admission.prodi1Degree = '';
+    state.value.admission.prodi2 = '';
+    state.value.admission.prodi2Code = '';
+    state.value.admission.prodi2Faculty = '';
+    state.value.admission.prodi2Degree = '';
+    state.value.admission.status = 'Pengisian Formulir Pendaftaran';
+
+    // Reset nominal tagihan UKT karena prodi dibatalkan
+    if (state.value.payments?.uktFee) {
+      state.value.payments.uktFee.amount = 0;
+      state.value.payments.uktFee.status = 'pending';
+      state.value.payments.uktFee.paidAt = null;
+    }
+
+    // 2. Hubungi backend admission service jika API tersedia
+    try {
+      await admissionApi.cancelApplication(reason).catch(() => null);
+    } catch (e) {
+      console.warn('Backend cancel notice:', e?.message);
+    }
+
+    // Arahkan langsung ke modul pendaftaran agar pendaftar bisa langsung memilih lagi
+    setActiveTab('admission');
+
+    return {
+      success: true,
+      message: 'Pendaftaran berhasil dibatalkan. Anda dapat memilih kembali jalur pendaftaran dan program studi yang diinginkan.',
+    };
+  };
+
+  /**
+   * Fitur Tambah Pendaftaran Jalur / Pilihan Lain bagi yang Dinyatakan Tidak Lulus
+   */
+  const reapplyNewTrack = async () => {
+    // 1. Buka pendaftaran baru dengan tetap menjaga keutuhan biodata profil dan dokumen
+    state.value.admission.prodi1 = '';
+    state.value.admission.prodi1Code = '';
+    state.value.admission.prodi1NimCode = '';
+    state.value.admission.prodi1Faculty = '';
+    state.value.admission.prodi1Degree = '';
+    state.value.admission.prodi2 = '';
+    state.value.admission.prodi2Code = '';
+    state.value.admission.prodi2Faculty = '';
+    state.value.admission.prodi2Degree = '';
+    state.value.admission.status = 'Pendaftaran Jalur Baru';
+
+    // Reset status ujian CBT
+    state.value.exam.status = 'scheduled';
+    state.value.exam.score = 0;
+    state.value.exam.correctAnswers = 0;
+    state.value.exam.passedStatus = 'Menunggu Pengerjaan Ujian';
+    state.value.exam.completedAt = null;
+
+    // Reset status hasil kelulusan
+    state.value.result.isAnnounced = false;
+    state.value.result.isPassed = false;
+    state.value.result.acceptedProdi = '';
+    state.value.result.acceptedFaculty = '';
+    state.value.result.acceptedDegree = '';
+    state.value.result.decisionLetterNo = '';
+
+    // Reset status biaya untuk pendaftaran jalur baru
+    state.value.payments.registrationFee.status = 'pending';
+    state.value.payments.registrationFee.statusLabel = 'Menunggu Pembayaran';
+    state.value.payments.registrationFee.paidAt = null;
+    state.value.payments.uktFee.amount = 0;
+    state.value.payments.uktFee.status = 'pending';
+    state.value.payments.uktFee.paidAt = null;
+
+    // Perbarui jadwal sesi dinamis
+    state.value.schedule.cbt.date = getUpcomingDateString(5);
+    state.value.schedule.interview.date = getUpcomingDateString(7);
+    state.value.schedule.announcementDate = getUpcomingDateString(10);
+    state.value.result.decisionDate = getUpcomingDateString(10, false);
+    state.value.result.reRegistrationPeriod = `${getUpcomingDateString(11, false)} - ${getUpcomingDateString(25, false)}`;
+
+    // Pindah ke modul Jalur Pendaftaran
+    setActiveTab('admission');
+
+    return {
+      success: true,
+      message: 'Pendaftaran jalur baru telah dibuka. Silakan pilih jalur dan program studi pilihan Anda.',
+    };
   };
 
   const resetAllData = () => {
@@ -887,10 +1028,15 @@ export const useApplicantStore = defineStore('applicant', () => {
     isExamCompleted,
     isResultPassed,
     isUktPaid,
+    canCancelAdmission,
+    isAdmissionLocked,
+    isExamFailed,
     completedStepsCount,
     progressPercent,
     updateProfile,
     updateAdmission,
+    cancelAdmission,
+    reapplyNewTrack,
     uploadDocument,
     submitRegPayment,
     payRegFee,

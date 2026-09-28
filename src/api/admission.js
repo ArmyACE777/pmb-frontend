@@ -49,6 +49,24 @@ export const admissionApi = {
     return apiClient.post('/admission/applications/me/submit');
   },
 
+  // CR-004: Stepper Progres Calon Mahasiswa Terstruktur
+  async getMyProgress() {
+    return apiClient.get('/admission/applications/me/progress');
+  },
+
+  // CR-002: Riwayat Multi-Pendaftaran, Eligibility, & Pembatalan
+  async getMyHistory() {
+    return apiClient.get('/admission/applications/me/history');
+  },
+
+  async getEligibility() {
+    return apiClient.get('/admission/applications/me/eligibility');
+  },
+
+  async cancelApplication(reason = '') {
+    return apiClient.post('/admission/applications/me/cancel', { reason });
+  },
+
   // === Admin Endpoints ===
   async getApplications(params = {}) {
     return apiClient.get('/admission/admin/applications', { params });

@@ -176,7 +176,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { useAdminStore } from '@/stores/admin';
 import { useOrganizationStore } from '@/stores/organization';
 import DashboardBackground from '@/components/common/DashboardBackground.vue';
@@ -190,11 +191,19 @@ import InstitutionalDashboardDesk from '@/components/admin/InstitutionalDashboar
 import ReportingNotificationDesk from '@/components/admin/ReportingNotificationDesk.vue';
 import MasterDataOrganizationDesk from '@/components/admin/MasterDataOrganizationDesk.vue';
 
+const route = useRoute();
 const adminStore = useAdminStore();
 const organizationStore = useOrganizationStore();
-const activeDesk = ref('overview');
+const activeDesk = ref(route.query.desk || 'overview');
+
+watch(() => route.query.desk, (newDesk) => {
+  if (newDesk) activeDesk.value = newDesk;
+});
 
 onMounted(async () => {
+  if (route.query.desk) {
+    activeDesk.value = route.query.desk;
+  }
   await Promise.all([
     adminStore.fetchBackendApplicants(),
     organizationStore.syncAll(),

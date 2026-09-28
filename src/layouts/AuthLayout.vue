@@ -50,68 +50,70 @@
         </div>
       </aside>
 
-      <!-- SISI KANAN: Kanvas Formulir (Clean, Compact, Zero Scroll) -->
-      <main class="flex-1 flex flex-col justify-between items-center px-6 py-4 sm:px-10 sm:py-6 lg:px-12 xl:px-16 bg-white h-screen max-h-screen overflow-y-auto lg:overflow-hidden relative">
+      <!-- SISI KANAN: Kanvas Formulir (Scrollable & Bebas Terpotong) -->
+      <main class="flex-1 bg-white h-screen overflow-y-auto relative">
         <!-- Ambient Subtle Color Pemanis Sisi Formulir -->
         <div class="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-gradient-to-br from-blue-900/[0.03] via-blue-600/[0.015] to-transparent blur-2xl pointer-events-none -z-0"></div>
         <div class="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-gradient-to-tr from-sky-500/[0.02] to-transparent blur-2xl pointer-events-none -z-0"></div>
         
-        <!-- Header Ringkas Khusus Mobile (Tampil di Layar HP/Tablet) -->
-        <div class="w-full max-w-[420px] lg:hidden flex items-center justify-between pb-3 mb-2 border-b border-slate-100 flex-shrink-0">
-          <RouterLink to="/login" class="flex items-center gap-2.5">
-            <img src="/assets/icons/bth.png" alt="Logo Universitas BTH" class="h-8 w-auto object-contain" />
-            <div>
-              <div class="text-xs font-bold font-sora text-slate-900 uppercase tracking-wide">Universitas BTH</div>
-              <div class="text-[10px] text-slate-500 font-sans">Portal PMB 2026/2027</div>
-            </div>
-          </RouterLink>
+        <div class="min-h-full w-full flex flex-col justify-between items-center px-6 py-5 sm:px-10 sm:py-7 lg:px-12 xl:px-16">
+          <!-- Header Ringkas Khusus Mobile (Tampil di Layar HP/Tablet) -->
+          <div class="w-full max-w-[440px] lg:hidden flex items-center justify-between pb-3 mb-2 border-b border-slate-100 flex-shrink-0">
+            <RouterLink to="/login" class="flex items-center gap-2.5">
+              <img src="/assets/icons/bth.png" alt="Logo Universitas BTH" class="h-8 w-auto object-contain" />
+              <div>
+                <div class="text-xs font-bold font-sora text-slate-900 uppercase tracking-wide">Universitas BTH</div>
+                <div class="text-[10px] text-slate-500 font-sans">Portal PMB 2026/2027</div>
+              </div>
+            </RouterLink>
 
-          <a
-            href="https://api.whatsapp.com/send?phone=6282117100200&text=Halo%20Panitia%20PMB%20Universitas%20BTH%2C%20saya%20butuh%20bantuan%20pendaftaran."
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-xs font-semibold text-[#1E3A8A] hover:underline font-sans"
-          >
-            Bantuan PMB
-          </a>
-        </div>
-
-        <div class="hidden lg:block flex-shrink-0"></div>
-
-        <!-- Kontainer Formulir Terpusat -->
-        <div :class="['w-full my-auto py-1 sm:py-2', cardMaxWidth]">
-          <!-- Header Judul Formulir -->
-          <div class="text-left mb-4 sm:mb-5">
-            <h2 class="font-sora text-2xl sm:text-[26px] font-bold text-slate-900 tracking-tight leading-tight">
-              {{ headline }}
-            </h2>
-
-            <slot name="subheadline">
-              <p v-if="subheadline" class="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed font-sans">
-                {{ subheadline }}
-              </p>
-            </slot>
-          </div>
-
-          <!-- Form Content Slot -->
-          <slot />
-        </div>
-
-        <!-- Footer Bersih & Kompak -->
-        <footer class="w-full max-w-[420px] pt-3 pb-1 text-center text-[11px] text-slate-400 font-sans border-t border-slate-100 mt-2 sm:mt-3 flex-shrink-0">
-          <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-            <span>&copy; 2026 Universitas BTH</span>
-            <span>•</span>
             <a
               href="https://api.whatsapp.com/send?phone=6282117100200&text=Halo%20Panitia%20PMB%20Universitas%20BTH%2C%20saya%20butuh%20bantuan%20pendaftaran."
               target="_blank"
               rel="noopener noreferrer"
-              class="text-slate-600 hover:text-[#1E3A8A] hover:underline font-medium"
+              class="text-xs font-semibold text-[#1E3A8A] hover:underline font-sans"
             >
-              WhatsApp PMB (0821-1710-0200)
+              Bantuan PMB
             </a>
           </div>
-        </footer>
+
+          <div class="hidden lg:block flex-shrink-0"></div>
+
+          <!-- Kontainer Formulir Terpusat -->
+          <div :class="['w-full my-auto py-3 sm:py-4', cardMaxWidth]">
+            <!-- Header Judul Formulir -->
+            <div class="text-left mb-4 sm:mb-5">
+              <h2 class="font-sora text-2xl sm:text-[26px] font-bold text-slate-900 tracking-tight leading-tight">
+                {{ headline }}
+              </h2>
+
+              <slot name="subheadline">
+                <p v-if="subheadline" class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed font-sans">
+                  {{ subheadline }}
+                </p>
+              </slot>
+            </div>
+
+            <!-- Form Content Slot -->
+            <slot />
+          </div>
+
+          <!-- Footer Bersih & Kompak -->
+          <footer class="w-full max-w-[440px] pt-3 pb-2 text-center text-[11px] text-slate-400 font-sans border-t border-slate-100 mt-3 sm:mt-4 flex-shrink-0">
+            <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+              <span>&copy; 2026 Universitas BTH</span>
+              <span>•</span>
+              <a
+                href="https://api.whatsapp.com/send?phone=6282117100200&text=Halo%20Panitia%20PMB%20Universitas%20BTH%2C%20saya%20butuh%20bantuan%20pendaftaran."
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-slate-600 hover:text-[#1E3A8A] hover:underline font-medium"
+              >
+                WhatsApp PMB (0821-1710-0200)
+              </a>
+            </div>
+          </footer>
+        </div>
       </main>
     </div>
   </div>

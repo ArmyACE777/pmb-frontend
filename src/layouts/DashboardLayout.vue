@@ -80,10 +80,10 @@
                 >
                   <div class="hidden sm:flex flex-col text-right">
                     <div class="font-sora font-semibold text-slate-900 text-xs sm:text-sm group-hover:text-[#1E3A8A] transition-colors leading-tight truncate max-w-[190px]">
-                      {{ authStore.currentUser?.full_name || applicantStore.state.candidate?.fullName || 'Kemal Ramadhan' }}
+                      {{ authStore.currentUser?.full_name || applicantStore.state.candidate?.fullName || 'Calon Mahasiswa' }}
                     </div>
                     <div class="text-[11px] text-slate-400 group-hover:text-slate-500 transition-colors leading-tight font-sans truncate max-w-[190px]">
-                      {{ authStore.currentUser?.email || 'kemal.ramadhan@universitas-bth.ac.id' }}
+                      {{ authStore.currentUser?.email || applicantStore.state.candidate?.email || 'Akun PMB' }}
                     </div>
                   </div>
                   <!-- Avatar Circle matching mockup image -->
@@ -510,80 +510,82 @@
     </div>
 
     <!-- Modal Pusat Bantuan & Helpdesk Resmi PMB BTH -->
-    <div
-      v-if="showHelpdeskModal"
-      class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn"
-      @click.self="showHelpdeskModal = false"
-    >
-      <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-7 shadow-2xl border border-slate-200 relative max-h-[88vh] overflow-y-auto space-y-4">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
-              <HelpCircle class="w-5 h-5 text-emerald-600" />
-            </div>
-            <div>
-              <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">Pusat Layanan & Bantuan PMB</h3>
-              <p class="text-[11px] text-slate-500">Sekretariat Penerimaan Mahasiswa Baru Universitas BTH</p>
-            </div>
-          </div>
-          <button @click="showHelpdeskModal = false" class="text-slate-400 hover:text-slate-700 text-2xl font-bold p-1 leading-none cursor-pointer">
-            &times;
-          </button>
-        </div>
-
-        <div class="space-y-3 text-xs text-slate-600">
-          <!-- WhatsApp Hotline -->
-          <a
-            href="https://api.whatsapp.com/send?phone=6282117100200&text=Halo%20Helpdesk%20PMB%20BTH%2C%20saya%20ingin%20bertanya%20mengenai%20pendaftaran."
-            target="_blank"
-            rel="noopener noreferrer"
-            class="p-3.5 bg-emerald-50/70 hover:bg-emerald-100/80 rounded-2xl border border-emerald-200 transition-colors flex items-center justify-between gap-3 group"
-          >
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold flex-shrink-0">
-                WA
+    <Teleport to="body">
+      <div
+        v-if="showHelpdeskModal"
+        class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-sm animate-fadeIn"
+        @click.self="showHelpdeskModal = false"
+      >
+        <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-7 shadow-2xl border border-slate-200 relative max-h-[88vh] overflow-y-auto space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+                <HelpCircle class="w-5 h-5 text-emerald-600" />
               </div>
               <div>
-                <div class="font-sora font-bold text-emerald-900 text-xs sm:text-sm">WhatsApp Helpdesk Resmi</div>
-                <div class="text-[11px] text-emerald-700">0821-1710-0200 (Respon Cepat)</div>
+                <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">Pusat Layanan & Bantuan PMB</h3>
+                <p class="text-[11px] text-slate-500">Sekretariat Penerimaan Mahasiswa Baru Universitas BTH</p>
               </div>
             </div>
-            <span class="text-[11px] font-semibold text-emerald-800 bg-white px-3.5 py-1 rounded-full border border-emerald-200 shadow-2xs group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-              Chat Sekarang &rarr;
-            </span>
-          </a>
+            <button @click="showHelpdeskModal = false" class="text-slate-400 hover:text-slate-700 text-2xl font-bold p-1 leading-none cursor-pointer">
+              &times;
+            </button>
+          </div>
 
-          <!-- Info Kampus -->
-          <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
-            <div class="flex justify-between items-start gap-2">
-              <span class="text-slate-500">Gedung Pelayanan:</span>
-              <span class="font-semibold text-slate-800 text-right">Sekretariat PMB, Gedung Rektorat Lt. 1</span>
-            </div>
-            <div class="flex justify-between items-start gap-2">
-              <span class="text-slate-500">Alamat:</span>
-              <span class="font-semibold text-slate-800 text-right">Jl. Cilolohan No. 36, Tasikmalaya 46115</span>
-            </div>
-            <div class="flex justify-between items-start gap-2">
-              <span class="text-slate-500">Jam Operasional:</span>
-              <span class="font-semibold text-slate-800 text-right">Senin - Jumat (08.00 - 16.00 WIB)</span>
-            </div>
-            <div class="flex justify-between items-start gap-2">
-              <span class="text-slate-500">Surel Resmi:</span>
-              <span class="font-mono font-semibold text-[#1E3A8A]">pmb@bth.ac.id</span>
+          <div class="space-y-3 text-xs text-slate-600">
+            <!-- WhatsApp Hotline -->
+            <a
+              href="https://api.whatsapp.com/send?phone=6282117100200&text=Halo%20Helpdesk%20PMB%20BTH%2C%20saya%20ingin%20bertanya%20mengenai%20pendaftaran."
+              target="_blank"
+              rel="noopener noreferrer"
+              class="p-3.5 bg-emerald-50/70 hover:bg-emerald-100/80 rounded-2xl border border-emerald-200 transition-colors flex items-center justify-between gap-3 group"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold flex-shrink-0">
+                  WA
+                </div>
+                <div>
+                  <div class="font-sora font-bold text-emerald-900 text-xs sm:text-sm">WhatsApp Helpdesk Resmi</div>
+                  <div class="text-[11px] text-emerald-700">0821-1710-0200 (Respon Cepat)</div>
+                </div>
+              </div>
+              <span class="text-[11px] font-semibold text-emerald-800 bg-white px-3.5 py-1 rounded-full border border-emerald-200 shadow-2xs group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                Chat Sekarang &rarr;
+              </span>
+            </a>
+
+            <!-- Info Kampus -->
+            <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+              <div class="flex justify-between items-start gap-2">
+                <span class="text-slate-500">Gedung Pelayanan:</span>
+                <span class="font-semibold text-slate-800 text-right">Sekretariat PMB, Gedung Rektorat Lt. 1</span>
+              </div>
+              <div class="flex justify-between items-start gap-2">
+                <span class="text-slate-500">Alamat:</span>
+                <span class="font-semibold text-slate-800 text-right">Jl. Cilolohan No. 36, Tasikmalaya 46115</span>
+              </div>
+              <div class="flex justify-between items-start gap-2">
+                <span class="text-slate-500">Jam Operasional:</span>
+                <span class="font-semibold text-slate-800 text-right">Senin - Jumat (08.00 - 16.00 WIB)</span>
+              </div>
+              <div class="flex justify-between items-start gap-2">
+                <span class="text-slate-500">Surel Resmi:</span>
+                <span class="font-mono font-semibold text-[#1E3A8A]">pmb@bth.ac.id</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="pt-2">
-          <button
-            @click="showHelpdeskModal = false"
-            class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-full transition-colors cursor-pointer font-sora"
-          >
-            Tutup
-          </button>
+          <div class="pt-2">
+            <button
+              @click="showHelpdeskModal = false"
+              class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-full transition-colors cursor-pointer font-sora"
+            >
+              Tutup
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </Teleport>
 
     <!-- Main Content Body -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8 relative z-10">
@@ -687,15 +689,15 @@ const notifications = computed(() => {
   if (applicantStore.isUktPaid) {
     list.push({
       title: 'Pelunasan UKT Semester 1 Berhasil',
-      desc: `Registrasi ulang lunas. NIM ${applicantStore.state.onboarding.nim || 'resmi'} telah aktif dan tercatat pada SIAKAD BTH.`,
-      time: applicantStore.state.payments.uktFee.paidAt || 'Terkini',
+      desc: `Registrasi ulang lunas. NIM ${applicantStore.state?.onboarding?.nim || 'resmi'} telah aktif dan tercatat pada SIAKAD BTH.`,
+      time: applicantStore.state?.payments?.uktFee?.paidAt || 'Terkini',
       isRead: readNotificationIndices.value.has('ukt'),
       key: 'ukt',
     });
   } else if (applicantStore.isResultPassed) {
     list.push({
       title: 'Selamat! Anda Dinyatakan Lulus Seleksi PMB',
-      desc: `Surat Keputusan Rektor (${applicantStore.state.result.decisionLetterNo || 'LoA'}) telah terbit. Silakan lakukan pembayaran UKT Semester 1.`,
+      desc: `Surat Keputusan Rektor (${applicantStore.state?.result?.decisionLetterNo || 'LoA'}) telah terbit. Silakan lakukan pembayaran UKT Semester 1.`,
       time: 'Pengumuman Resmi',
       isRead: readNotificationIndices.value.has('passed'),
       key: 'passed',
@@ -703,8 +705,8 @@ const notifications = computed(() => {
   } else if (applicantStore.isExamCompleted) {
     list.push({
       title: 'Ujian Mandiri CBT Telah Diselesaikan',
-      desc: `Skor CBT Anda (${applicantStore.state.exam.score}/100) berhasil direkam. Dewan juri sedang memproses penetapan kelulusan.`,
-      time: applicantStore.state.exam.completedAt || 'Terkini',
+      desc: `Skor CBT Anda (${applicantStore.state?.exam?.score ?? 0}/100) berhasil direkam. Dewan juri sedang memproses penetapan kelulusan.`,
+      time: applicantStore.state?.exam?.completedAt || 'Terkini',
       isRead: readNotificationIndices.value.has('exam'),
       key: 'exam',
     });
@@ -712,13 +714,13 @@ const notifications = computed(() => {
     list.push({
       title: 'Pembayaran Formulir Terkonfirmasi',
       desc: 'Sesi Ujian CBT Online Anda telah diaktifkan. Silakan kerjakan ujian mandiri pada menu Jadwal & CBT.',
-      time: applicantStore.state.payments.registrationFee.paidAt || 'Terkini',
+      time: applicantStore.state?.payments?.registrationFee?.paidAt || 'Terkini',
       isRead: readNotificationIndices.value.has('regpay'),
       key: 'regpay',
     });
   }
 
-  const revisionDocs = applicantStore.state.documents.filter((d) => d.status === 'revision');
+  const revisionDocs = (applicantStore.state?.documents || []).filter((d) => d.status === 'revision');
   if (revisionDocs.length > 0) {
     list.push({
       title: 'Perhatian: Berkas Memerlukan Perbaikan',
@@ -762,10 +764,11 @@ const markAllAsRead = () => {
 };
 
 const userInitials = computed(() => {
-  const name = authStore.currentUser?.full_name || 'CM';
-  const parts = name.trim().split(' ');
+  const name = (authStore.currentUser?.full_name || 'CM').trim();
+  const parts = name.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'CM';
   if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
+    return (parts[0][0] + (parts[parts.length - 1][0] || '')).toUpperCase();
   }
   return name.slice(0, 2).toUpperCase();
 });

@@ -145,7 +145,8 @@
     <Teleport to="body">
       <div
         v-if="selectedPreviewDoc"
-        class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn"
+        class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-sm animate-fadeIn"
+        @click.self="selectedPreviewDoc = null"
       >
         <div class="bg-white rounded-2xl sm:rounded-3xl max-w-3xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200/80 relative max-h-[90vh] flex flex-col">
           <!-- Header Modal -->

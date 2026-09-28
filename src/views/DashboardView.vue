@@ -14,28 +14,33 @@
 
     <!-- KONDISI 1: BERANDA UTAMA (OVERVIEW) -->
     <div v-if="activeTab === 'overview'" class="space-y-6 animate-fadeIn pb-12">
-      <!-- 1. Hero Card: Bersih, Rapi, Fokus Identitas & Status -->
-      <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 sm:p-8">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <!-- 1. Hero Card: Identitas Resmi Calon Mahasiswa & Status Seleksi -->
+      <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 sm:p-7">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
           <!-- Left: Identitas Calon Mahasiswa -->
           <div class="flex items-center gap-4 min-w-0">
-            <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-gradient-to-tr from-[#1E3A8A] to-blue-700 text-white font-sora font-bold text-base sm:text-lg flex items-center justify-center flex-shrink-0 shadow-sm ring-4 ring-blue-50/80 overflow-hidden">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#1E3A8A] to-blue-700 text-white font-sora font-bold text-base sm:text-lg flex items-center justify-center flex-shrink-0 shadow-xs border border-blue-800/20 overflow-hidden">
               <img
                 v-if="candidatePhoto"
                 :src="candidatePhoto"
                 alt="Foto Profil Calon Mahasiswa"
-                class="w-full h-full object-cover rounded-full"
+                class="w-full h-full object-cover"
               />
               <span v-else>{{ candidateInitials }}</span>
             </div>
 
             <div class="space-y-1 min-w-0">
-              <h1 class="text-lg sm:text-xl font-sora font-bold text-slate-900 tracking-tight capitalize">
-                Selamat Datang, {{ candidateName }}
-              </h1>
+              <div class="flex items-center gap-2">
+                <h1 class="text-base sm:text-lg font-sora font-bold text-slate-900 tracking-tight capitalize truncate">
+                  {{ candidateName }}
+                </h1>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-[#1E3A8A] border border-blue-200 font-semibold hidden xs:inline-block">
+                  PMB 2026
+                </span>
+              </div>
 
-              <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-slate-500 font-sans">
-                <span>No. Reg: <strong class="font-mono text-slate-700">{{ candidateRegNo }}</strong></span>
+              <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 font-sans">
+                <span>No. Reg: <strong class="font-mono text-slate-800 font-semibold">{{ candidateRegNo }}</strong></span>
                 <button
                   @click="copyRegNumber"
                   class="text-slate-400 hover:text-[#1E3A8A] transition-colors cursor-pointer"
@@ -44,43 +49,44 @@
                   <Copy class="w-3.5 h-3.5" />
                 </button>
                 <span class="text-slate-300">•</span>
-                <span>{{ applicantStore.state.admission.track || 'Jalur Reguler' }}</span>
-                <template v-if="applicantStore.state.admission.prodi1">
+                <span class="text-slate-700 font-medium">{{ applicantStore.state?.admission?.track || 'Jalur Reguler Gelombang 1' }}</span>
+                <template v-if="applicantStore.state?.admission?.prodi1">
                   <span class="text-slate-300">•</span>
-                  <span class="font-semibold text-slate-800">{{ applicantStore.state.admission.prodi1 }}</span>
-                  <span class="text-slate-400 text-[11px]">({{ applicantStore.state.admission.prodi1Degree || 'S1' }})</span>
+                  <span class="font-semibold text-slate-900">{{ applicantStore.state.admission.prodi1 }}</span>
+                  <span class="text-slate-500 text-[11px]">({{ applicantStore.state?.admission?.prodi1Degree || 'S1' }})</span>
                 </template>
               </div>
             </div>
           </div>
 
-          <!-- Right: Status Seleksi Resmi (Badge Tenang & Elegan) -->
-          <div class="flex flex-col sm:items-end gap-1 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 flex-shrink-0">
-            <span class="text-[11px] font-sans text-slate-400 font-medium">Status Pendaftaran</span>
+          <!-- Right: Status Seleksi Resmi -->
+          <div class="flex flex-col sm:items-end gap-1.5 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100 flex-shrink-0">
+            <span class="text-[11px] font-sans text-slate-400 font-medium">Status Pendaftaran Resmi</span>
             <div
-              class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium border shadow-2xs"
+              class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold border shadow-2xs"
               :class="statusBadgeClass"
             >
+              <span class="w-2 h-2 rounded-full" :class="statusDotColor"></span>
               <span>{{ applicantStore.overallStatus.label }}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 2. Alur Tahapan Pendaftaran: Connected Milestone Stepper (Sleek, To The Point, Non-AI) -->
-      <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 sm:p-8 space-y-6">
-        <!-- Header: Title & Progress Bar Metric -->
+      <!-- 2. Alur Tahapan Pendaftaran: Connected Milestone Stepper (Terstruktur, Single-Action, Non-AI) -->
+      <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 sm:p-7 space-y-5">
+        <!-- Header Stepper & Progress Metric -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
           <div>
             <h2 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
-              Tahapan Pendaftaran & Seleksi
+              Tahapan Pendaftaran & Seleksi Masuk
             </h2>
             <p class="text-xs text-slate-500 mt-0.5 font-sans">
-              Alur resmi pendaftaran dan seleksi mahasiswa baru Universitas BTH.
+              Pantau progres penyelesaian 6 tahapan resmi PMB Universitas Bakti Tunas Husada.
             </p>
           </div>
 
-          <!-- Progress Indicator (To The Point) -->
+          <!-- Progress Bar -->
           <div class="flex items-center gap-3 self-start sm:self-auto">
             <div class="w-28 sm:w-36 h-2 bg-slate-100 rounded-full overflow-hidden">
               <div
@@ -89,29 +95,29 @@
               ></div>
             </div>
             <span class="font-sora font-semibold text-xs text-slate-700 whitespace-nowrap">
-              {{ applicantStore.completedStepsCount }} dari 6 Tahap Selesai
+              {{ applicantStore.completedStepsCount }} / 6 Selesai
             </span>
           </div>
         </div>
 
-        <!-- Connected Milestone Stepper Bar (6 Tahapan Terpadu PMB BTH) -->
-        <div class="py-2">
+        <!-- 6 Step Connected Bar -->
+        <div class="py-1">
           <div class="relative">
-            <!-- Connecting Line between step nodes (Visible on sm+) -->
-            <div class="hidden sm:block absolute top-4 left-10 right-10 h-0.5 bg-slate-100 -z-0">
+            <!-- Connecting Line between step nodes (Visible on lg+) -->
+            <div class="hidden lg:block absolute top-4 left-10 right-10 h-0.5 bg-slate-100 -z-0">
               <div
                 class="h-full bg-emerald-500 transition-all duration-500"
                 :style="{ width: `${Math.min(100, Math.max(0, ((applicantStore.completedStepsCount - 1) / 5) * 100))}%` }"
               ></div>
             </div>
 
-            <!-- The 6 Step Nodes -->
+            <!-- 6 Nodes Grid -->
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-2 relative z-10">
               <button
                 v-for="(step, idx) in steps"
                 :key="step.id"
                 @click="switchTab(step.id)"
-                class="group flex flex-col items-center text-center p-2 rounded-2xl transition-all cursor-pointer hover:bg-slate-50/80 focus:outline-none"
+                class="group flex flex-col items-center text-center p-2 rounded-xl transition-all cursor-pointer hover:bg-slate-50 focus:outline-none"
               >
                 <!-- Node Circle Icon -->
                 <div
@@ -138,7 +144,7 @@
                   {{ step.title }}
                 </div>
 
-                <!-- Subtitle / Meta Text (Clean & Compact) -->
+                <!-- Subtitle Text -->
                 <div
                   class="text-[11px] font-sans mt-0.5 truncate max-w-full"
                   :class="step.isCompleted
@@ -154,29 +160,179 @@
           </div>
         </div>
 
-        <!-- Integrated Next Action Banner (Direct, To The Point, Replaces the Clunky Helpdesk Card) -->
-        <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/70 -mx-6 sm:-mx-8 -mb-6 sm:-mb-8 p-4 sm:px-8 sm:py-4 rounded-b-3xl">
+        <!-- Integrated Next Action (Ringkas, Terarah, Menyatu) -->
+        <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/80 -mx-5 sm:-mx-7 -mb-5 sm:-mb-7 px-5 sm:px-7 py-3.5 rounded-b-2xl">
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-xl bg-blue-100 text-[#1E3A8A] flex items-center justify-center flex-shrink-0">
-              <component :is="nextActionInfo.icon || ArrowRight" class="w-4 h-4" />
-            </div>
-            <div>
-              <div class="font-sora font-semibold text-xs text-slate-800">
-                Tahap Saat Ini: <span class="text-[#1E3A8A]">{{ nextActionInfo.title }}</span>
-              </div>
-              <p class="text-[11px] text-slate-500 font-sans mt-0.5">
-                {{ nextActionInfo.desc }}
-              </p>
-            </div>
+            <span class="text-xs font-sora font-semibold text-slate-700">Langkah Aktif:</span>
+            <span class="text-xs font-sora font-bold text-[#1E3A8A]">{{ nextActionInfo.title }}</span>
           </div>
 
           <button
             @click="handleNextAction(nextActionInfo.tab, nextActionInfo.section)"
-            class="rounded-xl px-4 py-2 font-medium text-xs text-white bg-[#1E3A8A] hover:bg-[#172554] transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap self-start sm:self-center flex-shrink-0 shadow-xs"
+            class="rounded-lg px-4 py-2 font-medium text-xs text-white bg-[#1E3A8A] hover:bg-[#172554] transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap self-start sm:self-auto shadow-2xs"
           >
             <span>{{ nextActionInfo.cta }}</span>
             <ArrowRight class="w-3.5 h-3.5" />
           </button>
+        </div>
+      </div>
+
+      <!-- 3. Dua Kolom Informasi Esensial: Jadwal Seleksi PMB & Status Administrasi Cepat -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Kolom Kiri: Agenda & Timeline Resmi PMB BTH (Col 7) -->
+        <div class="lg:col-span-7 space-y-4">
+          <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <Calendar class="w-4 h-4 text-[#1E3A8A]" />
+                <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
+                  Jadwal & Agenda Seleksi PMB
+                </h3>
+              </div>
+              <span class="text-[11px] font-mono font-semibold text-[#1E3A8A] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                T.A. 2026/2027
+              </span>
+            </div>
+
+            <!-- List Timeline Terstruktur -->
+            <div class="space-y-3">
+              <div
+                v-for="(item, idx) in timelineEvents"
+                :key="idx"
+                class="p-3.5 rounded-xl border transition-all flex items-start gap-3.5 text-xs font-sans"
+                :class="item.isDone
+                  ? 'bg-emerald-50/40 border-emerald-200/70'
+                  : item.isActive
+                    ? 'bg-blue-50/50 border-blue-200 ring-1 ring-blue-100'
+                    : 'bg-slate-50/60 border-slate-100'"
+              >
+                <!-- Indicator Bullet -->
+                <div
+                  class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-[11px] font-bold"
+                  :class="item.isDone
+                    ? 'bg-emerald-600 text-white'
+                    : item.isActive
+                      ? 'bg-[#1E3A8A] text-white'
+                      : 'bg-slate-200 text-slate-500'"
+                >
+                  <Check v-if="item.isDone" class="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span v-else>{{ idx + 1 }}</span>
+                </div>
+
+                <!-- Event Details -->
+                <div class="flex-1 min-w-0">
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <h4 class="font-sora font-semibold text-slate-900 text-xs">
+                      {{ item.title }}
+                    </h4>
+                    <span
+                      class="text-[11px] font-medium font-sans whitespace-nowrap"
+                      :class="item.isDone ? 'text-emerald-700' : item.isActive ? 'text-[#1E3A8A] font-semibold' : 'text-slate-500'"
+                    >
+                      {{ item.date }}
+                    </span>
+                  </div>
+                  <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                    {{ item.desc }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kolom Kanan: Ringkasan Administrasi & Kontak Layanan BTH (Col 5) -->
+        <div class="lg:col-span-5 space-y-4">
+          <!-- Card Ringkasan Berkas & Biaya -->
+          <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-4">
+            <h3 class="font-sora font-bold text-slate-900 text-sm pb-2 border-b border-slate-100">
+              Ringkasan Dokumen & Pembayaran
+            </h3>
+
+            <!-- Item Berkas -->
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between gap-3 text-xs">
+              <div class="flex items-center gap-2.5">
+                <FileText class="w-4 h-4 text-slate-500" />
+                <div>
+                  <div class="font-medium text-slate-800">Berkas Persyaratan</div>
+                  <div class="text-[11px] text-slate-500">
+                    {{ applicantStore.uploadedDocsCount }} dari 5 berkas diunggah
+                  </div>
+                </div>
+              </div>
+              <button
+                @click="switchTab('documents')"
+                class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-[11px] font-medium transition-colors cursor-pointer"
+              >
+                Buka Berkas
+              </button>
+            </div>
+
+            <!-- Item Biaya Pendaftaran -->
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between gap-3 text-xs">
+              <div class="flex items-center gap-2.5">
+                <CreditCard class="w-4 h-4 text-slate-500" />
+                <div>
+                  <div class="font-medium text-slate-800">Biaya Formulir PMB</div>
+                  <div class="text-[11px]" :class="applicantStore.isRegPaymentComplete ? 'text-emerald-700 font-semibold' : 'text-amber-700'">
+                    {{ applicantStore.isRegPaymentComplete ? 'Lunas (Rp 250.000)' : 'Menunggu Bayar (Rp 250.000)' }}
+                  </div>
+                </div>
+              </div>
+              <button
+                @click="switchTab('payment')"
+                class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-[11px] font-medium transition-colors cursor-pointer"
+              >
+                {{ applicantStore.isRegPaymentComplete ? 'Bukti Bayar' : 'Bayar Sekarang' }}
+              </button>
+            </div>
+
+            <!-- Item CBT / Seleksi -->
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between gap-3 text-xs">
+              <div class="flex items-center gap-2.5">
+                <ClipboardCheck class="w-4 h-4 text-slate-500" />
+                <div>
+                  <div class="font-medium text-slate-800">Ujian Mandiri CBT</div>
+                  <div class="text-[11px]" :class="applicantStore.isExamCompleted ? 'text-emerald-700 font-semibold' : 'text-slate-500'">
+                    {{ applicantStore.isExamCompleted ? `Skor: ${applicantStore.state.exam.score}/100` : applicantStore.isRegPaymentComplete ? 'Sesi CBT Siap Dikerjakan' : 'Menunggu Bayar Formulir' }}
+                  </div>
+                </div>
+              </div>
+              <button
+                @click="switchTab('exam')"
+                class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-[11px] font-medium transition-colors cursor-pointer"
+              >
+                Buka CBT
+              </button>
+            </div>
+          </div>
+
+          <!-- Card Layanan Bantuan Resmi Universitas BTH -->
+          <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-3 text-xs font-sans">
+            <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+              <Building class="w-4 h-4 text-[#1E3A8A]" />
+              <h3 class="font-sora font-bold text-slate-900 text-sm">
+                Pusat Layanan PMB BTH
+              </h3>
+            </div>
+
+            <div class="space-y-2 text-[11px] text-slate-600 leading-relaxed">
+              <div class="flex items-start gap-2">
+                <MapPin class="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
+                <span>Gedung Rektorat Lt. 1, Universitas Bakti Tunas Husada, Jl. Cilolohan No. 36 Kota Tasikmalaya.</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <Clock class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                <span>Senin - Jumat: 08.00 - 16.00 WIB | Sabtu: 08.00 - 13.00 WIB</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <Phone class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                <span>Hotline: (0265) 334111 | WhatsApp: <strong>0812-2026-BTH</strong></span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -193,7 +349,7 @@
       <DocumentModule v-else-if="activeTab === 'documents'" />
 
       <!-- 4. Biaya Pendaftaran & Kuliah (finance-service: List Biaya, Bayar Langsung, Cicilan) -->
-      <PaymentModule v-else-if="activeTab === 'payment'" />
+      <PaymentModule v-else-if="activeTab === 'payment'" @switch-tab="switchTab" />
 
       <!-- 5. Proses Seleksi (exam-service: CBT Online & Tes Lisan Google Meet / Zoom) -->
       <ExamModule v-else-if="activeTab === 'exam'" @switch-tab="switchTab" />
@@ -216,7 +372,14 @@ import {
   ArrowRight,
   Copy,
   Check,
-  LifeBuoy
+  LifeBuoy,
+  RotateCcw,
+  BookOpen,
+  Calendar,
+  Building,
+  MapPin,
+  Phone,
+  Clock
 } from 'lucide-vue-next';
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
@@ -255,15 +418,16 @@ const activeTab = computed({
 });
 
 const candidateName = computed(() => {
-  return applicantStore.state.candidate.fullName || authStore.currentUser?.full_name || 'Calon Mahasiswa';
+  return applicantStore.state?.candidate?.fullName || authStore.currentUser?.full_name || 'Calon Mahasiswa';
 });
 
 const candidateInitials = computed(() => {
-  const name = candidateName.value.trim();
+  const name = (candidateName.value || '').trim();
   if (!name) return 'CM';
-  const parts = name.split(/\s+/);
+  const parts = name.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'CM';
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return (parts[0][0] + (parts[parts.length - 1][0] || '')).toUpperCase();
 });
 
 const candidatePhoto = computed(() => {
@@ -271,7 +435,7 @@ const candidatePhoto = computed(() => {
 });
 
 const candidateRegNo = computed(() => {
-  return applicantStore.state.candidate.registrationNumber || 'BTH-2026-REG-00000';
+  return applicantStore.state?.candidate?.registrationNumber || 'BTH-2026-REG-00000';
 });
 
 const statusBadgeClass = computed(() => {
@@ -280,6 +444,7 @@ const statusBadgeClass = computed(() => {
   if (theme === 'blue') return 'bg-blue-50 text-[#1E3A8A] border-blue-200';
   if (theme === 'indigo') return 'bg-indigo-50 text-indigo-700 border-indigo-200';
   if (theme === 'amber') return 'bg-amber-50 text-amber-800 border-amber-200';
+  if (theme === 'rose') return 'bg-rose-50 text-rose-700 border-rose-200';
   return 'bg-slate-100 text-slate-700 border-slate-200';
 });
 
@@ -289,11 +454,13 @@ const statusDotColor = computed(() => {
   if (theme === 'blue') return 'bg-blue-600';
   if (theme === 'indigo') return 'bg-indigo-600';
   if (theme === 'amber') return 'bg-amber-500';
+  if (theme === 'rose') return 'bg-rose-500';
   return 'bg-slate-400';
 });
 
 const currentStageLabel = computed(() => {
   if (applicantStore.isResultPassed) return 'Dinyatakan Lulus Seleksi';
+  if (applicantStore.isExamFailed) return 'Belum Lulus Seleksi (Bisa Tambah Pendaftaran)';
   if (applicantStore.isExamCompleted) return 'Selesai Ujian CBT';
   if (applicantStore.isRegPaymentComplete) return 'Sesi Ujian CBT Aktif';
   if (applicantStore.isDocumentsComplete) return 'Berkas Persyaratan Lengkap';
@@ -328,6 +495,18 @@ const nextActionInfo = computed(() => {
       icon: Compass,
     };
   }
+  if (!applicantStore.isRegPaymentComplete) {
+    return {
+      title: 'Selesaikan Pembayaran Biaya Pendaftaran',
+      desc: 'Selesaikan pembayaran biaya registrasi formulir PMB sebesar Rp 250.000 agar sesi pendaftaran dan Ujian CBT Online aktif.',
+      cta: 'Bayar Biaya Pendaftaran Sekarang',
+      tab: 'payment',
+      section: null,
+      badge: 'Langkah 3: Biaya Pendaftaran',
+      theme: 'amber',
+      icon: CreditCard,
+    };
+  }
   if (!applicantStore.isDocumentsComplete) {
     return {
       title: 'Unggah Berkas Persyaratan Pendaftaran',
@@ -335,21 +514,9 @@ const nextActionInfo = computed(() => {
       cta: 'Unggah Berkas Dokumen',
       tab: 'documents',
       section: null,
-      badge: 'Langkah 3: Berkas Dokumen',
+      badge: 'Langkah 4: Berkas Dokumen',
       theme: 'blue',
       icon: FileText,
-    };
-  }
-  if (!applicantStore.isRegPaymentComplete) {
-    return {
-      title: 'Selesaikan Pembayaran Biaya Pendaftaran',
-      desc: 'Selesaikan pembayaran biaya registrasi formulir PMB sebesar Rp 250.000 agar sesi Ujian CBT Online aktif.',
-      cta: 'Bayar Biaya Pendaftaran',
-      tab: 'payment',
-      section: null,
-      badge: 'Langkah 4: Biaya Pendaftaran',
-      theme: 'amber',
-      icon: CreditCard,
     };
   }
   if (!applicantStore.isExamCompleted) {
@@ -365,9 +532,21 @@ const nextActionInfo = computed(() => {
     };
   }
   if (!applicantStore.isResultPassed) {
+    if (applicantStore.isExamFailed) {
+      return {
+        title: 'Hasil Seleksi: Belum Memenuhi Syarat Kelulusan',
+        desc: `Nilai CBT Anda (${applicantStore.state?.exam?.score ?? 0}/100) belum mencapai ambang batas 70. Silakan tambah pendaftaran baru untuk memilih jalur atau prodi lain.`,
+        cta: 'Tambah Pendaftaran Jalur / Pilihan Lain',
+        tab: 'result',
+        section: null,
+        badge: 'Belum Lulus Seleksi',
+        theme: 'rose',
+        icon: RotateCcw,
+      };
+    }
     return {
       title: 'Ujian Selesai - Verifikasi Nilai CBT',
-      desc: `Skor CBT Anda (${applicantStore.state.exam.score}/100) sedang ditinjau panitia PMB. Pengumuman resmi maksimal 1x24 jam.`,
+      desc: `Skor CBT Anda (${applicantStore.state?.exam?.score ?? 0}/100) sedang ditinjau panitia PMB. Pengumuman resmi maksimal 1x24 jam.`,
       cta: 'Lihat Status Kelulusan',
       tab: 'result',
       section: null,
@@ -379,7 +558,7 @@ const nextActionInfo = computed(() => {
   if (!applicantStore.isUktPaid) {
     return {
       title: 'Selamat! Anda Dinyatakan Lulus Seleksi PMB',
-      desc: `Diterima di ${applicantStore.state.admission.prodi1}. Unduh Surat Penerimaan (LoA) & selesaikan registrasi ulang UKT.`,
+      desc: `Diterima di ${applicantStore.state?.admission?.prodi1 || 'Program Studi Pilihan'}. Unduh Surat Penerimaan (LoA) & selesaikan registrasi ulang UKT.`,
       cta: 'Daftar Ulang & Pembayaran UKT',
       tab: 'result',
       section: null,
@@ -389,7 +568,7 @@ const nextActionInfo = computed(() => {
   }
   return {
     title: 'Daftar Ulang Selesai - Resmi Menjadi Mahasiswa BTH!',
-    desc: `NIM resmi Anda: ${applicantStore.state.onboarding.nim}. Silakan persiapkan diri menyambut kegiatan PKKMB 2026.`,
+    desc: `NIM resmi Anda: ${applicantStore.state?.onboarding?.nim || 'resmi'}. Silakan persiapkan diri menyambut kegiatan PKKMB 2026.`,
     cta: 'Lihat Berkas & Akun Kampus',
     tab: 'result',
     section: null,
@@ -417,34 +596,34 @@ const steps = computed(() => [
     id: 'admission',
     number: 2,
     title: 'Jalur Pendaftaran',
-    statusText: applicantStore.state.admission.prodi1 || 'Pilih Prodi & Jalur',
+    statusText: applicantStore.state?.admission?.prodi1 || 'Pilih Prodi & Jalur',
     isCompleted: applicantStore.isAdmissionComplete,
     isCurrent: applicantStore.isProfileComplete && !applicantStore.isAdmissionComplete,
     icon: Compass,
   },
   {
-    id: 'documents',
-    number: 3,
-    title: 'Berkas Dokumen',
-    statusText: applicantStore.isDocumentsComplete ? 'Lengkap (5/5)' : `${applicantStore.uploadedDocsCount}/5 Diunggah`,
-    isCompleted: applicantStore.isDocumentsComplete,
-    isCurrent: applicantStore.state.admission.prodi1 && !applicantStore.isDocumentsComplete,
-    icon: FileText,
-  },
-  {
     id: 'payment',
-    number: 4,
+    number: 3,
     title: 'Biaya Pendaftaran',
     statusText: applicantStore.isRegPaymentComplete ? 'Lunas' : 'Rp 250.000',
     isCompleted: applicantStore.isRegPaymentComplete,
-    isCurrent: applicantStore.isDocumentsComplete && !applicantStore.isRegPaymentComplete,
+    isCurrent: applicantStore.isAdmissionComplete && !applicantStore.isRegPaymentComplete,
     icon: CreditCard,
+  },
+  {
+    id: 'documents',
+    number: 4,
+    title: 'Berkas Dokumen',
+    statusText: applicantStore.isDocumentsComplete ? 'Lengkap (5/5)' : `${applicantStore.uploadedDocsCount}/5 Diunggah`,
+    isCompleted: applicantStore.isDocumentsComplete,
+    isCurrent: applicantStore.isRegPaymentComplete && !applicantStore.isDocumentsComplete,
+    icon: FileText,
   },
   {
     id: 'exam',
     number: 5,
     title: 'Proses Seleksi',
-    statusText: applicantStore.isExamCompleted ? `Skor ${applicantStore.state.exam.score}/100` : applicantStore.isRegPaymentComplete ? 'CBT & Lisan' : 'Menunggu Bayar',
+    statusText: applicantStore.isExamCompleted ? `Skor ${applicantStore.state?.exam?.score ?? 0}/100` : applicantStore.isRegPaymentComplete ? 'CBT & Lisan' : 'Menunggu Bayar',
     isCompleted: applicantStore.isExamCompleted,
     isCurrent: applicantStore.isRegPaymentComplete && !applicantStore.isExamCompleted,
     icon: ClipboardCheck,
@@ -453,10 +632,48 @@ const steps = computed(() => [
     id: 'result',
     number: 6,
     title: 'Daftar Ulang',
-    statusText: applicantStore.isResultPassed ? 'Lulus Seleksi' : applicantStore.isExamCompleted ? 'Diproses' : 'Menunggu Seleksi',
+    statusText: applicantStore.isResultPassed ? 'Lulus Seleksi' : applicantStore.isExamFailed ? 'Tidak Lulus' : applicantStore.isExamCompleted ? 'Diproses' : 'Menunggu Seleksi',
     isCompleted: applicantStore.isResultPassed,
     isCurrent: applicantStore.isExamCompleted && !applicantStore.isResultPassed,
     icon: GraduationCap,
+  },
+]);
+
+const timelineEvents = computed(() => [
+  {
+    title: 'Pengisian Formulir Biodata & Berkas Dokumen',
+    date: 'Aktif Berjalan',
+    desc: 'Melengkapi profil identitas, pilihan program studi, dan berkas persyaratan resmi.',
+    isDone: applicantStore.isProfileComplete && applicantStore.isAdmissionComplete && applicantStore.isDocumentsComplete,
+    isActive: !applicantStore.isProfileComplete || !applicantStore.isAdmissionComplete || !applicantStore.isDocumentsComplete,
+  },
+  {
+    title: 'Pembayaran Formulir Pendaftaran',
+    date: 'Batas: 3 Hari Kerja',
+    desc: 'Pembayaran Rp 250.000 via Virtual Account BSI / Mandiri untuk aktivasi sesi Ujian CBT.',
+    isDone: applicantStore.isRegPaymentComplete,
+    isActive: applicantStore.isAdmissionComplete && !applicantStore.isRegPaymentComplete,
+  },
+  {
+    title: 'Ujian Mandiri Berbasis Komputer (CBT) & Wawancara',
+    date: applicantStore.state.schedule?.cbt?.date || 'Sesuai Jadwal Sesi',
+    desc: 'Pelaksanaan ujian potensi akademik daring dan presensi tes lisan / wawancara.',
+    isDone: applicantStore.isExamCompleted,
+    isActive: applicantStore.isRegPaymentComplete && !applicantStore.isExamCompleted,
+  },
+  {
+    title: 'Pengumuman Kelulusan & Surat Penerimaan (LoA)',
+    date: applicantStore.state.schedule?.announcementDate || 'Jadwal Pengumuman',
+    desc: 'Pengumuman resmi SK Rektor dan penerbitan Letter of Acceptance (LoA).',
+    isDone: applicantStore.isResultPassed,
+    isActive: applicantStore.isExamCompleted && !applicantStore.isResultPassed,
+  },
+  {
+    title: 'Daftar Ulang & Pembayaran UKT Semester 1',
+    date: 'Masa Registrasi Ulang',
+    desc: 'Pelunasan UKT semester 1 dan penerbitan Nomor Induk Mahasiswa (NIM) resmi BTH.',
+    isDone: applicantStore.isUktPaid,
+    isActive: applicantStore.isResultPassed && !applicantStore.isUktPaid,
   },
 ]);
 

@@ -349,7 +349,7 @@ export const useAdminStore = defineStore('admin', () => {
     const email = candidate?.email || user?.email || 'pendaftar@bth.ac.id';
     const fullName = candidate?.fullName || user?.full_name || 'Calon Mahasiswa Baru';
     const phone = candidate?.phone || user?.phone || '-';
-    const regNo = candidate?.registrationNumber || (user ? generateRegNumber(user.id, user.email) : 'BTH-2026-REG-00042');
+    const regNo = candidate?.registrationNumber || (user ? generateRegNumber(user.id, user.email) : ('BTH-2026-REG-' + Math.floor(10000 + Math.random() * 90000)));
 
     const existingIndex = applicants.value.findIndex(
       (a) =>
@@ -384,10 +384,10 @@ export const useAdminStore = defineStore('admin', () => {
       nik: candidate?.nik || existingApplicant?.nik || '-',
       nisn: candidate?.nisn || existingApplicant?.nisn || '-',
       fullName,
-      gender: candidate?.gender || existingApplicant?.gender || 'Perempuan',
+      gender: candidate?.gender || existingApplicant?.gender || '-',
       email,
       phone,
-      schoolName: candidate?.schoolName || existingApplicant?.schoolName || 'Asal Sekolah Belum Diisi',
+      schoolName: candidate?.schoolName || existingApplicant?.schoolName || '-',
       averageScore: candidate?.averageScore || existingApplicant?.averageScore || '-',
       track: admission?.track || existingApplicant?.track || 'Jalur Reguler Gelombang 1',
       faculty: admission?.prodi1Faculty || existingApplicant?.faculty || '-',

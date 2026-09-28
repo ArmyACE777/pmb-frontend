@@ -28,6 +28,16 @@ export const financeApi = {
     return apiClient.get(`/invoices/me/${invoiceId}/payments/${paymentId}`);
   },
 
+  // CR-004: Polling status instan pembayaran Duitku POP
+  async getPaymentStatus(invoiceId, paymentId) {
+    return apiClient.get(`/invoices/me/${invoiceId}/payments/${paymentId}/status`);
+  },
+
+  // CR-002: Pembatalan tagihan sebelum pembayaran
+  async cancelInvoice(invoiceId) {
+    return apiClient.post(`/invoices/me/${invoiceId}/cancel`);
+  },
+
   async requestInstallment(invoiceId, payload) {
     return apiClient.post(`/invoices/me/${invoiceId}/installment-request`, payload);
   },
@@ -52,6 +62,14 @@ export const financeApi = {
   // === Admin Keuangan Endpoints ===
   async getFinancialReportsSummary(params = {}) {
     return apiClient.get('/finance/admin/reports/summary', { params });
+  },
+
+  async getFeeSchemes() {
+    return apiClient.get('/finance/admin/fee-schemes');
+  },
+
+  async reconcilePayments(payload = {}) {
+    return apiClient.post('/finance/admin/reconcile', payload);
   },
 
   async getInstallmentRequests(params = {}) {

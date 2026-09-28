@@ -11,19 +11,173 @@
         </p>
       </div>
       <div class="text-xs text-slate-500 font-sans self-start sm:self-auto">
-        Status: <strong class="text-slate-800 font-semibold">{{ applicantStore.isResultPassed ? 'Dinyatakan Lulus Seleksi' : applicantStore.isExamCompleted ? 'Hasil Sedang Diverifikasi' : 'Menunggu Ujian' }}</strong>
+        Status: <strong class="text-slate-800 font-semibold">{{ applicantStore.isResultPassed ? 'Dinyatakan Lulus Seleksi' : applicantStore.isExamFailed ? 'Belum Memenuhi Syarat' : applicantStore.isExamCompleted ? 'Hasil Sedang Diverifikasi' : 'Menunggu Ujian' }}</strong>
       </div>
     </div>
 
-    <!-- KONDISI 1: BELUM LULUS / PROSES SELEKSI BERJALAN -->
-    <div v-if="!applicantStore.isResultPassed" class="max-w-2xl mx-auto space-y-6 my-4">
-      <!-- Status Card Minimalis (Tanpa Simbol/Logo AI) -->
+    <!-- Alert Toast Feedback -->
+    <div
+      v-if="toastMessage"
+      class="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs flex items-center justify-between animate-fadeIn"
+    >
+      <div class="flex items-center gap-2">
+        <CheckCircle2 class="w-4 h-4 text-emerald-600 flex-shrink-0" />
+        <span>{{ toastMessage }}</span>
+      </div>
+      <button @click="toastMessage = ''" class="text-emerald-600 hover:text-emerald-900 font-bold text-base leading-none cursor-pointer">&times;</button>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- KONDISI A: DINYATAKAN TIDAK LULUS SELEKSI (BISA TAMBAH PENDAFTARAN LAIN)  -->
+    <!-- ========================================================================= -->
+    <div v-if="applicantStore.isExamFailed" class="space-y-6 animate-fadeIn">
+      <!-- Announcement Banner: Belum Memenuhi Syarat Kelulusan -->
+      <div class="bg-gradient-to-r from-rose-900 via-rose-800 to-slate-900 text-white rounded-2xl p-6 sm:p-7 shadow-xs relative overflow-hidden border border-rose-800/50">
+        <div class="relative z-10 space-y-3 max-w-3xl">
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-rose-500/20 border border-rose-400/30 text-rose-200 rounded-md text-[11px] font-medium">
+            <AlertCircle class="w-3.5 h-3.5 text-rose-300" />
+            <span>Pengumuman Hasil Seleksi PMB Universitas BTH</span>
+          </div>
+
+          <div>
+            <h3 class="text-xl sm:text-2xl font-sora font-bold text-white tracking-tight">
+              Belum Memenuhi Nilai Kelulusan
+            </h3>
+            <p class="text-xs sm:text-sm text-rose-100/90 mt-1 leading-relaxed">
+              Halo, <strong>{{ candidate.fullName || 'Calon Pendaftar' }}</strong>. Berdasarkan hasil seleksi akademik panitia PMB Universitas Bakti Tunas Husada, skor ujian Anda belum memenuhi nilai ambang batas minimal kelulusan untuk pilihan program studi utama Anda.
+            </p>
+          </div>
+
+          <!-- Rincian Pilihan & Nilai -->
+          <div class="bg-white/10 backdrop-blur-md border border-white/15 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3">
+            <div>
+              <div class="text-[10px] text-rose-200 uppercase font-semibold tracking-wider">Pilihan Utama Sebelumnya</div>
+              <div class="font-sora font-bold text-base sm:text-lg text-white mt-0.5">
+                {{ applicantStore.state.admission.prodi1 || 'Program Studi Terpilih' }}
+              </div>
+              <div class="text-xs text-rose-200/80 mt-0.5">
+                Skor CBT Anda: <strong class="text-white">{{ exam.score }} / 100</strong> (Passing Grade: <strong>70</strong>)
+              </div>
+            </div>
+
+            <!-- Tombol CTA Utama: Tambah Pendaftaran Jalur / Pilihan Lain -->
+            <button
+              @click="showReapplyModal = true"
+              class="rounded-xl px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold text-xs transition-all shadow-xs cursor-pointer flex-shrink-0 flex items-center justify-center gap-2"
+            >
+              <PlusCircle class="w-4 h-4" />
+              <span>Tambah Pendaftaran Jalur / Pilihan Lain</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dua Kolom: Peluang Pendaftaran Baru & Rincian Evaluasi Nilai -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Kolom 1: Peluang & Tata Cara Tambah Pendaftaran -->
+        <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+              <Sparkles class="w-4 h-4 text-amber-500" />
+              <span>Peluang Tambah Pendaftaran Baru</span>
+            </h3>
+            <span class="text-[10px] font-mono px-2 py-0.5 bg-blue-50 text-[#1E3A8A] rounded font-semibold">Tersedia</span>
+          </div>
+
+          <p class="text-xs text-slate-600 leading-relaxed font-sans">
+            Sesuai kebijakan penerimaan mahasiswa baru Universitas BTH, peserta yang belum lulus diizinkan untuk <strong>menambah pendaftaran baru</strong> guna memilih jalur lain (seperti Jalur Rapor, Prestasi, atau Gelombang 2) atau memilih program studi alternatif lainnya.
+          </p>
+
+          <div class="space-y-2.5 text-xs font-sans">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-start gap-2.5">
+              <CheckCircle2 class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <strong class="text-slate-900 font-semibold">Biodata Profil Tersimpan Aman</strong>
+                <p class="text-[11px] text-slate-500 mt-0.5">Anda tidak perlu mengisi ulang formulir identitas, data orang tua, dan riwayat sekolah.</p>
+              </div>
+            </div>
+
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-start gap-2.5">
+              <CheckCircle2 class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <strong class="text-slate-900 font-semibold">Berkas Dokumen Tetap Tersimpan</strong>
+                <p class="text-[11px] text-slate-500 mt-0.5">Semua berkas ijazah, KTP, dan pasfoto yang telah diunggah tetap valid dan tidak perlu diunggah ulang.</p>
+              </div>
+            </div>
+
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-start gap-2.5">
+              <CheckCircle2 class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <strong class="text-slate-900 font-semibold">Bebas Memilih Jalur & Prodi Baru</strong>
+                <p class="text-[11px] text-slate-500 mt-0.5">Dapat langsung memilih program studi baru di Fakultas Farmasi atau Fakultas Ilmu Kesehatan.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <button
+              @click="showReapplyModal = true"
+              class="w-full rounded-xl px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-medium text-xs transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <RotateCcw class="w-3.5 h-3.5" />
+              <span>Daftar ke Jalur & Pilihan Lain Sekarang</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Kolom 2: Rincian Skor Ujian CBT & Konsultasi Jurusan -->
+        <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+          <div class="pb-3 border-b border-slate-100">
+            <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
+              Rincian Evaluasi Seleksi Akademik
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Hasil penilaian resmi Ujian Mandiri CBT.</p>
+          </div>
+
+          <div class="space-y-2 text-xs font-sans">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/70 flex items-center justify-between">
+              <span class="text-slate-600">Skor Ujian CBT Online:</span>
+              <strong class="font-sora text-sm text-rose-600">{{ exam.score }} / 100</strong>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/70 flex items-center justify-between">
+              <span class="text-slate-600">Nilai Ambang Batas (Passing Grade):</span>
+              <strong class="text-slate-800">70 / 100</strong>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/70 flex items-center justify-between">
+              <span class="text-slate-600">Jawaban Benar:</span>
+              <span class="font-mono text-slate-700">{{ exam.correctAnswers || 0 }} dari {{ exam.totalQuestions || 5 }} Soal</span>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/70 flex items-center justify-between">
+              <span class="text-slate-600">Status Kelulusan:</span>
+              <span class="font-semibold text-rose-600 px-2 py-0.5 bg-rose-50 rounded border border-rose-100">Belum Memenuhi Syarat</span>
+            </div>
+          </div>
+
+          <!-- Bantuan & Bimbingan Jurusan Alternatif -->
+          <div class="p-3.5 bg-blue-50/70 rounded-xl border border-blue-200/60 space-y-1.5 text-xs">
+            <div class="font-semibold text-[#1E3A8A] flex items-center gap-1.5">
+              <HelpCircle class="w-4 h-4" />
+              <span>Butuh Bimbingan Pemilihan Jurusan?</span>
+            </div>
+            <p class="text-[11px] text-slate-600 leading-relaxed font-sans">
+              Tim panitia PMB siap membantu konsultasi jurusan yang sesuai dengan minat dan potensi Anda. Hubungi Layanan Hotline PMB BTH: <strong>(0265) 334111</strong> atau WhatsApp <strong>0812-2026-BTH</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- KONDISI B: BELUM UJIAN / MENUNGGU PENGUMUMAN RESMI                       -->
+    <!-- ========================================================================= -->
+    <div v-else-if="!applicantStore.isResultPassed" class="max-w-2xl mx-auto space-y-6 my-4">
+      <!-- Status Card Minimalis -->
       <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-xs text-center space-y-4 animate-fadeIn">
         <div class="space-y-1.5">
           <h3 class="font-sora font-bold text-base sm:text-lg text-slate-900">
             {{ !applicantStore.isExamCompleted ? 'Ujian CBT Belum Diselesaikan' : 'Hasil Ujian Sedang Diverifikasi' }}
           </h3>
-          <p class="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+          <p class="text-xs text-slate-500 max-w-md mx-auto leading-relaxed font-sans">
             {{ !applicantStore.isExamCompleted
               ? 'Silakan selesaikan Ujian Mandiri CBT Online agar nilai seleksi dapat diproses oleh panitia PMB BTH.'
               : 'Skor ujian Anda telah tersimpan. Pengumuman kelulusan resmi dan surat penerimaan akan dibuka serentak pada tanggal jadwal pengumuman.'
@@ -32,8 +186,8 @@
         </div>
 
         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-600">
-          <span class="text-slate-400">Jadwal Pengumuman Resmi:</span>
-          <strong class="text-slate-800 font-semibold">{{ schedule?.announcementDate || '24 Oktober 2026' }}</strong>
+          <span class="text-slate-400 font-sans">Jadwal Pengumuman Resmi:</span>
+          <strong class="text-slate-800 font-semibold font-sans">{{ schedule?.announcementDate || '24 Oktober 2026' }}</strong>
         </div>
 
         <div v-if="!applicantStore.isExamCompleted" class="pt-2">
@@ -53,17 +207,17 @@
           <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
             <span class="font-mono text-[10px] text-slate-400 font-bold uppercase">Langkah 1</span>
             <div class="font-semibold text-slate-800">Unduh LoA Resmi</div>
-            <p class="text-[11px] text-slate-500">Surat penerimaan berstempel Rektor BTH.</p>
+            <p class="text-[11px] text-slate-500 font-sans">Surat penerimaan berstempel Rektor BTH.</p>
           </div>
           <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
             <span class="font-mono text-[10px] text-slate-400 font-bold uppercase">Langkah 2</span>
             <div class="font-semibold text-slate-800">Pelunasan UKT</div>
-            <p class="text-[11px] text-slate-500">Pembayaran UKT semester 1 via Virtual Account.</p>
+            <p class="text-[11px] text-slate-500 font-sans">Pembayaran UKT semester 1 via Virtual Account.</p>
           </div>
           <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
             <span class="font-mono text-[10px] text-slate-400 font-bold uppercase">Langkah 3</span>
             <div class="font-semibold text-slate-800">Aktivasi NIM & Berkas</div>
-            <p class="text-[11px] text-slate-500">Penyerahan berkas fisik & almamater di BAAK.</p>
+            <p class="text-[11px] text-slate-500 font-sans">Penyerahan berkas fisik & almamater di BAAK.</p>
           </div>
         </div>
       </div>
@@ -126,7 +280,7 @@
                  :class="payments.uktFee?.status === 'paid' ? 'bg-emerald-50/60 border-emerald-200' : 'bg-slate-50 border-slate-200/80'">
               <div>
                 <div class="font-semibold text-slate-900">1. Pelunasan UKT Semester 1</div>
-                <div class="text-slate-500 mt-0.5">Nominal: <strong>Rp 6.500.000</strong> via VA Bank BSI / Mandiri</div>
+                <div class="text-slate-500 mt-0.5">Nominal: <strong>Rp {{ currentUktAmount.toLocaleString('id-ID') }}</strong> via VA Bank BSI / Mandiri</div>
               </div>
               <button
                 @click="$emit('switch-tab', 'payment')"
@@ -197,10 +351,11 @@
     </div>
 
     <!-- MODAL DIGITAL LETTER OF ACCEPTANCE (LoA) RESMI BTH -->
-    <div
-      v-if="openLoAModal"
-      class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn"
-    >
+    <Teleport to="body">
+      <div
+        v-if="openLoAModal"
+        class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-sm animate-fadeIn"
+      >
       <div class="bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-8 shadow-2xl border border-slate-200 relative max-h-[88vh] overflow-y-auto">
         <button
           @click="openLoAModal = false"
@@ -245,19 +400,19 @@
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-2">
               <span class="text-slate-500">Nama Lengkap:</span>
-              <strong class="sm:col-span-2 text-slate-900">{{ candidate.fullName }}</strong>
+              <strong class="sm:col-span-2 text-slate-900">{{ candidate.fullName || 'Calon Mahasiswa' }}</strong>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-2">
               <span class="text-slate-500">Asal Sekolah:</span>
-              <span class="sm:col-span-2 text-slate-800">{{ candidate.schoolName }}</span>
+              <span class="sm:col-span-2 text-slate-800">{{ candidate.schoolName || '-' }}</span>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-2">
               <span class="text-slate-500">Program Studi Diterima:</span>
-              <strong class="sm:col-span-2 text-[#1E3A8A] font-sora">{{ result.acceptedProdi }} ({{ result.acceptedDegree }})</strong>
+              <strong class="sm:col-span-2 text-[#1E3A8A] font-sora">{{ result.acceptedProdi || 'Program Studi Terpilih' }} ({{ result.acceptedDegree || 'S1' }})</strong>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-2">
               <span class="text-slate-500">Fakultas:</span>
-              <span class="sm:col-span-2 text-slate-800">{{ result.acceptedFaculty }}</span>
+              <span class="sm:col-span-2 text-slate-800">{{ result.acceptedFaculty || 'Universitas BTH' }}</span>
             </div>
           </div>
 
@@ -304,16 +459,78 @@
         </div>
       </div>
     </div>
+  </Teleport>
+
+    <!-- MODAL KONFIRMASI TAMBAH PENDAFTARAN JALUR / PILIHAN LAIN -->
+    <Teleport to="body">
+      <div
+        v-if="showReapplyModal"
+        class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/65 backdrop-blur-sm animate-fadeIn"
+        @click.self="showReapplyModal = false"
+      >
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200/90 space-y-4">
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 text-[#1E3A8A] flex items-center justify-center flex-shrink-0">
+              <RotateCcw class="w-4 h-4" />
+            </div>
+            <div>
+              <h3 class="font-sora font-bold text-base text-slate-900">
+                Tambah Pendaftaran Jalur / Pilihan Lain?
+              </h3>
+              <p class="text-xs text-slate-500 font-sans mt-0.5">
+                Membuka formulir pemilihan program studi atau jalur baru
+              </p>
+            </div>
+          </div>
+
+          <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/70 text-xs text-slate-700 space-y-2">
+            <div class="font-semibold text-slate-900">Ketentuan Pendaftaran Baru:</div>
+            <ul class="space-y-1.5 text-[11px] text-slate-600 list-disc list-inside">
+              <li>Seluruh <strong>biodata profil pribadi</strong> Anda tetap tersimpan utuh.</li>
+              <li>Seluruh <strong>berkas dokumen</strong> yang sudah terverifikasi tidak perlu diunggah ulang.</li>
+              <li>Status ujian dan kelulusan sebelumnya akan diperbarui untuk sesi pendaftaran baru.</li>
+            </ul>
+          </div>
+
+          <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+            <button
+              type="button"
+              @click="showReapplyModal = false"
+              class="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold font-sora transition-colors cursor-pointer"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              @click="confirmReapply"
+              :disabled="isReapplying"
+              class="px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-semibold font-sora rounded-xl transition-all shadow-xs cursor-pointer flex items-center gap-2 disabled:opacity-50"
+            >
+              <span v-if="isReapplying" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              <span>{{ isReapplying ? 'Membuka Pendaftaran...' : 'Ya, Tambah Pendaftaran' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { useApplicantStore } from '@/stores/applicant';
+import {
+  AlertCircle,
+  PlusCircle,
+  CheckCircle2,
+  Sparkles,
+  RotateCcw,
+  HelpCircle,
+} from 'lucide-vue-next';
+import { useApplicantStore, PRODI_METADATA } from '@/stores/applicant';
 import { selectionApi } from '@/api/selection';
 import { studentApi } from '@/api/student';
 
-defineEmits(['switch-tab']);
+const emit = defineEmits(['switch-tab']);
 
 const applicantStore = useApplicantStore();
 const candidate = computed(() => applicantStore.state.candidate);
@@ -322,7 +539,31 @@ const exam = computed(() => applicantStore.state.exam);
 const payments = computed(() => applicantStore.state.payments);
 const schedule = computed(() => applicantStore.state.schedule);
 
+const currentUktAmount = computed(() => {
+  if (payments.value?.uktFee?.amount) return payments.value.uktFee.amount;
+  const prodi = result.value?.acceptedProdi || applicantStore.state.admission?.prodi1;
+  const meta = PRODI_METADATA[prodi];
+  return meta?.uktFee || 4500000;
+});
+
 const openLoAModal = ref(false);
+const showReapplyModal = ref(false);
+const isReapplying = ref(false);
+const toastMessage = ref('');
+
+const confirmReapply = async () => {
+  isReapplying.value = true;
+  try {
+    const res = await applicantStore.reapplyNewTrack();
+    showReapplyModal.value = false;
+    toastMessage.value = res?.message || 'Pendaftaran jalur baru telah dibuka!';
+    emit('switch-tab', 'admission');
+  } catch (err) {
+    alert(err?.message || 'Gagal membuka pendaftaran baru.');
+  } finally {
+    isReapplying.value = false;
+  }
+};
 
 onMounted(async () => {
   try {

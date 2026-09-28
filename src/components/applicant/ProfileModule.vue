@@ -325,10 +325,11 @@
     </form>
 
     <!-- Modal Scanner OCR KTP (Integrasi services/ocr-service) -->
-    <div
-      v-if="isOcrModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn"
-    >
+    <Teleport to="body">
+      <div
+        v-if="isOcrModalOpen"
+        class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-sm animate-fadeIn"
+      >
       <div class="bg-white rounded-2xl sm:rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl border border-slate-200 relative max-h-[88vh] overflow-y-auto">
         <!-- Modal Header -->
         <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
@@ -549,7 +550,8 @@
         </div>
       </div>
     </div>
-  </div>
+  </Teleport>
+</div>
 </template>
 
 <script setup>

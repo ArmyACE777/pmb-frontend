@@ -2,23 +2,24 @@
   <AuthLayout
     headline="Daftar Akun Baru"
     subheadline="Lengkapi formulir di bawah ini untuk membuat akun pendaftaran Anda."
+    cardMaxWidth="max-w-[450px]"
   >
     <div class="w-full">
       <!-- Error Alert -->
       <div
         v-if="errorMessage"
-        class="bg-red-50/90 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-xs sm:text-sm mb-5 flex items-start gap-2.5 animate-fadeIn shadow-xs"
+        class="bg-red-50/90 border border-red-200 text-red-700 px-3.5 py-2.5 rounded-xl text-xs mb-4 flex items-start gap-2.5 animate-fadeIn shadow-xs"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
         </svg>
-        <div class="leading-relaxed">{{ errorMessage }}</div>
+        <div class="leading-relaxed flex-1">{{ errorMessage }}</div>
       </div>
 
-      <form @submit.prevent="handleRegister" class="space-y-3.5">
+      <form @submit.prevent="handleRegister" class="space-y-3">
         <!-- Nama Lengkap Input -->
         <div>
-          <label for="name" class="block font-sora font-semibold text-slate-800 text-xs sm:text-sm mb-1">
+          <label for="name" class="block font-sora font-semibold text-slate-800 text-xs mb-1">
             Nama Lengkap (Sesuai Ijazah/KTP)
           </label>
           <div class="relative">
@@ -33,16 +34,16 @@
               type="text"
               placeholder="Contoh: Siti Rahmawati"
               required
-              class="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-slate-50/70 border border-slate-300 focus:border-bth-blue focus:bg-white focus:ring-4 focus:ring-blue-100 rounded-xl outline-none text-xs sm:text-sm text-slate-900 transition-all font-sans"
+              class="w-full pl-10 pr-4 py-2 sm:py-2.5 bg-slate-50/70 border border-slate-300 focus:border-[#1E3A8A] focus:bg-white focus:ring-4 focus:ring-blue-100 rounded-xl outline-none text-xs sm:text-sm text-slate-900 transition-all font-sans"
             />
           </div>
         </div>
 
         <!-- Grid: Nomor HP & Email -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <!-- WhatsApp / HP -->
           <div>
-            <label for="phone" class="block font-sora font-semibold text-slate-800 text-xs sm:text-sm mb-1">
+            <label for="phone" class="block font-sora font-semibold text-slate-800 text-xs mb-1">
               No. WhatsApp / HP
             </label>
             <div class="relative">
@@ -57,14 +58,14 @@
                 type="tel"
                 placeholder="08123456789"
                 required
-                class="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-slate-50/70 border border-slate-300 focus:border-bth-blue focus:bg-white focus:ring-4 focus:ring-blue-100 rounded-xl outline-none text-xs sm:text-sm text-slate-900 transition-all font-sans"
+                class="w-full pl-10 pr-3.5 py-2 sm:py-2.5 bg-slate-50/70 border border-slate-300 focus:border-[#1E3A8A] focus:bg-white focus:ring-4 focus:ring-blue-100 rounded-xl outline-none text-xs sm:text-sm text-slate-900 transition-all font-sans"
               />
             </div>
           </div>
 
           <!-- Email -->
           <div>
-            <label for="email" class="block font-sora font-semibold text-slate-800 text-xs sm:text-sm mb-1">
+            <label for="email" class="block font-sora font-semibold text-slate-800 text-xs mb-1">
               Alamat Email Aktif
             </label>
             <div class="relative">
@@ -79,7 +80,7 @@
                 type="email"
                 placeholder="nama@email.com"
                 required
-                class="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-slate-50/70 border border-slate-300 focus:border-bth-blue focus:bg-white focus:ring-4 focus:ring-blue-100 rounded-xl outline-none text-xs sm:text-sm text-slate-900 transition-all font-sans"
+                class="w-full pl-10 pr-3.5 py-2 sm:py-2.5 bg-slate-50/70 border border-slate-300 focus:border-[#1E3A8A] focus:bg-white focus:ring-4 focus:ring-blue-100 rounded-xl outline-none text-xs sm:text-sm text-slate-900 transition-all font-sans"
               />
             </div>
           </div>
@@ -87,7 +88,7 @@
 
         <!-- Password Input -->
         <div>
-          <label for="password" class="block font-sora font-semibold text-slate-800 text-xs sm:text-sm mb-1">
+          <label for="password" class="block font-sora font-semibold text-slate-800 text-xs mb-1">
             Kata Sandi Baru
           </label>
           <div class="relative">
@@ -102,7 +103,7 @@
               :type="showPassword ? 'text' : 'password'"
               placeholder="Minimal 8 karakter"
               required
-              class="w-full pl-10 pr-11 py-2.5 sm:py-3 bg-slate-50/70 border border-slate-300 focus:border-bth-blue focus:bg-white focus:ring-4 focus:ring-blue-100 rounded-xl outline-none text-xs sm:text-sm text-slate-900 transition-all font-sans"
+              class="w-full pl-10 pr-10 py-2 sm:py-2.5 bg-slate-50/70 border border-slate-300 focus:border-[#1E3A8A] focus:bg-white focus:ring-4 focus:ring-blue-100 rounded-xl outline-none text-xs sm:text-sm text-slate-900 transition-all font-sans"
             />
             <button
               type="button"
@@ -121,31 +122,23 @@
           </div>
 
           <!-- Password Strength Indicator -->
-          <div v-if="form.password" class="mt-2 space-y-1.5 animate-fadeIn">
+          <div v-if="form.password" class="mt-1.5 space-y-1 animate-fadeIn">
             <div class="flex items-center justify-between text-[11px]">
-              <span class="text-slate-500">Kekuatan Kata Sandi:</span>
+              <span class="text-slate-500">Kekuatan Sandi:</span>
               <span :class="strengthTextColor" class="font-bold font-sora">{{ strengthLabel }}</span>
             </div>
-            <div class="grid grid-cols-4 gap-1.5 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div class="grid grid-cols-4 gap-1 h-1 w-full bg-slate-100 rounded-full overflow-hidden">
               <div :class="strengthScore >= 1 ? strengthBgColor : 'bg-transparent'" class="rounded-full transition-all duration-300"></div>
               <div :class="strengthScore >= 2 ? strengthBgColor : 'bg-transparent'" class="rounded-full transition-all duration-300"></div>
               <div :class="strengthScore >= 3 ? strengthBgColor : 'bg-transparent'" class="rounded-full transition-all duration-300"></div>
               <div :class="strengthScore >= 4 ? strengthBgColor : 'bg-transparent'" class="rounded-full transition-all duration-300"></div>
-            </div>
-            <div class="flex flex-wrap gap-x-4 gap-y-1 text-[11px] pt-0.5">
-              <span class="flex items-center gap-1" :class="hasMinLength ? 'text-emerald-600 font-medium' : 'text-slate-400'">
-                <span>{{ hasMinLength ? '✓' : '○' }}</span> Min. 8 Karakter
-              </span>
-              <span class="flex items-center gap-1" :class="hasLettersAndDigits ? 'text-emerald-600 font-medium' : 'text-slate-400'">
-                <span>{{ hasLettersAndDigits ? '✓' : '○' }}</span> Kombinasi Huruf & Angka
-              </span>
             </div>
           </div>
         </div>
 
         <!-- Password Confirmation Input -->
         <div>
-          <label for="password_confirmation" class="block font-sora font-semibold text-slate-800 text-xs sm:text-sm mb-1">
+          <label for="password_confirmation" class="block font-sora font-semibold text-slate-800 text-xs mb-1">
             Ulangi Kata Sandi
           </label>
           <div class="relative">
@@ -160,7 +153,7 @@
               :type="showPasswordConfirm ? 'text' : 'password'"
               placeholder="Ketik ulang kata sandi yang sama"
               required
-              class="w-full pl-10 pr-11 py-2.5 sm:py-3 bg-slate-50/70 border border-slate-300 focus:border-bth-blue focus:bg-white focus:ring-4 focus:ring-blue-100 rounded-xl outline-none text-xs sm:text-sm text-slate-900 transition-all font-sans"
+              class="w-full pl-10 pr-10 py-2 sm:py-2.5 bg-slate-50/70 border border-slate-300 focus:border-[#1E3A8A] focus:bg-white focus:ring-4 focus:ring-blue-100 rounded-xl outline-none text-xs sm:text-sm text-slate-900 transition-all font-sans"
             />
             <button
               type="button"
@@ -183,26 +176,26 @@
         </div>
 
         <!-- Persetujuan Ketentuan -->
-        <div class="pt-1">
+        <div class="pt-0.5">
           <label class="flex items-start gap-2.5 cursor-pointer select-none">
             <input
               type="checkbox"
               v-model="termsAgreed"
               required
-              class="w-4 h-4 rounded text-bth-navy focus:ring-bth-blue border-gray-300 mt-0.5"
+              class="w-4 h-4 rounded text-[#1E3A8A] focus:ring-[#1E3A8A] border-gray-300 mt-0.5 cursor-pointer"
             />
-            <span class="text-[11px] sm:text-xs text-slate-600 leading-snug font-sans">
-              Saya menyatakan data yang saya masukkan adalah benar dan menyetujui Ketentuan PMB Universitas BTH.
+            <span class="text-[11px] text-slate-600 leading-snug font-sans">
+              Saya menyatakan data adalah benar dan menyetujui Ketentuan PMB Universitas BTH.
             </span>
           </label>
         </div>
 
         <!-- Tombol Submit -->
-        <div class="pt-1.5">
+        <div class="pt-1">
           <button
             type="submit"
             :disabled="isLoading || isGoogleLoading || !termsAgreed || passwordsMismatch"
-            class="w-full py-3 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow-sm active:scale-[0.99] transition-all flex justify-center items-center gap-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer"
+            class="w-full py-2.5 sm:py-3 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow-sm active:scale-[0.99] transition-all flex justify-center items-center gap-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer"
           >
             <span v-if="!isLoading">Daftar Akun PMB</span>
             <span v-else class="flex items-center gap-2">
@@ -213,9 +206,9 @@
         </div>
 
         <!-- Divider Atau -->
-        <div class="relative my-3.5 flex items-center justify-center">
+        <div class="relative my-2.5 flex items-center justify-center">
           <div class="w-full border-t border-slate-200/80"></div>
-          <span class="absolute bg-white px-3 text-[11px] font-sans text-slate-400">
+          <span class="absolute bg-white px-2.5 text-[11px] font-sans text-slate-400">
             atau
           </span>
         </div>
@@ -226,7 +219,7 @@
             type="button"
             @click="handleGoogleRegister"
             :disabled="isGoogleLoading || isLoading"
-            class="w-full py-3 bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-slate-300 text-slate-700 font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-2xs hover:shadow-xs active:scale-[0.99] transition-all flex justify-center items-center gap-2.5 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            class="w-full py-2.5 sm:py-2.5 bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-slate-300 text-slate-700 font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-2xs hover:shadow-xs active:scale-[0.99] transition-all flex justify-center items-center gap-2.5 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <img
               src="/images/icons/google.svg"
@@ -242,7 +235,7 @@
         </div>
 
         <!-- Tautan Menuju Login -->
-        <div class="pt-3 border-t border-slate-100 text-center text-xs text-slate-500 font-sans">
+        <div class="pt-2.5 border-t border-slate-100 text-center text-xs text-slate-500 font-sans">
           <span>Sudah memiliki akun?</span>
           <RouterLink
             to="/login"
@@ -359,6 +352,10 @@ const handleRegister = async () => {
       password: form.password,
       password_confirmation: form.password_confirmation,
     });
+
+    try {
+      localStorage.setItem('bth_pending_verification_email', form.email.trim());
+    } catch (e) {}
 
     router.push({
       path: '/verify-otp',
