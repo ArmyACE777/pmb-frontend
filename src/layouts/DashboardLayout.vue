@@ -8,7 +8,7 @@
       <!-- Tier 1: Header Atas / Bawaan (Institutional Logo + User Identity) -->
       <div class="border-b border-slate-100/90 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="h-16 sm:h-20 flex items-center justify-between gap-3">
+          <div class="h-14 sm:h-20 flex items-center justify-between gap-3">
             <!-- Left: Brand Logo & Title -->
             <button @click="navigateTo('overview')" class="flex items-center gap-2.5 sm:gap-3.5 text-left group cursor-pointer flex-shrink-0">
               <img
@@ -130,6 +130,16 @@
 
                   <!-- Quick Action Links: Pusat Bantuan & Logout -->
                   <div class="py-1 space-y-1">
+                    <router-link
+                      v-if="authStore.isAdmin"
+                      to="/admin"
+                      @click="showProfileMenu = false"
+                      class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-medium text-blue-700 hover:bg-blue-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+                    >
+                      <Shield class="w-4 h-4 text-blue-600" />
+                      <span>Portal Panitia PMB</span>
+                    </router-link>
+
                     <button
                       @click="showHelpdeskModal = true; showProfileMenu = false"
                       class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-2.5 transition-colors cursor-pointer"
@@ -158,9 +168,9 @@
       <!-- Tier 2: Secondary Navigation Bar (Navbar BTH Bersih: Beranda, Biodata, Jalur Pendaftaran, Berkas, Seleksi CBT, Kelulusan & Daftar Ulang) -->
       <nav class="bg-white border-t border-slate-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex items-center justify-between h-12">
+          <div class="hidden lg:flex items-center justify-between h-12">
             <!-- Left Side: Horizontal Navigation Links -->
-            <div class="hidden lg:flex items-center gap-4 xl:gap-6">
+            <div class="flex items-center gap-4 xl:gap-6">
               <!-- 1. Beranda -->
               <button
                 @click="navigateTo('overview')"
@@ -246,17 +256,6 @@
               </button>
             </div>
 
-            <!-- Mobile Quick Trigger / Indicator (when on mobile screen) -->
-            <div class="lg:hidden flex items-center gap-2">
-              <button
-                @click="toggleMobileNav"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 text-xs font-medium hover:bg-slate-50 cursor-pointer"
-              >
-                <LayoutDashboard class="w-3.5 h-3.5 text-slate-500" />
-                <span>Menu Navigasi</span>
-              </button>
-            </div>
-
             <!-- Right Side: Utilities (Logout Saja - Tanpa Pengaturan) -->
             <div class="flex items-center gap-4 sm:gap-6 flex-shrink-0">
               <button
@@ -272,13 +271,13 @@
         </div>
 
         <!-- Quick Horizontal Swipeable Sub-Bar for Mobile (< lg) -->
-        <div class="lg:hidden border-t border-slate-100 py-1.5 -mx-3 px-3 overflow-x-auto no-scrollbar flex items-center gap-1.5 bg-slate-50/80">
+        <div class="lg:hidden border-t border-slate-100 py-2 px-3 overflow-x-auto no-scrollbar flex items-center gap-1.5 bg-slate-50/95 shadow-2xs">
           <button
             @click="navigateTo('overview')"
-            class="px-2.5 py-1 rounded-full text-[11px] font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1 cursor-pointer flex-shrink-0"
+            class="px-3 py-1.5 rounded-lg text-xs font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0"
             :class="applicantStore.activeTab === 'overview'
               ? 'bg-[#1E3A8A] text-white shadow-2xs'
-              : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'"
+              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'"
           >
             <LayoutDashboard class="w-3.5 h-3.5" />
             <span>Beranda</span>
@@ -286,21 +285,21 @@
 
           <button
             @click="navigateTo('profile')"
-            class="px-2.5 py-1 rounded-full text-[11px] font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1 cursor-pointer flex-shrink-0"
+            class="px-3 py-1.5 rounded-lg text-xs font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0"
             :class="applicantStore.activeTab === 'profile'
               ? 'bg-[#1E3A8A] text-white shadow-2xs'
-              : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'"
+              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'"
           >
-            <BookOpen class="w-3.5 h-3.5" />
+            <User class="w-3.5 h-3.5" />
             <span>Profil</span>
           </button>
 
           <button
             @click="navigateTo('admission')"
-            class="px-2.5 py-1 rounded-full text-[11px] font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1 cursor-pointer flex-shrink-0"
+            class="px-3 py-1.5 rounded-lg text-xs font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0"
             :class="applicantStore.activeTab === 'admission'
               ? 'bg-[#1E3A8A] text-white shadow-2xs'
-              : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'"
+              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'"
           >
             <Compass class="w-3.5 h-3.5" />
             <span>Jalur</span>
@@ -308,10 +307,10 @@
 
           <button
             @click="navigateTo('payment')"
-            class="px-2.5 py-1 rounded-full text-[11px] font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1 cursor-pointer flex-shrink-0"
+            class="px-3 py-1.5 rounded-lg text-xs font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0"
             :class="applicantStore.activeTab === 'payment'
               ? 'bg-[#1E3A8A] text-white shadow-2xs'
-              : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'"
+              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'"
           >
             <CreditCard class="w-3.5 h-3.5" />
             <span>Biaya</span>
@@ -319,10 +318,10 @@
 
           <button
             @click="navigateTo('documents')"
-            class="px-2.5 py-1 rounded-full text-[11px] font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1 cursor-pointer flex-shrink-0"
+            class="px-3 py-1.5 rounded-lg text-xs font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0"
             :class="applicantStore.activeTab === 'documents'
               ? 'bg-[#1E3A8A] text-white shadow-2xs'
-              : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'"
+              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'"
           >
             <FileText class="w-3.5 h-3.5" />
             <span>Berkas</span>
@@ -330,10 +329,10 @@
 
           <button
             @click="navigateTo('exam')"
-            class="px-2.5 py-1 rounded-full text-[11px] font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1 cursor-pointer flex-shrink-0"
+            class="px-3 py-1.5 rounded-lg text-xs font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0"
             :class="applicantStore.activeTab === 'exam'
               ? 'bg-[#1E3A8A] text-white shadow-2xs'
-              : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'"
+              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'"
           >
             <ClipboardCheck class="w-3.5 h-3.5" />
             <span>Seleksi</span>
@@ -341,10 +340,10 @@
 
           <button
             @click="navigateTo('result')"
-            class="px-2.5 py-1 rounded-full text-[11px] font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1 cursor-pointer flex-shrink-0"
+            class="px-3 py-1.5 rounded-lg text-xs font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0"
             :class="applicantStore.activeTab === 'result'
               ? 'bg-[#1E3A8A] text-white shadow-2xs'
-              : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'"
+              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'"
           >
             <GraduationCap class="w-3.5 h-3.5" />
             <span>Kelulusan</span>
@@ -352,162 +351,6 @@
         </div>
       </nav>
     </header>
-
-    <!-- Mobile Full Topbar Navigation Drawer (Aligned 100% with Macro Navigation) -->
-    <div
-      v-if="showMobileNav"
-      class="lg:hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex flex-col justify-start p-3 pt-18 animate-fadeIn"
-      @click.self="showMobileNav = false"
-    >
-      <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 p-5 max-w-sm w-full mx-auto animate-fadeIn max-h-[85vh] overflow-y-auto space-y-4">
-        <!-- Close & Header -->
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-          <div class="flex items-center gap-2">
-            <img src="/assets/icons/bth.png" alt="BTH" class="w-6 h-6 object-contain" />
-            <span class="font-sora font-bold text-sm text-slate-900">Navigasi Portal PMB</span>
-          </div>
-          <button @click="showMobileNav = false" class="text-slate-400 hover:text-slate-700 text-2xl font-bold p-1 leading-none cursor-pointer">
-            &times;
-          </button>
-        </div>
-
-        <!-- Section 1: Menu Utama PMB (4 Macro Pillars) -->
-        <div>
-          <div class="text-xs font-bold text-slate-400 mb-2 font-sora uppercase tracking-wider">
-            Menu Utama
-          </div>
-          <div class="space-y-1">
-            <!-- 1. Beranda -->
-            <button
-              @click="navigateTo('overview')"
-              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left cursor-pointer"
-              :class="applicantStore.activeTab === 'overview'
-                ? 'bg-blue-50 text-[#1E3A8A] font-bold'
-                : 'text-slate-700 hover:bg-slate-50'"
-            >
-              <LayoutDashboard class="w-5 h-5 text-slate-500 flex-shrink-0" />
-              <span>Beranda</span>
-            </button>
-
-            <!-- 2. Profil -->
-            <button
-              @click="navigateTo('profile')"
-              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left cursor-pointer"
-              :class="applicantStore.activeTab === 'profile'
-                ? 'bg-blue-50 text-[#1E3A8A] font-bold'
-                : 'text-slate-700 hover:bg-slate-50'"
-            >
-              <User class="w-5 h-5 text-slate-500 flex-shrink-0" />
-              <span>Profil</span>
-            </button>
-
-            <!-- 3. Jalur Pendaftaran -->
-            <button
-              @click="navigateTo('admission')"
-              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left cursor-pointer"
-              :class="applicantStore.activeTab === 'admission'
-                ? 'bg-blue-50 text-[#1E3A8A] font-bold'
-                : 'text-slate-700 hover:bg-slate-50'"
-            >
-              <Compass class="w-5 h-5 text-slate-500 flex-shrink-0" />
-              <span>Jalur Pendaftaran & Kartu</span>
-            </button>
-
-            <!-- 4. Biaya & Pembayaran -->
-            <button
-              @click="navigateTo('payment')"
-              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left cursor-pointer"
-              :class="applicantStore.activeTab === 'payment'
-                ? 'bg-blue-50 text-[#1E3A8A] font-bold'
-                : 'text-slate-700 hover:bg-slate-50'"
-            >
-              <CreditCard class="w-5 h-5 text-slate-500 flex-shrink-0" />
-              <span>Biaya & Pembayaran</span>
-            </button>
-
-            <!-- 5. Berkas Persyaratan -->
-            <button
-              @click="navigateTo('documents')"
-              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left cursor-pointer"
-              :class="applicantStore.activeTab === 'documents'
-                ? 'bg-blue-50 text-[#1E3A8A] font-bold'
-                : 'text-slate-700 hover:bg-slate-50'"
-            >
-              <FileText class="w-5 h-5 text-slate-500 flex-shrink-0" />
-              <span>Berkas Persyaratan</span>
-            </button>
-
-            <!-- 6. Proses Seleksi -->
-            <button
-              @click="navigateTo('exam')"
-              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left cursor-pointer"
-              :class="applicantStore.activeTab === 'exam'
-                ? 'bg-blue-50 text-[#1E3A8A] font-bold'
-                : 'text-slate-700 hover:bg-slate-50'"
-            >
-              <ClipboardCheck class="w-5 h-5 text-slate-500 flex-shrink-0" />
-              <span>Proses Seleksi (CBT & Lisan)</span>
-            </button>
-
-            <!-- 7. Kelulusan & Daftar Ulang -->
-            <button
-              @click="navigateTo('result')"
-              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left cursor-pointer"
-              :class="applicantStore.activeTab === 'result'
-                ? 'bg-blue-50 text-[#1E3A8A] font-bold'
-                : 'text-slate-700 hover:bg-slate-50'"
-            >
-              <GraduationCap class="w-5 h-5 text-slate-500 flex-shrink-0" />
-              <span>Kelulusan & Daftar Ulang</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Section 2: Layanan & Akses Panitia -->
-        <div class="border-t border-slate-100 pt-3">
-          <div class="text-xs font-bold text-slate-400 mb-2 font-sora uppercase tracking-wider">
-            Layanan PMB
-          </div>
-          <div class="space-y-1">
-            <!-- Bantuan -->
-            <button
-              @click="showMobileNav = false; showHelpdeskModal = true"
-              class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors text-left cursor-pointer"
-            >
-              <HelpCircle class="w-5 h-5 text-emerald-600 flex-shrink-0" />
-              <div class="flex-1 flex items-center justify-between">
-                <span>Pusat Bantuan & CS</span>
-                <span class="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded-full">Online</span>
-              </div>
-            </button>
-
-            <!-- Portal Panitia (Mobile Link) -->
-            <router-link
-              to="/admin?demo=true"
-              @click="setAllowDemoAdmin"
-              class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold text-[#1E3A8A] bg-blue-50/70 hover:bg-blue-100 transition-colors text-left"
-            >
-              <Shield class="w-5 h-5 text-[#1E3A8A] flex-shrink-0" />
-              <div class="flex-1 flex items-center justify-between">
-                <span>Portal Panitia PMB</span>
-                <span class="text-[9px] bg-[#1E3A8A] text-white font-mono px-1.5 py-0.2 rounded">ADMIN</span>
-              </div>
-            </router-link>
-          </div>
-        </div>
-
-        <!-- Section 3: Akun & Keluar -->
-        <div class="border-t border-slate-100 pt-3">
-          <button
-            @click="showMobileNav = false; handleLogout()"
-            class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors text-left cursor-pointer"
-          >
-            <LogOut class="w-5 h-5 text-red-500 flex-shrink-0" />
-            <span>Keluar dari Akun</span>
-          </button>
-        </div>
-      </div>
-    </div>
 
     <!-- Modal Pusat Bantuan & Helpdesk Resmi PMB BTH -->
     <Teleport to="body">
@@ -545,7 +388,7 @@
                   WA
                 </div>
                 <div>
-                  <div class="font-sora font-bold text-emerald-900 text-xs sm:text-sm">WhatsApp Helpdesk Resmi</div>
+                  <div class="font-sora font-bold text-emerald-900 text-xs sm:text-sm">WhatsApp Helpdesk PMB</div>
                   <div class="text-[11px] text-emerald-700">0821-1710-0200 (Respon Cepat)</div>
                 </div>
               </div>
@@ -569,7 +412,7 @@
                 <span class="font-semibold text-slate-800 text-right">Senin - Jumat (08.00 - 16.00 WIB)</span>
               </div>
               <div class="flex justify-between items-start gap-2">
-                <span class="text-slate-500">Surel Resmi:</span>
+                <span class="text-slate-500">Surel:</span>
                 <span class="font-mono font-semibold text-[#1E3A8A]">pmb@bth.ac.id</span>
               </div>
             </div>
@@ -660,6 +503,9 @@ const navigateTo = (tab, section = null) => {
   showRegistrationDropdown.value = false;
   showSettingsMenu.value = false;
   showProfileMenu.value = false;
+  if (typeof window !== 'undefined') {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 };
 
 const registrationProgressCount = computed(() => {
@@ -686,10 +532,48 @@ const isAdmin = computed(() => {
 const notifications = computed(() => {
   const list = [];
   
+  if (applicantStore.isWithdrawn) {
+    list.push({
+      title: 'Pendaftaran Telah Dinyatakan Mengundurkan Diri',
+      desc: `Surat Keputusan Pengunduran Diri (${applicantStore.withdrawalInfo?.letter_number || applicantStore.state.withdrawalInfo?.letter_number || 'PMB/UND/2026/0002'}) telah disahkan panitia PMB BTH.`,
+      time: 'Status Final',
+      isRead: readNotificationIndices.value.has('withdrawn'),
+      key: 'withdrawn',
+    });
+  } else if (applicantStore.pendingWithdrawal) {
+    list.push({
+      title: 'Permohonan Pengunduran Diri Sedang Diverifikasi',
+      desc: 'Pengajuan pengunduran diri Anda sedang ditinjau dan menunggu persetujuan panitia PMB.',
+      time: 'Menunggu Persetujuan',
+      isRead: readNotificationIndices.value.has('pending_withdrawal'),
+      key: 'pending_withdrawal',
+    });
+  }
+
+  if (applicantStore.pendingPathChange) {
+    list.push({
+      title: 'Permohonan Pindah Jalur Sedang Ditinjau Admin',
+      desc: `Pengajuan alih jalur ke ${applicantStore.pendingPathChange.new_track_name || 'Jalur Baru'} sedang dalam proses peninjauan oleh Panitia PMB BTH.`,
+      time: 'Menunggu Persetujuan',
+      isRead: readNotificationIndices.value.has('pending_path_change'),
+      key: 'pending_path_change',
+    });
+  }
+
+  if (applicantStore.pathChangeNotice) {
+    list.push({
+      title: applicantStore.pathChangeNotice.title,
+      desc: applicantStore.pathChangeNotice.message,
+      time: 'Terkini',
+      isRead: readNotificationIndices.value.has('path_change_notice'),
+      key: 'path_change_notice',
+    });
+  }
+
   if (applicantStore.isUktPaid) {
     list.push({
       title: 'Pelunasan UKT Semester 1 Berhasil',
-      desc: `Registrasi ulang lunas. NIM ${applicantStore.state?.onboarding?.nim || 'resmi'} telah aktif dan tercatat pada SIAKAD BTH.`,
+      desc: `Registrasi ulang lunas. NIM ${applicantStore.state?.onboarding?.nim || '-'} telah aktif dan tercatat pada SIAKAD BTH.`,
       time: applicantStore.state?.payments?.uktFee?.paidAt || 'Terkini',
       isRead: readNotificationIndices.value.has('ukt'),
       key: 'ukt',
@@ -698,7 +582,7 @@ const notifications = computed(() => {
     list.push({
       title: 'Selamat! Anda Dinyatakan Lulus Seleksi PMB',
       desc: `Surat Keputusan Rektor (${applicantStore.state?.result?.decisionLetterNo || 'LoA'}) telah terbit. Silakan lakukan pembayaran UKT Semester 1.`,
-      time: 'Pengumuman Resmi',
+      time: 'Pengumuman',
       isRead: readNotificationIndices.value.has('passed'),
       key: 'passed',
     });
@@ -741,7 +625,7 @@ const notifications = computed(() => {
 
   list.push({
     title: 'Sekretariat & Pusat Bantuan PMB',
-    desc: 'Bantuan pendaftaran dan validasi berkas dapat ditanyakan via WhatsApp resmi 0821-1710-0200.',
+    desc: 'Bantuan pendaftaran dan validasi berkas dapat ditanyakan via WhatsApp 0821-1710-0200.',
     time: 'Layanan Kampus',
     isRead: true,
     key: 'helpdesk',
@@ -785,6 +669,6 @@ const handleLogout = async () => {
   localStorage.removeItem('bth_allow_demo_admin');
   await authStore.logout();
   applicantStore.resetAllData();
-  router.push('/login');
+  router.push({ path: '/login', query: { logout: 'true' } });
 };
 </script>

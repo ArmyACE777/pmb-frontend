@@ -13,38 +13,6 @@
     </template>
 
     <div class="w-full">
-      <!-- Error Alert -->
-      <div
-        v-if="errorMessage"
-        class="bg-rose-50 border border-rose-200/80 text-rose-700 px-3.5 py-2.5 rounded-xl text-xs mb-4 flex items-center justify-between gap-2 animate-fadeIn shadow-2xs"
-      >
-        <div class="flex items-center gap-2">
-          <AlertCircle class="w-4 h-4 text-rose-600 flex-shrink-0" />
-          <span class="leading-relaxed">{{ errorMessage }}</span>
-        </div>
-        <button
-          type="button"
-          @click="errorMessage = ''"
-          class="text-rose-400 hover:text-rose-700 text-sm font-bold leading-none cursor-pointer"
-        >&times;</button>
-      </div>
-
-      <!-- Success Notification (e.g. after resending OTP) -->
-      <div
-        v-if="successToast"
-        class="bg-emerald-50 border border-emerald-200/80 text-emerald-800 px-3.5 py-2.5 rounded-xl text-xs mb-4 flex items-center justify-between gap-2 animate-fadeIn shadow-2xs"
-      >
-        <div class="flex items-center gap-2">
-          <CheckCircle2 class="w-4 h-4 text-emerald-600 flex-shrink-0" />
-          <span class="leading-relaxed">{{ successToast }}</span>
-        </div>
-        <button
-          type="button"
-          @click="successToast = ''"
-          class="text-emerald-500 hover:text-emerald-800 text-sm font-bold leading-none cursor-pointer"
-        >&times;</button>
-      </div>
-
       <!-- 6 Box OTP Inputs -->
       <form @submit.prevent="handleVerifyOtp" class="space-y-5">
         <div>
@@ -130,13 +98,15 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter, useRoute, RouterLink } from 'vue-router';
-import { Mail, AlertCircle, CheckCircle2, RotateCw, Loader2 } from 'lucide-vue-next';
+import { Mail, RotateCw, Loader2 } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
+import { useToast } from '@/composables/useToast';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const toast = useToast();
 
 const email = ref(
   (route.query.email ? String(route.query.email).trim() : '') ||
@@ -155,8 +125,6 @@ const otpDigits = ref(['', '', '', '', '', '']);
 const otpInputs = ref([]);
 const isLoading = ref(false);
 const isResending = ref(false);
-const errorMessage = ref('');
-const successToast = ref('');
 const resendCooldown = ref(60);
 let cooldownTimer = null;
 
@@ -176,7 +144,7 @@ const startCooldown = () => {
 
 onMounted(() => {
   if (route.query.unverified === 'true') {
-    errorMessage.value = 'Akun Anda belum aktif. Masukkan kode verifikasi yang telah dikirim ke email.';
+    toast.info('Akun Anda belum aktif. Masukkan kode verifikasi yang telah dikirim ke email.');
   }
   startCooldown();
   setTimeout(() => {
@@ -219,7 +187,6 @@ const handlePaste = (event) => {
   const nextEmpty = otpDigits.value.findIndex((d) => d === '');
   const focusIndex = nextEmpty === -1 ? 5 : nextEmpty;
   otpInputs.value[focusIndex]?.focus();
-
   if (isComplete.value) {
     handleVerifyOtp();
   }
@@ -230,36 +197,38 @@ const handleVerifyOtp = async () => {
   if (otpCode.length !== 6) return;
 
   isLoading.value = true;
-  errorMessage.value = '';
-  successToast.value = '';
-
   try {
     await authStore.verifyOtp(email.value, otpCode);
-    router.push('/dashboard');
+    toast.success('Verifikasi akun berhasil. Selamat datang di portal PMB.');
+    if (authStore.isAdmin) {
+      router.push('/admin');
+    } else {
+      router.push('/dashboard');
+    }
   } catch (err) {
     const data = err.response?.data;
     if (data?.error_code === 'ACCOUNT_ALREADY_ACTIVE') {
-      successToast.value = 'Akun Anda sudah aktif dan terverifikasi! Mengalihkan ke halaman login...';
+      toast.info('Akun Anda sudah aktif dan terverifikasi. Mengalihkan ke login...');
       setTimeout(() => {
         router.push(`/login?email=${encodeURIComponent(email.value)}`);
-      }, 1500);
+      }, 1200);
       return;
     }
     if (data?.error_code === 'OTP_LOCKED') {
-      errorMessage.value = 'Kode OTP telah terkunci karena salah 5 kali berturut-turut. Silakan klik "Kirim Ulang Kode OTP".';
+      toast.error('Kode OTP terkunci karena salah 5 kali. Silakan klik "Kirim Ulang Kode OTP".');
       return;
     }
     if (data?.error_code === 'OTP_EXPIRED') {
-      errorMessage.value = 'Masa berlaku kode OTP telah habis (10 menit). Silakan klik "Kirim Ulang Kode OTP".';
+      toast.error('Masa berlaku kode OTP telah habis (10 menit). Silakan klik "Kirim Ulang Kode OTP".');
       return;
     }
     if (data?.error_code === 'OTP_INVALID') {
-      errorMessage.value = data?.message || 'Kode OTP tidak cocok. Periksa 6 digit kode pada email Anda.';
+      toast.error(data?.message || 'Kode OTP tidak cocok. Periksa 6 digit kode pada email Anda.');
       otpDigits.value = ['', '', '', '', '', ''];
       otpInputs.value[0]?.focus();
       return;
     }
-    errorMessage.value = data?.message || 'Kode OTP salah. Silakan periksa kembali.';
+    toast.error(data?.message || 'Kode OTP salah. Silakan periksa kembali.');
     otpDigits.value = ['', '', '', '', '', ''];
     otpInputs.value[0]?.focus();
   } finally {
@@ -270,34 +239,32 @@ const handleVerifyOtp = async () => {
 const handleResendOtp = async () => {
   if (resendCooldown.value > 0) return;
   if (!email.value) {
-    errorMessage.value = 'Alamat email tidak terdeteksi. Silakan kembali ke halaman pendaftaran.';
+    toast.error('Alamat email tidak terdeteksi. Silakan kembali ke halaman pendaftaran.');
     return;
   }
   isResending.value = true;
-  errorMessage.value = '';
-  successToast.value = '';
 
   try {
     await authStore.resendOtp(email.value);
-    successToast.value = 'Kode OTP baru telah berhasil dikirim ke email Anda! Periksa inbox/spam atau Mailpit.';
+    toast.success('Kode OTP baru telah berhasil dikirim ke email Anda.');
     startCooldown();
   } catch (err) {
     const data = err.response?.data;
     if (data?.error_code === 'ACCOUNT_ALREADY_ACTIVE') {
-      successToast.value = 'Akun Anda sudah aktif dan terverifikasi sebelumnya! Mengalihkan ke halaman Login...';
+      toast.info('Akun Anda sudah aktif sebelumnya. Mengalihkan ke halaman login...');
       setTimeout(() => {
         router.push(`/login?email=${encodeURIComponent(email.value)}`);
-      }, 1500);
+      }, 1200);
       return;
     }
     if (data?.error_code === 'NOT_FOUND') {
-      errorMessage.value = 'Alamat email belum terdaftar di sistem. Silakan mendaftar akun baru.';
+      toast.error('Alamat email belum terdaftar di sistem. Silakan mendaftar akun baru.');
       return;
     }
     if (data?.error_code === 'OTP_RESEND_COOLDOWN') {
-      errorMessage.value = 'Mohon tunggu beberapa detik sebelum meminta kode OTP baru lagi.';
+      toast.warning('Mohon tunggu beberapa detik sebelum meminta kode OTP baru.');
     } else {
-      errorMessage.value = data?.message || err.response?.data?.message || 'Gagal mengirim ulang kode OTP.';
+      toast.error(data?.message || err.response?.data?.message || 'Gagal mengirim ulang kode OTP.');
     }
   } finally {
     isResending.value = false;

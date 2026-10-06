@@ -15,30 +15,6 @@
       </div>
     </div>
 
-    <!-- Alert Feedback -->
-    <div
-      v-if="toastMessage"
-      class="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center justify-between animate-fadeIn"
-    >
-      <div class="flex items-center gap-2">
-        <CheckCircle2 class="w-4 h-4 text-emerald-600 flex-shrink-0" />
-        <span>{{ toastMessage }}</span>
-      </div>
-      <button @click="toastMessage = ''" class="text-emerald-600 hover:text-emerald-900 font-bold text-sm leading-none">&times;</button>
-    </div>
-
-    <!-- Alert Error Feedback -->
-    <div
-      v-if="errorMessage"
-      class="p-3.5 bg-red-50 border border-red-200 text-red-800 rounded-xl text-xs flex items-center justify-between animate-fadeIn"
-    >
-      <div class="flex items-center gap-2">
-        <AlertCircle class="w-4 h-4 text-red-600 flex-shrink-0" />
-        <span>{{ errorMessage }}</span>
-      </div>
-      <button @click="errorMessage = ''" class="text-red-600 hover:text-red-900 font-bold text-sm leading-none">&times;</button>
-    </div>
-
     <!-- Hidden native file input -->
     <input
       ref="fileInputRef"
@@ -138,6 +114,58 @@
             Unggah Berkas
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- Panel Status Kelengkapan & Navigasi Alur PMB -->
+    <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3 w-full sm:w-auto">
+        <div
+          class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+          :class="isAllUploaded ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'"
+        >
+          <CheckCircle2 v-if="isAllUploaded" class="w-5 h-5 text-emerald-600" />
+          <FileText v-else class="w-5 h-5 text-slate-400" />
+        </div>
+        <div>
+          <div class="font-sora font-semibold text-xs sm:text-sm text-slate-900">
+            {{ isAllUploaded ? 'Seluruh Berkas Persyaratan Terunggah' : `Progres Berkas: ${uploadedCount} dari ${documents.length} Diunggah` }}
+          </div>
+          <p class="text-[11px] text-slate-500 font-sans mt-0.5">
+            {{ isAllUploaded ? 'Pindaian dokumen Anda siap diverifikasi oleh Tim Penerimaan Mahasiswa Baru BTH.' : 'Lengkapi pindaian berkas wajib sebelum mengikuti proses seleksi.' }}
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+        <button
+          type="button"
+          @click="emit('switch-tab', 'admission')"
+          class="w-full sm:w-auto rounded-xl px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap"
+        >
+          <ArrowLeft class="w-3.5 h-3.5" />
+          <span>Jalur Pendaftaran</span>
+        </button>
+
+        <button
+          v-if="!applicantStore.isRegPaymentComplete && !applicantStore.isFreeTrack"
+          type="button"
+          @click="emit('switch-tab', 'payment')"
+          class="w-full sm:w-auto rounded-xl px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+        >
+          <span>Lanjut ke Pembayaran Formulir</span>
+          <ArrowRight class="w-3.5 h-3.5" />
+        </button>
+
+        <button
+          v-else
+          type="button"
+          @click="emit('switch-tab', 'exam')"
+          class="w-full sm:w-auto rounded-xl px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+        >
+          <span>Lanjut ke Ujian CBT Online</span>
+          <ArrowRight class="w-3.5 h-3.5" />
+        </button>
       </div>
     </div>
 
@@ -247,15 +275,21 @@ import {
   ExternalLink,
   CheckCircle2,
   AlertCircle,
+  FileText,
+  ArrowRight,
+  ArrowLeft,
   X
 } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import { useApplicantStore } from '@/stores/applicant';
 import { useAuthStore } from '@/stores/auth';
 import { admissionApi, identityApi } from '@/api';
+import { useToast } from '@/composables/useToast';
 
+const emit = defineEmits(['switch-tab']);
 const applicantStore = useApplicantStore();
 const authStore = useAuthStore();
+const toast = useToast();
 const documents = computed(() => applicantStore.state.documents);
 
 const verifiedCount = computed(() => {
@@ -280,8 +314,6 @@ const hasRevision = computed(() => {
 
 const fileInputRef = ref(null);
 const activeDocIdToUpload = ref(null);
-const toastMessage = ref('');
-const errorMessage = ref('');
 const selectedPreviewDoc = ref(null);
 const imageLoadError = ref(false);
 
@@ -326,7 +358,7 @@ const generateDocumentPreview = (doc) => {
     <text x="74" y="82" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF">BTH</text>
     <text x="114" y="68" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0F172A">UNIVERSITAS BAKTI TUNAS HUSADA</text>
     <text x="114" y="86" font-family="sans-serif" font-size="11" fill="#64748B">Sistem Penerimaan Mahasiswa Baru (PMB) TA 2026/2027</text>
-    <text x="114" y="102" font-family="sans-serif" font-size="10" fill="#94A3B8">Pindaian Berkas Resmi Pendaftaran Mahasiswa Baru</text>
+    <text x="114" y="102" font-family="sans-serif" font-size="10" fill="#94A3B8">Pindaian Berkas Pendaftaran Mahasiswa Baru</text>
 
     <rect x="32" y="136" width="536" height="50" rx="8" fill="#EFF6FF" stroke="#BFDBFE"/>
     <text x="52" y="167" font-family="sans-serif" font-size="14" font-weight="bold" fill="#1E3A8A">${title.toUpperCase()}</text>
@@ -347,10 +379,10 @@ const generateDocumentPreview = (doc) => {
       <text x="320" y="56" font-family="sans-serif" font-size="13" font-weight="bold" fill="#0F172A">${uploadDate}</text>
       
       <text x="320" y="94" font-family="sans-serif" font-size="11" fill="#64748B">Status Validasi</text>
-      <text x="320" y="114" font-family="sans-serif" font-size="12" font-weight="bold" fill="#059669">✓ Berkas Asli Valid</text>
+      <text x="320" y="114" font-family="sans-serif" font-size="12" font-weight="bold" fill="#059669">Berkas Asli Valid</text>
       
       <text x="320" y="150" font-family="sans-serif" font-size="11" fill="#64748B">Verifikasi Integritas</text>
-      <text x="320" y="168" font-family="sans-serif" font-size="12" font-weight="bold" fill="#2563EB">Tersimpan Resmi</text>
+      <text x="320" y="168" font-family="sans-serif" font-size="12" font-weight="bold" fill="#2563EB">Tersimpan di Sistem</text>
     </g>
 
     <g transform="translate(32, 400)">
@@ -413,7 +445,6 @@ const previewUrl = computed(() => {
 
 const triggerUpload = (docId) => {
   activeDocIdToUpload.value = docId;
-  errorMessage.value = '';
   if (fileInputRef.value) {
     fileInputRef.value.value = '';
     fileInputRef.value.click();
@@ -424,16 +455,13 @@ const handleFileUpload = (e) => {
   const file = e.target.files?.[0];
   if (!file || !activeDocIdToUpload.value) return;
 
-  errorMessage.value = '';
-  toastMessage.value = '';
-
   // 1. Validasi Ekstensi & MIME Format (FILE_TYPE_NOT_ALLOWED)
   const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png'];
   const ext = file.name.includes('.') ? '.' + file.name.split('.').pop().toLowerCase() : '';
   const allowedMimes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
 
   if (!allowedExtensions.includes(ext) && !allowedMimes.includes(file.type)) {
-    errorMessage.value = `Format berkas "${file.name}" tidak didukung (FILE_TYPE_NOT_ALLOWED). Harap unggah berkas bertipe PDF, JPG, atau PNG.`;
+    toast.error(`Format berkas "${file.name}" tidak didukung. Harap unggah berkas bertipe PDF, JPG, atau PNG.`);
     activeDocIdToUpload.value = null;
     return;
   }
@@ -442,7 +470,7 @@ const handleFileUpload = (e) => {
   const MAX_BYTES = 2 * 1024 * 1024;
   if (file.size > MAX_BYTES) {
     const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
-    errorMessage.value = `Ukuran berkas "${file.name}" (${sizeMb} MB) melebihi batas maksimal 2 MB (FILE_TOO_LARGE). Silakan perkecil resolusi atau kompres dokumen Anda.`;
+    toast.error(`Ukuran berkas "${file.name}" (${sizeMb} MB) melebihi batas maksimal 2 MB. Silakan kompres berkas Anda terlebih dahulu.`);
     activeDocIdToUpload.value = null;
     return;
   }
@@ -498,14 +526,14 @@ const handleFileUpload = (e) => {
     }
 
     if (activeDocIdToUpload.value === 'doc-4') {
-      toastMessage.value = 'Pasfoto berhasil diunggah dan terhubung ke profil akun Anda';
+      toast.success('Pasfoto berhasil diunggah.');
     } else {
-      toastMessage.value = 'Berkas berhasil diunggah';
+      toast.success('Dokumen pendaftaran berhasil diunggah.');
     }
     activeDocIdToUpload.value = null;
   };
   reader.onerror = () => {
-    toastMessage.value = 'Berkas berhasil diunggah';
+    toast.success('Dokumen pendaftaran berhasil diunggah.');
     activeDocIdToUpload.value = null;
   };
   reader.readAsDataURL(file);

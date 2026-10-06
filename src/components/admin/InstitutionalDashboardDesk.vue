@@ -12,65 +12,54 @@
       </div>
 
       <!-- Level Selector Switcher Tabs -->
-      <div class="flex overflow-x-auto no-scrollbar max-w-full p-1 bg-slate-100 rounded-2xl border border-slate-200 text-xs font-sora font-semibold">
-        <button
-          @click="currentLevel = 'university'"
-          class="px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap flex-shrink-0"
-          :class="currentLevel === 'university' ? 'bg-[#1E3A8A] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'"
-        >
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-          </svg>
-          <span>Universitas (Rektorat)</span>
-        </button>
+      <div class="flex items-center gap-2.5 self-start sm:self-auto">
+        <span class="text-xs text-slate-500 font-medium hidden sm:inline font-sans">Cakupan Data:</span>
+        <div class="inline-flex p-1 bg-slate-100 rounded-lg border border-slate-200 text-xs font-medium font-sans">
+          <button
+            @click="currentLevel = 'university'"
+            class="px-3 py-1.5 rounded transition-colors cursor-pointer whitespace-nowrap"
+            :class="currentLevel === 'university' ? 'bg-[#1E3A8A] text-white font-semibold shadow-2xs' : 'text-slate-600 hover:text-slate-900'"
+          >
+            Tingkat Universitas
+          </button>
 
-        <button
-          @click="currentLevel = 'faculty'"
-          class="px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap flex-shrink-0"
-          :class="currentLevel === 'faculty' ? 'bg-[#1E3A8A] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'"
-        >
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
-          </svg>
-          <span>Fakultas (Dekanat)</span>
-        </button>
+          <button
+            @click="currentLevel = 'faculty'"
+            class="px-3 py-1.5 rounded transition-colors cursor-pointer whitespace-nowrap"
+            :class="currentLevel === 'faculty' ? 'bg-[#1E3A8A] text-white font-semibold shadow-2xs' : 'text-slate-600 hover:text-slate-900'"
+          >
+            Tingkat Fakultas
+          </button>
 
-        <button
-          @click="currentLevel = 'prodi'"
-          class="px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap flex-shrink-0"
-          :class="currentLevel === 'prodi' ? 'bg-[#1E3A8A] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'"
-        >
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-          <span>Program Studi (Kaprodi)</span>
-        </button>
+          <button
+            @click="currentLevel = 'prodi'"
+            class="px-3 py-1.5 rounded transition-colors cursor-pointer whitespace-nowrap"
+            :class="currentLevel === 'prodi' ? 'bg-[#1E3A8A] text-white font-semibold shadow-2xs' : 'text-slate-600 hover:text-slate-900'"
+          >
+            Tingkat Program Studi
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- ================================================================= -->
     <!-- LEVEL 1: UNIVERSITAS (REKTORAT & DEWAN EKSEKUTIF)                 -->
     <!-- ================================================================= -->
-    <div v-if="currentLevel === 'university'" class="space-y-6 animate-fadeIn">
+    <div v-if="currentLevel === 'university'" class="space-y-6">
       <!-- 4 Macro KPI Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Target vs Realisasi Kuota PMB -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-xs flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Kapasitas Kursi Total</span>
-              <span class="text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-[#1E3A8A] rounded-full border border-blue-200 font-mono">
-                TA 2026/2027
-              </span>
+            <div class="text-xs font-medium text-slate-500 font-sans">Kapasitas Kursi Total</div>
+            <div class="font-sora font-extrabold text-2xl sm:text-3xl text-slate-900 mt-2">
+              {{ totalEnrolledUniversitas }} <span class="text-sm font-normal text-slate-500 font-sans">/ 500 Target</span>
             </div>
-            <div class="font-sora font-extrabold text-2xl text-slate-900 mt-2">
-              {{ totalEnrolledUniversitas }} <span class="text-sm font-normal text-slate-400">/ 500 Target</span>
+            <div class="text-[11px] text-slate-500 mt-1 font-sans">
+              Keterisian kuota: {{ Math.round((totalEnrolledUniversitas / 500) * 100) }}%
             </div>
-            <p class="text-xs text-slate-500 mt-1">
-              Keterisian kuota universitas: <strong class="text-emerald-600">{{ Math.round((totalEnrolledUniversitas / 500) * 100) }}%</strong>
-            </p>
           </div>
-          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-3">
+          <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-3">
             <div
               class="bg-[#1E3A8A] h-full rounded-full transition-all duration-500"
               :style="{ width: `${Math.min(100, Math.round((totalEnrolledUniversitas / 500) * 100))}%` }"
@@ -79,67 +68,50 @@
         </div>
 
         <!-- Rasio Kelulusan CBT -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-xs flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tingkat Kelulusan CBT</span>
-              <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">
-                ✓
-              </div>
-            </div>
-            <div class="font-sora font-extrabold text-2xl text-slate-900 mt-2">
+            <div class="text-xs font-medium text-slate-500 font-sans">Tingkat Kelulusan CBT</div>
+            <div class="font-sora font-extrabold text-2xl sm:text-3xl text-slate-900 mt-2">
               {{ passRate }}%
             </div>
-            <p class="text-xs text-slate-500 mt-1">
-              Nilai ambang batas minimal standar BTH: <strong>70.0</strong>
-            </p>
+            <div class="text-[11px] text-slate-500 mt-1 font-sans">
+              {{ adminStore.passedStudentsCount }} dari {{ adminStore.totalApplicants }} pelamar lulus
+            </div>
           </div>
-          <div class="text-[11px] text-emerald-600 font-medium mt-3 flex items-center gap-1">
-            <span>{{ adminStore.passedStudentsCount }} dari {{ adminStore.totalApplicants }} pelamar memenuhi syarat</span>
+          <div class="text-[11px] text-slate-400 mt-3 font-sans">
+            Ambang batas kelulusan: 70.0
           </div>
         </div>
 
         <!-- Yield Rate Pelunasan UKT -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-xs flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Yield Rate UKT (Daftar Ulang)</span>
-              <div class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-            <div class="font-sora font-extrabold text-2xl text-[#1E3A8A] mt-2">
+            <div class="text-xs font-medium text-slate-500 font-sans">Yield Rate UKT (Daftar Ulang)</div>
+            <div class="font-sora font-extrabold text-2xl sm:text-3xl text-slate-900 mt-2">
               {{ yieldRate }}%
             </div>
-            <p class="text-xs text-slate-500 mt-1">
-              Konversi dari calon mahasiswa lulus menjadi mahasiswa aktif
-            </p>
+            <div class="text-[11px] text-slate-500 mt-1 font-sans">
+              Konversi calon mahasiswa ke aktif
+            </div>
           </div>
-          <div class="text-[11px] text-indigo-700 font-medium mt-3">
+          <div class="text-[11px] text-slate-400 mt-3 font-sans">
             {{ totalPaidUktCount }} Mahasiswa Baru Terdaftar
           </div>
         </div>
 
         <!-- Akumulasi Kas Masuk PMB -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-xs flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Pendapatan Kas PMB</span>
-              <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center font-mono font-bold text-xs">
-                Rp
-              </div>
-            </div>
-            <div class="font-sora font-extrabold text-xl text-slate-900 mt-2">
+            <div class="text-xs font-medium text-slate-500 font-sans">Total Pendapatan Kas PMB</div>
+            <div class="font-sora font-extrabold text-xl sm:text-2xl text-slate-900 mt-2">
               {{ formattedTotalRevenue }}
             </div>
-            <p class="text-xs text-slate-500 mt-1">
+            <div class="text-[11px] text-slate-500 mt-1 font-sans">
               Formulir Pendaftaran & Registrasi UKT
-            </p>
+            </div>
           </div>
-          <div class="text-[11px] text-emerald-600 font-medium mt-3 flex items-center gap-1">
-            <span>Rekonsiliasi Host-to-Host BSI & Mandiri</span>
+          <div class="text-[11px] text-slate-400 mt-3 font-sans">
+            Host-to-Host BSI & Mandiri
           </div>
         </div>
       </div>
@@ -147,58 +119,58 @@
       <!-- Charts Visualisasi Institusional -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Chart 1: Kinerja Antar Fakultas -->
-        <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div class="bg-white rounded-xl p-5 sm:p-6 border border-slate-200 shadow-xs flex flex-col justify-between">
           <div class="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
               <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
                 Komparasi Pendaftar & Kuota Fakultas
               </h3>
-              <p class="text-xs text-slate-500">Perbandingan kuota vs pendaftar vs kelulusan per fakultas.</p>
+              <p class="text-xs text-slate-500 font-sans mt-0.5">Perbandingan kuota vs pendaftar vs kelulusan per fakultas.</p>
             </div>
-            <span class="text-[11px] font-bold px-2 py-0.5 bg-blue-50 text-[#1E3A8A] rounded-full border border-blue-200 font-mono">
-              Fakultas BTH
+            <span class="text-xs text-slate-400 font-sans">
+              TA 2026/2027
             </span>
           </div>
           <div class="h-64 my-3">
             <BarChart :chart-data="facultyBarChartData" />
           </div>
-          <div class="text-[11px] text-slate-400 text-center pt-2 border-t border-slate-100">
+          <div class="text-[11px] text-slate-400 text-center pt-2 border-t border-slate-100 font-sans">
             Daya Tampung: Farmasi 240, FTB 140, FIKes 120
           </div>
         </div>
 
         <!-- Chart 2: Sebaran Rata-rata Skor Seleksi per Prodi -->
-        <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div class="bg-white rounded-xl p-5 sm:p-6 border border-slate-200 shadow-xs flex flex-col justify-between">
           <div class="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
               <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
                 Rata-rata Skor CBT & Rapor per Program Studi
               </h3>
-              <p class="text-xs text-slate-500">Evaluasi mutu akademik calon mahasiswa per peminatan.</p>
+              <p class="text-xs text-slate-500 font-sans mt-0.5">Evaluasi mutu akademik calon mahasiswa per peminatan.</p>
             </div>
-            <span class="text-[11px] font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200 font-mono">
-              Akademik
+            <span class="text-xs text-slate-400 font-sans">
+              Standar: 70.0
             </span>
           </div>
           <div class="h-64 my-3">
             <BarChart :chart-data="scoresBarChartData" />
           </div>
-          <div class="text-[11px] text-slate-400 text-center pt-2 border-t border-slate-100">
+          <div class="text-[11px] text-slate-400 text-center pt-2 border-t border-slate-100 font-sans">
             Nilai ambang batas minimal standar BTH: 70.0
           </div>
         </div>
       </div>
 
       <!-- Komparasi Performa 3 Fakultas Universitas BTH -->
-      <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+      <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-xs space-y-4">
         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
             <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
               Kinerja Penerimaan Antar Fakultas
             </h3>
-            <p class="text-xs text-slate-500">Perbandingan kuota, pendaftar, dan kelulusan pada masing-masing fakultas naungan BTH.</p>
+            <p class="text-xs text-slate-500 font-sans mt-0.5">Perbandingan kuota, pendaftar, dan kelulusan pada masing-masing fakultas naungan BTH.</p>
           </div>
-          <span class="text-xs font-mono font-semibold text-[#1E3A8A] bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+          <span class="text-xs text-slate-500 font-sans">
             3 Fakultas Aktif
           </span>
         </div>
@@ -207,46 +179,46 @@
           <div
             v-for="fac in facultySummaries"
             :key="fac.name"
-            class="p-5 rounded-2xl border transition-all space-y-3 bg-slate-50/60 border-slate-200 hover:border-blue-300"
+            class="p-5 rounded-xl border transition-colors space-y-3 bg-slate-50 border-slate-200 hover:border-slate-300"
           >
             <div class="flex items-start justify-between gap-2">
               <div>
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sora block">FAKULTAS</span>
                 <h4 class="font-sora font-bold text-slate-900 text-sm mt-0.5">{{ fac.name }}</h4>
               </div>
-              <span class="px-2 py-0.5 bg-white text-slate-700 text-[10px] font-bold rounded border border-slate-200">
+              <span class="text-xs text-slate-500 font-sans">
                 {{ fac.prodis.length }} Prodi
               </span>
             </div>
 
-            <div class="space-y-2 text-xs">
+            <div class="space-y-2 text-xs font-sans">
               <div class="flex justify-between text-slate-600">
                 <span>Daya Tampung Kursi:</span>
-                <strong class="text-slate-900">{{ fac.quota }} Kursi</strong>
+                <strong class="text-slate-900 font-semibold">{{ fac.quota }} Kursi</strong>
               </div>
               <div class="flex justify-between text-slate-600">
                 <span>Pendaftar Masuk:</span>
-                <strong class="text-[#1E3A8A]">{{ fac.totalApplicants }} Orang</strong>
+                <strong class="text-slate-900 font-semibold">{{ fac.totalApplicants }} Orang</strong>
               </div>
               <div class="flex justify-between text-slate-600">
                 <span>Lulus Seleksi:</span>
-                <strong class="text-emerald-700">{{ fac.passedCount }} Mahasiswa</strong>
+                <strong class="text-slate-900 font-semibold">{{ fac.passedCount }} Mahasiswa</strong>
               </div>
               <div class="flex justify-between text-slate-600">
                 <span>Keterisian Kuota:</span>
-                <strong class="text-slate-900">{{ fac.fillPercent }}%</strong>
+                <strong class="text-slate-900 font-semibold">{{ fac.fillPercent }}%</strong>
               </div>
             </div>
 
-            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+            <div class="w-full bg-slate-200/80 h-1.5 rounded-sm overflow-hidden">
               <div
-                class="h-full rounded-full transition-all duration-500"
-                :class="fac.color"
-                :style="{ width: `${Math.min(100, fac.fillPercent)}%` }"
+                v-if="fac.totalApplicants > 0"
+                class="bg-[#1E3A8A] h-full rounded-sm transition-all duration-500"
+                :style="{ width: `${Math.max(2, Math.min(100, fac.fillPercent))}%` }"
               ></div>
             </div>
 
-            <div class="pt-2 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500">
+            <div class="pt-2 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500 font-sans">
               <span>Program Studi:</span>
               <span class="font-medium text-slate-700">{{ fac.prodis.join(', ') }}</span>
             </div>
@@ -258,11 +230,11 @@
     <!-- ================================================================= -->
     <!-- LEVEL 2: FAKULTAS (DEKANAT)                                       -->
     <!-- ================================================================= -->
-    <div v-else-if="currentLevel === 'faculty'" class="space-y-6 animate-fadeIn">
+    <div v-else-if="currentLevel === 'faculty'" class="space-y-6">
       <!-- Selector Dropdown Fakultas -->
-      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-blue-50 text-[#1E3A8A] flex items-center justify-center font-bold">
+          <div class="w-9 h-9 rounded-lg bg-blue-50 text-[#1E3A8A] flex items-center justify-center font-bold">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
@@ -277,7 +249,7 @@
           <label class="text-xs text-slate-500">Ganti Fakultas:</label>
           <select
             v-model="selectedFaculty"
-            class="px-3.5 py-2 bg-slate-50 border border-slate-300 focus:border-[#1E3A8A] rounded-xl text-xs font-semibold text-slate-800 outline-none"
+            class="px-3.5 py-2 bg-slate-50 border border-slate-300 focus:border-[#1E3A8A] rounded-lg text-xs font-semibold text-slate-800 outline-none"
           >
             <option value="Fakultas Farmasi">Fakultas Farmasi</option>
             <option value="Fakultas Teknologi & Bisnis">Fakultas Teknologi & Bisnis</option>
@@ -289,73 +261,74 @@
       <!-- Detail Kinerja Fakultas Terpilih -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Card 1: Profil Dekanat & Akreditasi -->
-        <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
+        <div class="bg-white rounded-xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
           <div class="flex items-center justify-between pb-3 border-b border-slate-100">
             <h3 class="font-sora font-bold text-slate-900 text-sm">Profil Dekanat</h3>
-            <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200">
-              AKREDITASI UNGGUL
+            <span class="text-xs text-slate-500 font-sans">
+              Akreditasi: <strong class="text-slate-700 font-medium">Unggul</strong>
             </span>
           </div>
 
-          <div class="space-y-3 text-xs">
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
-              <span class="text-slate-500 block text-[11px]">Dekan Fakultas:</span>
+          <div class="space-y-2.5 text-xs font-sans">
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <span class="text-slate-500 text-[11px] block">Dekan Fakultas</span>
               <strong class="text-slate-900 font-sora text-xs mt-0.5 block">{{ facultyDeanName }}</strong>
             </div>
 
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex justify-between items-center">
-              <span class="text-slate-500">Kapasitas Kursi Gelombang 1:</span>
-              <strong class="font-mono text-slate-900">{{ activeFacultyDetails.quota }} Kursi</strong>
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between items-center">
+              <span class="text-slate-600">Kapasitas Kursi</span>
+              <strong class="text-slate-900 font-semibold">{{ activeFacultyDetails.quota }} Kursi</strong>
             </div>
 
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex justify-between items-center">
-              <span class="text-slate-500">Peminat Prioritas 1:</span>
-              <strong class="font-mono text-[#1E3A8A]">{{ activeFacultyDetails.pilihan1Count }} Pelamar</strong>
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between items-center">
+              <span class="text-slate-600">Peminat Prioritas 1</span>
+              <strong class="text-slate-900 font-semibold">{{ activeFacultyDetails.pilihan1Count }} Pendaftar</strong>
             </div>
 
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex justify-between items-center">
-              <span class="text-slate-500">Peminat Prioritas 2:</span>
-              <strong class="font-mono text-slate-700">{{ activeFacultyDetails.pilihan2Count }} Pelamar</strong>
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between items-center">
+              <span class="text-slate-600">Peminat Prioritas 2</span>
+              <strong class="text-slate-900 font-semibold">{{ activeFacultyDetails.pilihan2Count }} Pendaftar</strong>
             </div>
           </div>
         </div>
 
         <!-- Card 2: Keterisian Prodi di Bawah Fakultas -->
-        <div class="lg:col-span-2 bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
+        <div class="lg:col-span-2 bg-white rounded-xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
           <div class="flex items-center justify-between pb-3 border-b border-slate-100">
             <h3 class="font-sora font-bold text-slate-900 text-sm">
               Keterisian Kuota Program Studi
             </h3>
-            <span class="text-xs text-slate-400 font-mono">{{ activeFacultyDetails.prodis.length }} Program Studi</span>
+            <span class="text-xs text-slate-500 font-sans">{{ activeFacultyDetails.prodis.length }} Program Studi</span>
           </div>
 
-          <div class="space-y-4 text-xs">
+          <div class="space-y-4 text-xs font-sans">
             <div
               v-for="prodi in activeFacultyProdis"
               :key="prodi.name"
-              class="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-2"
+              class="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-2.5"
             >
               <div class="flex items-center justify-between">
                 <div>
                   <h4 class="font-sora font-bold text-slate-900 text-sm">{{ prodi.name }}</h4>
-                  <span class="text-[11px] text-slate-500">{{ prodi.degree }} • Akreditasi: {{ prodi.accreditation }}</span>
+                  <span class="text-[11px] text-slate-500">{{ prodi.degree }} &bull; Akreditasi: {{ prodi.accreditation }}</span>
                 </div>
-                <div class="text-right font-mono">
-                  <span class="text-sm font-bold text-[#1E3A8A]">{{ prodi.applicantsCount }}</span>
-                  <span class="text-slate-400"> / {{ prodi.quota }} Kursi</span>
+                <div class="text-right">
+                  <span class="text-sm font-bold text-slate-900">{{ prodi.applicantsCount }}</span>
+                  <span class="text-slate-500 text-xs"> / {{ prodi.quota }} Kursi</span>
                 </div>
               </div>
 
-              <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+              <div class="w-full bg-slate-200/80 h-1.5 rounded-sm overflow-hidden">
                 <div
-                  class="bg-blue-600 h-full rounded-full transition-all duration-500"
-                  :style="{ width: `${Math.min(100, Math.round((prodi.applicantsCount / prodi.quota) * 100))}%` }"
+                  v-if="prodi.applicantsCount > 0"
+                  class="bg-[#1E3A8A] h-full rounded-sm transition-all duration-500"
+                  :style="{ width: `${Math.max(2, Math.min(100, Math.round((prodi.applicantsCount / prodi.quota) * 100)))}%` }"
                 ></div>
               </div>
 
-              <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1">
-                <span>Rata-rata Skor CBT: <strong class="text-slate-800">{{ prodi.avgCbtScore }}</strong></span>
-                <span>Lulus Seleksi: <strong class="text-emerald-700">{{ prodi.passedCount }} Mahasiswa</strong></span>
+              <div class="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+                <span>Rata-rata Skor CBT: <strong class="text-slate-700 font-medium">{{ prodi.avgCbtScore }}</strong></span>
+                <span>Lulus Seleksi: <strong class="text-slate-800 font-medium">{{ prodi.passedCount }} Mahasiswa</strong></span>
               </div>
             </div>
           </div>
@@ -366,11 +339,11 @@
     <!-- ================================================================= -->
     <!-- LEVEL 3: PROGRAM STUDI (KAPRODI)                                  -->
     <!-- ================================================================= -->
-    <div v-else-if="currentLevel === 'prodi'" class="space-y-6 animate-fadeIn">
+    <div v-else-if="currentLevel === 'prodi'" class="space-y-6">
       <!-- Selector Dropdown Program Studi -->
-      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+          <div class="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
@@ -385,7 +358,7 @@
           <label class="text-xs text-slate-500">Ganti Prodi:</label>
           <select
             v-model="selectedProdi"
-            class="px-3.5 py-2 bg-slate-50 border border-slate-300 focus:border-[#1E3A8A] rounded-xl text-xs font-semibold text-slate-800 outline-none"
+            class="px-3.5 py-2 bg-slate-50 border border-slate-300 focus:border-[#1E3A8A] rounded-lg text-xs font-semibold text-slate-800 outline-none"
           >
             <option v-for="p in prodiNames" :key="p" :value="p">{{ p }}</option>
           </select>
@@ -394,33 +367,33 @@
 
       <!-- Key Metrics Kaprodi -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
-          <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Kapasitas Kursi Prodi</div>
-          <div class="font-sora font-extrabold text-2xl text-[#1E3A8A] mt-1">
-            {{ activeProdiInfo.enrolled }} <span class="text-sm font-normal text-slate-400">/ {{ activeProdiInfo.quota }} Kursi</span>
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-xs">
+          <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider font-sora">Kapasitas Kursi Prodi</div>
+          <div class="font-sora font-extrabold text-2xl text-slate-900 mt-1">
+            {{ activeProdiInfo.enrolled }} <span class="text-sm font-normal text-slate-500">/ {{ activeProdiInfo.quota }} Kursi</span>
           </div>
-          <div class="text-xs text-emerald-600 font-medium mt-1">
+          <div class="text-xs text-slate-500 font-medium mt-1">
             Tersisa {{ activeProdiInfo.quota - activeProdiInfo.enrolled }} Kursi Tersedia
           </div>
         </div>
 
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
-          <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Rata-rata Skor CBT Pelamar</div>
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-xs">
+          <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider font-sora">Rata-rata Skor CBT Pelamar</div>
           <div class="font-sora font-extrabold text-2xl text-slate-900 mt-1">
-            {{ activeProdiInfo.avgCbtScore }} <span class="text-xs font-normal text-slate-400">/ 100</span>
+            {{ activeProdiInfo.avgCbtScore }} <span class="text-xs font-normal text-slate-500">/ 100</span>
           </div>
           <div class="text-xs text-slate-500 mt-1">
             Rata-rata Nilai Rapor: {{ activeProdiInfo.avgRaporScore }}
           </div>
         </div>
 
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
-          <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tarif UKT Resmi</div>
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-xs">
+          <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider font-sora">Tarif UKT Resmi</div>
           <div class="font-sora font-extrabold text-2xl text-slate-900 mt-1">
             Rp {{ (activeProdiInfo.uktFee || 4500000).toLocaleString('id-ID') }}
           </div>
           <div class="text-xs text-slate-500 mt-1">
-            Per Semester • Jenjang {{ activeProdiInfo.degree }}
+            Per Semester &bull; Jenjang {{ activeProdiInfo.degree }}
           </div>
         </div>
       </div>
@@ -428,7 +401,7 @@
       <!-- Analitik Demografi Peminat & Daftar Kandidat -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Demografi Asal Sekolah & Wilayah -->
-        <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
+        <div class="bg-white rounded-xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
           <h3 class="font-sora font-bold text-slate-900 text-sm pb-2 border-b border-slate-100">
             Sebaran Demografi Pelamar
           </h3>
@@ -439,26 +412,26 @@
             <div class="space-y-1.5">
               <div class="flex justify-between text-[11px]">
                 <span class="text-slate-700">SMA (Sekolah Menengah Atas)</span>
-                <span class="font-bold font-mono">62%</span>
+                <span class="font-bold font-mono">{{ schoolDemographics.smaPercent }}% ({{ schoolDemographics.smaCount }})</span>
               </div>
               <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                <div class="bg-[#1E3A8A] h-full rounded-full" style="width: 62%"></div>
+                <div class="bg-[#1E3A8A] h-full rounded-full transition-all duration-300" :style="{ width: `${schoolDemographics.smaPercent}%` }"></div>
               </div>
 
               <div class="flex justify-between text-[11px] pt-1">
                 <span class="text-slate-700">SMK (Kesehatan / TI / Kejuruan)</span>
-                <span class="font-bold font-mono">28%</span>
+                <span class="font-bold font-mono">{{ schoolDemographics.smkPercent }}% ({{ schoolDemographics.smkCount }})</span>
               </div>
               <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                <div class="bg-indigo-600 h-full rounded-full" style="width: 28%"></div>
+                <div class="bg-indigo-600 h-full rounded-full transition-all duration-300" :style="{ width: `${schoolDemographics.smkPercent}%` }"></div>
               </div>
 
               <div class="flex justify-between text-[11px] pt-1">
                 <span class="text-slate-700">MA (Madrasah Aliyah)</span>
-                <span class="font-bold font-mono">10%</span>
+                <span class="font-bold font-mono">{{ schoolDemographics.maPercent }}% ({{ schoolDemographics.maCount }})</span>
               </div>
               <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                <div class="bg-amber-500 h-full rounded-full" style="width: 10%"></div>
+                <div class="bg-amber-500 h-full rounded-full transition-all duration-300" :style="{ width: `${schoolDemographics.maPercent}%` }"></div>
               </div>
             </div>
           </div>
@@ -467,28 +440,21 @@
           <div class="pt-3 border-t border-slate-100 space-y-2 text-xs">
             <span class="text-slate-500 font-medium block">Sebaran Geografis Domisili:</span>
             <div class="space-y-1 text-slate-700 text-[11px]">
-              <div class="flex justify-between py-1 border-b border-slate-50">
-                <span>Kota & Kab. Tasikmalaya</span>
-                <strong class="font-mono">54%</strong>
-              </div>
-              <div class="flex justify-between py-1 border-b border-slate-50">
-                <span>Kab. Ciamis & Banjar</span>
-                <strong class="font-mono">22%</strong>
-              </div>
-              <div class="flex justify-between py-1 border-b border-slate-50">
-                <span>Kab. Garut & Pangandaran</span>
-                <strong class="font-mono">14%</strong>
-              </div>
-              <div class="flex justify-between py-1">
-                <span>Luar Priangan Timur (Bandung, Jakarta, dll.)</span>
-                <strong class="font-mono">10%</strong>
+              <div
+                v-for="(geo, gIdx) in geoDemographics"
+                :key="geo.label"
+                class="flex justify-between py-1"
+                :class="gIdx < geoDemographics.length - 1 ? 'border-b border-slate-50' : ''"
+              >
+                <span>{{ geo.label }}</span>
+                <strong class="font-mono">{{ geo.percent }}%</strong>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Daftar Pendaftar Terkini Program Studi -->
-        <div class="lg:col-span-2 bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
+        <div class="lg:col-span-2 bg-white rounded-xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
           <div class="flex items-center justify-between pb-2 border-b border-slate-100">
             <h3 class="font-sora font-bold text-slate-900 text-sm">
               Daftar Calon Mahasiswa Terdaftar di {{ selectedProdi }}
@@ -497,29 +463,26 @@
           </div>
 
           <div class="overflow-x-auto">
-            <table class="w-full min-w-[560px] text-left text-xs text-slate-700">
-              <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-sora uppercase text-[10px]">
+            <table class="w-full min-w-[680px] text-left text-xs text-slate-700">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-sora uppercase text-[10px] whitespace-nowrap">
                 <tr>
-                  <th class="py-2.5 px-3 font-bold">No. Registrasi</th>
-                  <th class="py-2.5 px-3 font-bold">Nama Mahasiswa</th>
-                  <th class="py-2.5 px-3 font-bold">Asal Sekolah</th>
-                  <th class="py-2.5 px-3 font-bold text-center">Skor CBT</th>
-                  <th class="py-2.5 px-3 font-bold">Status Seleksi</th>
+                  <th class="py-2.5 px-3 font-bold whitespace-nowrap min-w-[130px]">No. Registrasi</th>
+                  <th class="py-2.5 px-3 font-bold whitespace-nowrap min-w-[180px]">Nama Mahasiswa</th>
+                  <th class="py-2.5 px-3 font-bold min-w-[160px]">Asal Sekolah</th>
+                  <th class="py-2.5 px-3 font-bold text-center whitespace-nowrap min-w-[90px]">Skor CBT</th>
+                  <th class="py-2.5 px-3 font-bold whitespace-nowrap min-w-[120px]">Status Seleksi</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100">
+              <tbody class="divide-y divide-slate-100 font-sans">
                 <tr v-for="app in activeProdiApplicants" :key="app.id" class="hover:bg-slate-50">
-                  <td class="py-2.5 px-3 font-mono font-bold text-[#1E3A8A]">{{ app.id }}</td>
-                  <td class="py-2.5 px-3 font-medium text-slate-900">{{ app.fullName }}</td>
-                  <td class="py-2.5 px-3 text-slate-500">{{ app.schoolName }}</td>
-                  <td class="py-2.5 px-3 text-center font-bold" :class="app.selection.cbtScore >= 70 ? 'text-[#1E3A8A]' : 'text-rose-600'">
+                  <td class="py-2.5 px-3 font-mono font-semibold text-slate-900 whitespace-nowrap">{{ app.id }}</td>
+                  <td class="py-2.5 px-3 font-medium text-slate-900 whitespace-nowrap">{{ app.fullName }}</td>
+                  <td class="py-2.5 px-3 text-slate-500 min-w-[160px]">{{ app.schoolName }}</td>
+                  <td class="py-2.5 px-3 text-center font-medium text-slate-900 whitespace-nowrap">
                     {{ app.selection.cbtScore }}
                   </td>
-                  <td class="py-2.5 px-3">
-                    <span
-                      class="px-2 py-0.5 rounded text-[10px] font-bold"
-                      :class="app.selection.passedStatus === 'passed' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'"
-                    >
+                  <td class="py-2.5 px-3 whitespace-nowrap">
+                    <span class="text-xs font-medium text-slate-800 whitespace-nowrap">
                       {{ app.selection.passedStatus === 'passed' ? 'Lulus Seleksi' : 'Evaluasi' }}
                     </span>
                   </td>
@@ -539,15 +502,30 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useAdminStore } from '@/stores/admin';
 import { PRODI_METADATA } from '@/stores/applicant';
 import BarChart from '@/components/charts/BarChart.vue';
 
+const props = defineProps({
+  currentRole: {
+    type: String,
+    default: () => localStorage.getItem('bth_admin_rbac_role') || 'superadmin',
+  },
+});
+
 const adminStore = useAdminStore();
-const currentLevel = ref('university');
+const currentLevel = ref(props.currentRole === 'prodi' ? 'prodi' : 'university');
 const selectedFaculty = ref('Fakultas Farmasi');
 const selectedProdi = ref('S1 Farmasi');
+
+watch(() => props.currentRole, (newRole) => {
+  if (newRole === 'prodi') {
+    currentLevel.value = 'prodi';
+  } else if (newRole === 'pimpinan') {
+    currentLevel.value = 'university';
+  }
+});
 
 const prodiNames = Object.keys(PRODI_METADATA);
 
@@ -580,9 +558,20 @@ const formattedTotalRevenue = computed(() => {
 
 // Ringkasan 3 Fakultas - Dinamis murni
 const facultySummaries = computed(() => {
-  const fac1Applicants = adminStore.applicants.filter((a) => a.faculty?.includes('Farmasi') || a.prodi1?.includes('Farmasi'));
-  const fac2Applicants = adminStore.applicants.filter((a) => a.faculty?.includes('Teknologi') || a.prodi1?.includes('Teknologi') || a.prodi1?.includes('Bisnis'));
-  const fac3Applicants = adminStore.applicants.filter((a) => a.faculty?.includes('Kesehatan') || a.prodi1?.includes('Kesehatan') || a.prodi1?.includes('Analis') || a.prodi1?.includes('Administrasi'));
+  const fac1Prodis = ['S1 Farmasi', 'D3 Farmasi'];
+  const fac2Prodis = ['S1 Teknologi Informasi', 'S1 Manajemen Bisnis Informasi'];
+  const fac3Prodis = ['S1 Administrasi RS', 'D3 Analis Kesehatan (TLM)'];
+
+  const fac1Applicants = adminStore.applicants.filter((a) => fac1Prodis.includes(a.prodi1) || (a.faculty && a.faculty.includes('Farmasi')));
+  const fac2Applicants = adminStore.applicants.filter((a) => fac2Prodis.includes(a.prodi1) || (a.faculty && (a.faculty.includes('Teknologi') || a.faculty.includes('Bisnis'))));
+  const fac3Applicants = adminStore.applicants.filter((a) => fac3Prodis.includes(a.prodi1) || (a.faculty && (a.faculty.includes('Kesehatan') || a.faculty.includes('Analis') || a.faculty.includes('Administrasi'))));
+
+  const fac1P1 = adminStore.applicants.filter((a) => fac1Prodis.includes(a.prodi1)).length;
+  const fac1P2 = adminStore.applicants.filter((a) => fac1Prodis.includes(a.prodi2)).length;
+  const fac2P1 = adminStore.applicants.filter((a) => fac2Prodis.includes(a.prodi1)).length;
+  const fac2P2 = adminStore.applicants.filter((a) => fac2Prodis.includes(a.prodi2)).length;
+  const fac3P1 = adminStore.applicants.filter((a) => fac3Prodis.includes(a.prodi1)).length;
+  const fac3P2 = adminStore.applicants.filter((a) => fac3Prodis.includes(a.prodi2)).length;
 
   const fac1Passed = fac1Applicants.filter((a) => a.selection?.passedStatus === 'passed').length;
   const fac2Passed = fac2Applicants.filter((a) => a.selection?.passedStatus === 'passed').length;
@@ -592,8 +581,10 @@ const facultySummaries = computed(() => {
     {
       name: 'Fakultas Farmasi',
       quota: 240,
-      prodis: ['S1 Farmasi', 'D3 Farmasi'],
+      prodis: fac1Prodis,
       totalApplicants: fac1Applicants.length,
+      pilihan1Count: fac1P1,
+      pilihan2Count: fac1P2,
       passedCount: fac1Passed,
       fillPercent: fac1Applicants.length ? Math.round((fac1Applicants.length / 240) * 100) : 0,
       color: 'bg-[#1E3A8A]',
@@ -601,20 +592,24 @@ const facultySummaries = computed(() => {
     {
       name: 'Fakultas Teknologi & Bisnis',
       quota: 140,
-      prodis: ['S1 Teknologi Informasi', 'S1 Manajemen Bisnis Informasi'],
+      prodis: fac2Prodis,
       totalApplicants: fac2Applicants.length,
+      pilihan1Count: fac2P1,
+      pilihan2Count: fac2P2,
       passedCount: fac2Passed,
       fillPercent: fac2Applicants.length ? Math.round((fac2Applicants.length / 140) * 100) : 0,
-      color: 'bg-[#2563EB]',
+      color: 'bg-[#1E3A8A]',
     },
     {
       name: 'Fakultas Ilmu Kesehatan',
       quota: 120,
-      prodis: ['S1 Administrasi RS', 'D3 Analis Kesehatan (TLM)'],
+      prodis: fac3Prodis,
       totalApplicants: fac3Applicants.length,
+      pilihan1Count: fac3P1,
+      pilihan2Count: fac3P2,
       passedCount: fac3Passed,
       fillPercent: fac3Applicants.length ? Math.round((fac3Applicants.length / 120) * 100) : 0,
-      color: 'bg-emerald-600',
+      color: 'bg-[#1E3A8A]',
     },
   ];
 });
@@ -777,5 +772,79 @@ const activeProdiInfo = computed(() => {
 
 const activeProdiApplicants = computed(() => {
   return adminStore.applicants.filter((a) => a.prodi1 === selectedProdi.value);
+});
+
+// Demografi Asal Sekolah & Wilayah Dinamis
+const poolForDemographics = computed(() => {
+  if (activeProdiApplicants.value.length > 0) return activeProdiApplicants.value;
+  return adminStore.applicants;
+});
+
+const schoolDemographics = computed(() => {
+  const list = poolForDemographics.value;
+  const total = list.length || 1;
+  let sma = 0;
+  let smk = 0;
+  let ma = 0;
+
+  list.forEach((a) => {
+    const s = (a.schoolName || '').toUpperCase();
+    if (s.includes('SMA')) {
+      sma++;
+    } else if (s.includes('SMK')) {
+      smk++;
+    } else if (s.startsWith('MA ') || s.includes(' MA ') || s.includes('MADRASAH') || s.includes('MAN ')) {
+      ma++;
+    } else {
+      sma++;
+    }
+  });
+
+  const smaPct = Math.round((sma / total) * 100);
+  const smkPct = Math.round((smk / total) * 100);
+  const maPct = Math.max(0, 100 - smaPct - smkPct);
+
+  return {
+    smaCount: sma,
+    smaPercent: smaPct,
+    smkCount: smk,
+    smkPercent: smkPct,
+    maCount: ma,
+    maPercent: maPct,
+  };
+});
+
+const geoDemographics = computed(() => {
+  const list = poolForDemographics.value;
+  const total = list.length || 1;
+  let tasik = 0;
+  let ciamisBanjar = 0;
+  let garutPangandaran = 0;
+  let luar = 0;
+
+  list.forEach((a) => {
+    const c = (a.city || a.schoolName || '').toLowerCase();
+    if (c.includes('tasikmalaya') || c.includes('singaparna')) {
+      tasik++;
+    } else if (c.includes('ciamis') || c.includes('banjar')) {
+      ciamisBanjar++;
+    } else if (c.includes('garut') || c.includes('pangandaran')) {
+      garutPangandaran++;
+    } else {
+      luar++;
+    }
+  });
+
+  const tasikPct = Math.round((tasik / total) * 100);
+  const ciamisPct = Math.round((ciamisBanjar / total) * 100);
+  const garutPct = Math.round((garutPangandaran / total) * 100);
+  const luarPct = Math.max(0, 100 - tasikPct - ciamisPct - garutPct);
+
+  return [
+    { label: 'Kota & Kab. Tasikmalaya', count: tasik, percent: tasikPct },
+    { label: 'Kab. Ciamis & Kota Banjar', count: ciamisBanjar, percent: ciamisPct },
+    { label: 'Kab. Garut & Pangandaran', count: garutPangandaran, percent: garutPct },
+    { label: 'Luar Priangan Timur', count: luar, percent: luarPct },
+  ];
 });
 </script>

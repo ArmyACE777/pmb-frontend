@@ -17,65 +17,93 @@
       </div>
     </div>
 
-    <!-- 4 KPI Cards Grid: Bersih, Rapi, Tipografi Kuat Tanpa Icon Box Mengambang -->
+    <!-- 4 KPI Cards Grid: Bersih, Rapi, Tipografi Kuat, dan Terhubung ke Meja Kerja Operasional -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <!-- Card 1: Total Pendaftar -->
-      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
-        <div class="text-xs font-medium text-slate-500 font-sans">Total Pendaftar</div>
+      <div
+        @click="emit('switch-desk', 'verification')"
+        class="bg-white rounded-xl p-5 border border-slate-200 shadow-xs flex flex-col justify-between cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all group"
+        title="Klik untuk membuka Meja Verifikasi Pendaftar"
+      >
+        <div class="flex items-center justify-between text-xs font-medium text-slate-500 font-sans">
+          <span>Total Pendaftar</span>
+          <span class="text-[11px] text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity font-semibold">Buka &rarr;</span>
+        </div>
         <div class="mt-2">
-          <div class="font-sora font-extrabold text-2xl sm:text-3xl text-slate-900">
+          <div class="font-sora font-extrabold text-2xl sm:text-3xl text-slate-900 group-hover:text-[#1E3A8A] transition-colors">
             {{ adminStore.totalApplicants.toLocaleString('id-ID') }}
           </div>
           <div class="text-[11px] text-slate-500 mt-1 font-sans">
-            Akun calon mahasiswa terdaftar
+            Calon mahasiswa terdaftar
           </div>
         </div>
       </div>
 
       <!-- Card 2: Berkas Pending -->
-      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
-        <div class="text-xs font-medium text-slate-500 font-sans">Antrean Verifikasi Berkas</div>
+      <div
+        @click="emit('switch-desk', 'verification')"
+        class="bg-white rounded-xl p-5 border border-slate-200 shadow-xs flex flex-col justify-between cursor-pointer hover:border-amber-300 hover:shadow-sm transition-all group"
+        title="Klik untuk memvalidasi berkas calon mahasiswa"
+      >
+        <div class="flex items-center justify-between text-xs font-medium text-slate-500 font-sans">
+          <span>Antrean Verifikasi Berkas</span>
+          <span class="text-[11px] text-amber-700 opacity-0 group-hover:opacity-100 transition-opacity font-semibold">Validasi &rarr;</span>
+        </div>
         <div class="mt-2">
-          <div class="font-sora font-extrabold text-2xl sm:text-3xl text-amber-600">
+          <div class="font-sora font-extrabold text-2xl sm:text-3xl text-slate-900 group-hover:text-amber-600 transition-colors">
             {{ adminStore.pendingVerificationCount }} <span class="text-sm font-normal text-slate-500 font-sans">Berkas</span>
           </div>
           <div class="text-[11px] text-slate-500 mt-1 font-sans">
-            Menunggu validasi tim panitia
+            Menunggu validasi berkas
           </div>
         </div>
       </div>
 
       <!-- Card 3: Penerimaan Dana -->
-      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
-        <div class="text-xs font-medium text-slate-500 font-sans">Penerimaan Pembayaran</div>
+      <div
+        @click="emit('switch-desk', 'finance')"
+        class="bg-white rounded-xl p-5 border border-slate-200 shadow-xs flex flex-col justify-between cursor-pointer hover:border-emerald-300 hover:shadow-sm transition-all group"
+        title="Klik untuk membuka Meja Rekonsiliasi Keuangan"
+      >
+        <div class="flex items-center justify-between text-xs font-medium text-slate-500 font-sans">
+          <span>Penerimaan Pembayaran</span>
+          <span class="text-[11px] text-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity font-semibold">Keuangan &rarr;</span>
+        </div>
         <div class="mt-2">
-          <div class="font-sora font-extrabold text-xl sm:text-2xl text-[#1E3A8A]">
+          <div class="font-sora font-extrabold text-xl sm:text-2xl text-slate-900 group-hover:text-emerald-700 transition-colors">
             {{ formattedRevenue }}
           </div>
-          <div class="text-[11px] text-emerald-700 mt-1 font-sans">
+          <div class="text-[11px] text-slate-500 mt-1 font-sans">
             Formulir & UKT terverifikasi
           </div>
         </div>
       </div>
 
       <!-- Card 4: Mahasiswa Diterima -->
-      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
-        <div class="text-xs font-medium text-slate-500 font-sans">Dinyatakan Lulus Seleksi</div>
+      <div
+        @click="emit('switch-desk', 'scoring')"
+        class="bg-white rounded-xl p-5 border border-slate-200 shadow-xs flex flex-col justify-between cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all group"
+        title="Klik untuk membuka Meja Seleksi & Kelulusan"
+      >
+        <div class="flex items-center justify-between text-xs font-medium text-slate-500 font-sans">
+          <span>Dinyatakan Lulus Seleksi</span>
+          <span class="text-[11px] text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity font-semibold">Seleksi &rarr;</span>
+        </div>
         <div class="mt-2">
-          <div class="font-sora font-extrabold text-2xl sm:text-3xl text-slate-900">
+          <div class="font-sora font-extrabold text-2xl sm:text-3xl text-slate-900 group-hover:text-[#1E3A8A] transition-colors">
             {{ adminStore.passedStudentsCount }} <span class="text-sm font-normal text-slate-500 font-sans">Maba</span>
           </div>
           <div class="text-[11px] text-slate-500 mt-1 font-sans">
-            Tingkat kelulusan seleksi {{ passRatePercent }}%
+            Tingkat kelulusan {{ passRatePercent }}%
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Charts Section: Visualisasi Data Interaktif -->
+    <!-- Charts Section: Visualisasi Data Ringkas -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Chart 1: Distribusi Peminat per Program Studi (Doughnut) -->
-      <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+      <div class="bg-white rounded-xl p-5 sm:p-6 border border-slate-200 shadow-xs flex flex-col justify-between">
         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
             <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
@@ -99,12 +127,12 @@
         </div>
 
         <div class="text-[11px] text-slate-400 text-center pt-2 border-t border-slate-100 font-sans">
-          Diperbarui otomatis dari database akun calon mahasiswa Universitas BTH
+          Data registrasi calon mahasiswa Universitas BTH
         </div>
       </div>
 
       <!-- Chart 2: Funnel Konversi Alur Seleksi PMB (Bar Horizontal) -->
-      <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+      <div class="bg-white rounded-xl p-5 sm:p-6 border border-slate-200 shadow-xs flex flex-col justify-between">
         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
             <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
@@ -125,67 +153,41 @@
         </div>
 
         <div class="text-[11px] text-slate-400 text-center pt-2 border-t border-slate-100 font-sans">
-          Tingkat konversi pendaftar ke mahasiswa resmi (NIM): {{ conversionRatePercent }}%
+          Konversi ke mahasiswa resmi (NIM): {{ conversionRatePercent }}%
         </div>
       </div>
     </div>
 
-    <!-- Kuota Program Studi & Log Aktivitas Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Kuota Pendaftaran per Prodi (Col 2) -->
-      <div class="lg:col-span-2 bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-          <div>
-            <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
-              Distribusi Peminat & Keterisian Kuota Gelombang 1
-            </h3>
-            <p class="text-xs text-slate-500 font-sans mt-0.5">Kapasitas daya tampung program studi aktif.</p>
-          </div>
-          <span class="text-xs text-slate-500 font-medium font-sans">Batas Kuota TA 2026/2027</span>
+    <!-- Kuota Program Studi (Full Width, Bersih & Terstruktur) -->
+    <div class="bg-white rounded-xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
+            Keterisian Daya Tampung Program Studi
+          </h3>
+          <p class="text-xs text-slate-500 font-sans mt-0.5">Pemantauan kuota penerimaan mahasiswa baru per program studi TA 2026/2027.</p>
         </div>
-
-        <div class="space-y-4 text-xs font-sans">
-          <div v-for="item in prodiQuotas" :key="item.name" class="space-y-1.5">
-            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2">
-              <span class="font-sora font-semibold text-slate-800">{{ item.name }}</span>
-              <span class="text-slate-500 flex-shrink-0 text-[11px] sm:text-xs">
-                <strong class="text-slate-900">{{ item.enrolled }}</strong> / {{ item.quota }} Kursi ({{ item.percent }}%)
-              </span>
-            </div>
-            <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div
-                class="h-full rounded-full transition-all duration-500"
-                :class="item.color"
-                :style="{ width: `${item.percent}%` }"
-              ></div>
-            </div>
-          </div>
-        </div>
+        <span class="text-xs text-slate-400 font-sans">Gelombang 1</span>
       </div>
 
-      <!-- Log Aktivitas Terkini Panitia (Col 1) -->
-      <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-          <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
-            Log Aktivitas Panitia PMB
-          </h3>
-          <span class="text-[11px] text-slate-400 font-medium font-sans">Terkini</span>
-        </div>
-
-        <div class="space-y-3 text-xs">
-          <div
-            v-for="(act, idx) in recentActivities"
-            :key="idx"
-            class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1"
-          >
-            <div class="flex justify-between items-center">
-              <span class="font-bold" :class="act.color">{{ act.title }}</span>
-              <span class="text-[10px] text-slate-400">{{ act.time }}</span>
-            </div>
-            <p class="text-slate-600 leading-relaxed">{{ act.desc }}</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs font-sans">
+        <div v-for="item in prodiQuotas" :key="item.name" class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+          <div class="flex justify-between items-start gap-2">
+            <span class="font-sora font-semibold text-slate-800 text-xs">{{ item.name }}</span>
+            <span class="text-slate-500 text-[11px] font-mono flex-shrink-0">
+              <strong class="text-slate-900">{{ item.enrolled }}</strong>/{{ item.quota }}
+            </span>
           </div>
-          <div v-if="!recentActivities.length" class="p-4 text-center text-slate-400 italic">
-            Belum ada aktivitas baru tercatat.
+          <div class="w-full h-1.5 bg-slate-200/70 rounded-full overflow-hidden">
+            <div
+              class="h-full rounded-full transition-all duration-500"
+              :class="item.color"
+              :style="{ width: `${item.percent}%` }"
+            ></div>
+          </div>
+          <div class="flex justify-between items-center text-[11px] text-slate-400">
+            <span>Terisi {{ item.percent }}%</span>
+            <span>Sisa {{ item.quota - item.enrolled }} kursi</span>
           </div>
         </div>
       </div>
@@ -198,6 +200,15 @@ import { computed } from 'vue';
 import { useAdminStore } from '@/stores/admin';
 import DoughnutChart from '@/components/charts/DoughnutChart.vue';
 import BarChart from '@/components/charts/BarChart.vue';
+
+const props = defineProps({
+  currentRole: {
+    type: String,
+    default: 'superadmin',
+  },
+});
+
+const emit = defineEmits(['switch-desk']);
 
 const adminStore = useAdminStore();
 
@@ -298,37 +309,6 @@ const funnelBarData = computed(() => {
       },
     ],
   };
-});
-
-const recentActivities = computed(() => {
-  const list = [];
-  adminStore.applicants.forEach((a) => {
-    if (a.onboarding?.nim) {
-      list.push({
-        title: 'Penerbitan NIM Mahasiswa',
-        time: 'Terkini',
-        color: 'text-indigo-700',
-        desc: `NIM ${a.onboarding.nim} resmi diterbitkan untuk ${a.fullName} (${a.prodi1}).`,
-      });
-    }
-    if (a.payments?.uktFee?.status === 'paid') {
-      list.push({
-        title: 'Pelunasan UKT Mahasiswa',
-        time: a.payments.uktFee.paidAt || 'Terkini',
-        color: 'text-emerald-700',
-        desc: `Pelunasan UKT Semester 1 Rp ${a.payments.uktFee.amount?.toLocaleString('id-ID')} atas nama ${a.fullName}.`,
-      });
-    }
-    if (a.documentStatus === 'verified') {
-      list.push({
-        title: 'Verifikasi Dokumen',
-        time: 'Terverifikasi',
-        color: 'text-slate-800',
-        desc: `Berkas persyaratan PMB atas nama ${a.fullName} telah disetujui panitia.`,
-      });
-    }
-  });
-  return list.slice(0, 4);
 });
 
 // Kuota murni tanpa angka dummy base

@@ -4,24 +4,6 @@
     subheadline="Silakan masukkan email dan kata sandi terdaftar Anda."
   >
     <div class="w-full">
-      <!-- Error Alert -->
-      <div
-        v-if="errorMessage"
-        class="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-xl text-xs mb-4 flex items-start gap-2 animate-fadeIn"
-      >
-        <span class="text-sm">⚠️</span>
-        <div class="leading-relaxed flex-1">{{ errorMessage }}</div>
-      </div>
-
-      <!-- Success Alert -->
-      <div
-        v-if="successMessage"
-        class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-3 py-2 rounded-xl text-xs mb-4 flex items-start gap-2 animate-fadeIn"
-      >
-        <span class="text-sm">✓</span>
-        <div class="leading-relaxed flex-1">{{ successMessage }}</div>
-      </div>
-
       <form @submit.prevent="handleLogin" class="space-y-3">
         <!-- Email Input -->
         <div>
@@ -55,8 +37,10 @@
             <button
               type="button"
               @click="showPassword = !showPassword"
-              class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700 transition-colors"
+              tabindex="-1"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700 transition-colors focus:outline-none cursor-pointer"
               :title="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
+              :aria-label="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
             >
               <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -89,11 +73,11 @@
         </div>
 
         <!-- Submit Button -->
-        <div class="pt-1">
+        <div class="pt-1.5">
           <button
             type="submit"
             :disabled="isLoading || isGoogleLoading"
-            class="w-full h-10.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow-sm active:scale-[0.99] transition-all flex justify-center items-center gap-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer"
+            class="w-full py-3 sm:py-3.5 px-4 min-h-[46px] sm:min-h-[48px] bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-sm rounded-xl shadow-xs hover:shadow-sm active:scale-[0.99] transition-all flex justify-center items-center gap-2.5 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer"
           >
             <span v-if="!isLoading">Masuk</span>
             <span v-else class="flex items-center gap-2">
@@ -104,9 +88,9 @@
         </div>
 
         <!-- Divider Atau -->
-        <div class="relative my-2.5 flex items-center justify-center">
-          <div class="w-full border-t border-slate-200/80"></div>
-          <span class="absolute bg-white px-2.5 text-[11px] font-sans text-slate-400">
+        <div class="relative my-3 sm:my-3.5 flex items-center justify-center">
+          <div class="w-full border-t border-slate-200/90"></div>
+          <span class="absolute bg-white px-3 text-xs font-sans text-slate-400">
             atau
           </span>
         </div>
@@ -117,12 +101,12 @@
             type="button"
             @click="handleGoogleLogin"
             :disabled="isGoogleLoading || isLoading"
-            class="w-full h-10.5 bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-slate-300 text-slate-700 font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-2xs hover:shadow-xs active:scale-[0.99] transition-all flex justify-center items-center gap-2.5 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            class="w-full py-3 sm:py-3.5 px-4 min-h-[46px] sm:min-h-[48px] bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-sora font-semibold text-sm rounded-xl shadow-xs hover:shadow-sm active:scale-[0.99] transition-all flex justify-center items-center gap-3 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <img
               src="/images/icons/google.svg"
               alt="Logo Google"
-              class="w-4 h-4 sm:w-4.5 sm:h-4.5 object-contain flex-shrink-0"
+              class="w-5 h-5 object-contain flex-shrink-0"
             />
             <span v-if="!isGoogleLoading">Masuk dengan Google</span>
             <span v-else class="flex items-center gap-2 text-slate-500">
@@ -152,11 +136,13 @@ import { ref, onMounted } from 'vue';
 import { useRouter, useRoute, RouterLink } from 'vue-router';
 import { Loader2 } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
+import { useToast } from '@/composables/useToast';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const toast = useToast();
 
 const email = ref('');
 const password = ref('');
@@ -164,37 +150,37 @@ const rememberMe = ref(false);
 const showPassword = ref(false);
 const isLoading = ref(false);
 const isGoogleLoading = ref(false);
-const errorMessage = ref('');
-const successMessage = ref('');
 
 onMounted(() => {
   if (route.query.registered === 'true') {
-    successMessage.value = 'Akun Anda berhasil diverifikasi! Silakan masuk ke portal.';
+    toast.success('Akun Anda berhasil diverifikasi. Silakan masuk ke portal.');
   }
   if (route.query.reset === 'true') {
-    successMessage.value = 'Kata sandi berhasil diperbarui! Silakan masuk dengan kata sandi baru.';
+    toast.success('Kata sandi berhasil diperbarui. Silakan masuk dengan kata sandi baru.');
   }
   if (route.query.session === 'revoked') {
-    errorMessage.value = 'Sesi Anda telah berakhir. Silakan masuk kembali.';
+    toast.warning('Sesi Anda telah berakhir. Silakan masuk kembali.');
+  }
+  if (route.query.logout === 'true') {
+    toast.info('Anda telah keluar dari akun.');
   }
 });
 
 const handleLogin = async () => {
   isLoading.value = true;
-  errorMessage.value = '';
   try {
     await authStore.login(email.value, password.value);
     const redirectUrl = route.query.redirect;
     if (redirectUrl) {
       router.push(redirectUrl);
-    } else if (authStore.isSuperAdmin) {
+    } else if (authStore.isAdmin) {
       router.push('/admin');
     } else {
       router.push('/dashboard');
     }
   } catch (err) {
     if (err.code === 'ERR_NETWORK' || !err.response) {
-      errorMessage.value = 'Tidak dapat terhubung ke server backend. Pastikan layanan backend berjalan.';
+      toast.error('Tidak dapat terhubung ke server backend. Pastikan layanan backend aktif.');
       return;
     }
     const data = err.response?.data;
@@ -206,14 +192,14 @@ const handleLogin = async () => {
       return;
     }
     if (data?.error_code === 'TOO_MANY_ATTEMPTS') {
-      errorMessage.value = 'Terlalu banyak percobaan gagal. Akun dikunci sementara selama 15 menit demi keamanan.';
+      toast.error('Terlalu banyak percobaan gagal. Akun dikunci sementara selama 15 menit.');
       return;
     }
     if (data?.error_code === 'ACCOUNT_INACTIVE') {
-      errorMessage.value = 'Akun Anda dinonaktifkan oleh administrator. Silakan hubungi sekretariat PMB.';
+      toast.error('Akun Anda dinonaktifkan oleh administrator. Silakan hubungi sekretariat PMB.');
       return;
     }
-    errorMessage.value = data?.message || 'Email atau kata sandi tidak sesuai.';
+    toast.error(data?.message || 'Email atau kata sandi tidak sesuai.');
   } finally {
     isLoading.value = false;
   }
@@ -221,10 +207,9 @@ const handleLogin = async () => {
 
 const handleGoogleLogin = () => {
   isGoogleLoading.value = true;
-  errorMessage.value = '';
   setTimeout(() => {
     isGoogleLoading.value = false;
-    errorMessage.value = 'Fitur Masuk dengan Akun Google (SSO) sedang dalam tahap sinkronisasi domain kampus @bth.ac.id. Silakan masuk menggunakan email dan kata sandi terdaftar.';
-  }, 500);
+    toast.info('Layanan masuk Google SSO sedang disinkronkan dengan domain kampus.');
+  }, 300);
 };
 </script>

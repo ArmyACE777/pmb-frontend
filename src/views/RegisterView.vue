@@ -5,17 +5,6 @@
     cardMaxWidth="max-w-[450px]"
   >
     <div class="w-full">
-      <!-- Error Alert -->
-      <div
-        v-if="errorMessage"
-        class="bg-red-50/90 border border-red-200 text-red-700 px-3.5 py-2.5 rounded-xl text-xs mb-4 flex items-start gap-2.5 animate-fadeIn shadow-xs"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-        </svg>
-        <div class="leading-relaxed flex-1">{{ errorMessage }}</div>
-      </div>
-
       <form @submit.prevent="handleRegister" class="space-y-3">
         <!-- Nama Lengkap Input -->
         <div>
@@ -108,7 +97,10 @@
             <button
               type="button"
               @click="showPassword = !showPassword"
-              class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+              tabindex="-1"
+              class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors focus:outline-none cursor-pointer"
+              :title="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
+              :aria-label="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
             >
               <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -158,7 +150,10 @@
             <button
               type="button"
               @click="showPasswordConfirm = !showPasswordConfirm"
-              class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+              tabindex="-1"
+              class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors focus:outline-none cursor-pointer"
+              :title="showPasswordConfirm ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
+              :aria-label="showPasswordConfirm ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
             >
               <svg v-if="!showPasswordConfirm" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -171,7 +166,7 @@
             </button>
           </div>
           <p v-if="passwordsMismatch" class="text-[11px] text-red-600 mt-1 font-medium">
-            ⚠️ Konfirmasi kata sandi tidak cocok.
+            Konfirmasi kata sandi tidak cocok.
           </p>
         </div>
 
@@ -191,11 +186,11 @@
         </div>
 
         <!-- Tombol Submit -->
-        <div class="pt-1">
+        <div class="pt-1.5">
           <button
             type="submit"
             :disabled="isLoading || isGoogleLoading || !termsAgreed || passwordsMismatch"
-            class="w-full py-2.5 sm:py-3 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow-sm active:scale-[0.99] transition-all flex justify-center items-center gap-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer"
+            class="w-full py-3 sm:py-3.5 px-4 min-h-[46px] sm:min-h-[48px] bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-sm rounded-xl shadow-xs hover:shadow-sm active:scale-[0.99] transition-all flex justify-center items-center gap-2.5 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer"
           >
             <span v-if="!isLoading">Daftar Akun PMB</span>
             <span v-else class="flex items-center gap-2">
@@ -206,9 +201,9 @@
         </div>
 
         <!-- Divider Atau -->
-        <div class="relative my-2.5 flex items-center justify-center">
-          <div class="w-full border-t border-slate-200/80"></div>
-          <span class="absolute bg-white px-2.5 text-[11px] font-sans text-slate-400">
+        <div class="relative my-3 sm:my-3.5 flex items-center justify-center">
+          <div class="w-full border-t border-slate-200/90"></div>
+          <span class="absolute bg-white px-3 text-xs font-sans text-slate-400">
             atau
           </span>
         </div>
@@ -219,12 +214,12 @@
             type="button"
             @click="handleGoogleRegister"
             :disabled="isGoogleLoading || isLoading"
-            class="w-full py-2.5 sm:py-2.5 bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-slate-300 text-slate-700 font-sora font-semibold text-xs sm:text-sm rounded-xl shadow-2xs hover:shadow-xs active:scale-[0.99] transition-all flex justify-center items-center gap-2.5 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            class="w-full py-3 sm:py-3.5 px-4 min-h-[46px] sm:min-h-[48px] bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-sora font-semibold text-sm rounded-xl shadow-xs hover:shadow-sm active:scale-[0.99] transition-all flex justify-center items-center gap-3 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <img
               src="/images/icons/google.svg"
               alt="Logo Google"
-              class="w-4 h-4 sm:w-4.5 sm:h-4.5 object-contain flex-shrink-0"
+              class="w-5 h-5 object-contain flex-shrink-0"
             />
             <span v-if="!isGoogleLoading">Daftar dengan Google</span>
             <span v-else class="flex items-center gap-2 text-slate-500">
@@ -254,10 +249,12 @@ import { ref, reactive, computed } from 'vue';
 import { useRouter, RouterLink } from 'vue-router';
 import { Loader2 } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
+import { useToast } from '@/composables/useToast';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const toast = useToast();
 
 const form = reactive({
   full_name: '',
@@ -272,7 +269,6 @@ const showPassword = ref(false);
 const showPasswordConfirm = ref(false);
 const isLoading = ref(false);
 const isGoogleLoading = ref(false);
-const errorMessage = ref('');
 
 // Password validation checks
 const hasMinLength = computed(() => form.password.length >= 8);
@@ -327,22 +323,21 @@ const passwordsMismatch = computed(() => {
 
 const handleRegister = async () => {
   if (form.password !== form.password_confirmation) {
-    errorMessage.value = 'Konfirmasi kata sandi tidak cocok.';
+    toast.error('Konfirmasi kata sandi tidak cocok.');
     return;
   }
 
   if (form.password.length < 8) {
-    errorMessage.value = 'Kata sandi minimal 8 karakter.';
+    toast.error('Kata sandi minimal 8 karakter.');
     return;
   }
 
   if (!hasLetters.value || !hasDigits.value) {
-    errorMessage.value = 'Kata sandi harus mengandung kombinasi huruf dan angka.';
+    toast.error('Kata sandi harus mengandung kombinasi huruf dan angka.');
     return;
   }
 
   isLoading.value = true;
-  errorMessage.value = '';
 
   try {
     await authStore.register({
@@ -357,31 +352,30 @@ const handleRegister = async () => {
       localStorage.setItem('bth_pending_verification_email', form.email.trim());
     } catch (e) {}
 
+    toast.success('Pendaftaran akun berhasil. Silakan verifikasi email Anda.');
     router.push({
       path: '/verify-otp',
       query: { email: form.email, sent: 'true' },
     });
   } catch (err) {
     if (err.code === 'ERR_NETWORK' || !err.response) {
-      errorMessage.value = 'Tidak dapat terhubung ke server autentikasi. Pastikan sistem backend sedang berjalan.';
+      toast.error('Tidak dapat terhubung ke server autentikasi. Pastikan koneksi internet aktif.');
       return;
     }
     const data = err.response?.data;
     if (data?.error_code === 'EMAIL_TAKEN' || data?.error_code === 'EMAIL_ALREADY_EXISTS') {
-      errorMessage.value = 'Alamat email ini sudah terdaftar di sistem PMB. Silakan gunakan email lain atau langsung masuk.';
+      toast.error('Alamat email sudah terdaftar di sistem. Silakan gunakan email lain atau masuk ke akun Anda.');
       return;
     }
     if (data?.error_code === 'VALIDATION_ERROR' && data?.errors) {
       const errList = Object.entries(data.errors).map(([field, msgs]) => {
-        const fieldName = field === 'full_name' ? 'Nama' : field === 'phone' ? 'No HP' : field === 'password' ? 'Kata Sandi' : field;
+        const fieldName = field === 'full_name' ? 'Nama' : field === 'phone' ? 'Nomor HP' : field === 'password' ? 'Kata Sandi' : field;
         return `${fieldName}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`;
       });
-      errorMessage.value = errList.length > 0 
-        ? errList.join(' | ') 
-        : (data.message || 'Data pendaftaran belum memenuhi syarat validasi server.');
+      toast.error(errList.length > 0 ? errList.join(' | ') : (data.message || 'Data pendaftaran belum memenuhi syarat validasi server.'));
       return;
     }
-    errorMessage.value = data?.message || 'Registrasi gagal diproses. Silakan periksa kembali formulir Anda.';
+    toast.error(data?.message || 'Pendaftaran belum dapat diproses. Mohon periksa kembali formulir Anda.');
   } finally {
     isLoading.value = false;
   }
@@ -389,10 +383,9 @@ const handleRegister = async () => {
 
 const handleGoogleRegister = () => {
   isGoogleLoading.value = true;
-  errorMessage.value = '';
   setTimeout(() => {
     isGoogleLoading.value = false;
-    errorMessage.value = 'Fitur Daftar dengan Akun Google (SSO) sedang dalam tahap sinkronisasi domain kampus @bth.ac.id. Silakan mendaftar menggunakan formulir registrasi di atas.';
-  }, 500);
+    toast.info('Pendaftaran via Google SSO sedang dalam penyesuaian domain kampus. Silakan gunakan formulir pendaftaran.');
+  }, 400);
 };
 </script>

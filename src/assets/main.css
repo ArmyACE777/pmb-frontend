@@ -9,11 +9,21 @@
   --color-secound: #2563EB;
 }
 
-body {
+html, body {
   margin: 0;
   font-family: 'Figtree', sans-serif;
   color: #334155;
   background-color: #f8fafc;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Crisp Modal & Surface Rendering (Avoid Subpixel Font Blurring on Windows) */
+.modal-sharp {
+  transform: translateZ(0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .font-sora {
@@ -71,4 +81,25 @@ body {
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+
+/* Global Table Formatting Guards: Prevent Awkward Word Breaks & Hanging Digits */
+table thead th {
+  white-space: nowrap !important;
+  vertical-align: middle;
+}
+
+td.font-mono, .currency-cell, .tabular-cell {
+  white-space: nowrap !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sembunyikan ikon reveal dan clear bawaan browser (Microsoft Edge & Windows Chromium) */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  pointer-events: none !important;
+}
+
 

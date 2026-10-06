@@ -1,9 +1,9 @@
 <template>
-  <div class="min-h-screen bg-white flex flex-col selection:bg-[#1E3A8A] selection:text-white font-sans antialiased">
-    <div class="min-h-screen flex flex-col lg:flex-row w-full flex-1">
+  <div class="min-h-screen bg-white flex flex-col selection:bg-[#1E3A8A] selection:text-white font-sans antialiased overflow-x-hidden">
+    <div class="min-h-screen lg:h-screen flex flex-col lg:flex-row w-full flex-1 overflow-x-hidden">
       
       <!-- SISI KIRI: Visual Arsitektural Kampus & Identitas Utama (Desktop) -->
-      <aside class="relative hidden lg:flex lg:w-1/2 xl:w-7/12 bg-slate-950 overflow-hidden flex-col justify-between p-10 xl:p-14 sticky top-0 h-screen">
+      <aside class="relative hidden lg:flex lg:w-1/2 xl:w-7/12 bg-slate-950 overflow-hidden flex-col justify-between p-10 xl:p-14 sticky top-0 h-screen flex-shrink-0">
         <!-- Foto Asli Gedung Kampus Universitas BTH (Fokus Seimbang) -->
         <img
           src="/assets/images/bth-campus-bg.jpg"
@@ -51,14 +51,10 @@
       </aside>
 
       <!-- SISI KANAN: Kanvas Formulir (Scrollable & Bebas Terpotong) -->
-      <main class="flex-1 bg-white h-screen overflow-y-auto relative">
-        <!-- Ambient Subtle Color Pemanis Sisi Formulir -->
-        <div class="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-gradient-to-br from-blue-900/[0.03] via-blue-600/[0.015] to-transparent blur-2xl pointer-events-none -z-0"></div>
-        <div class="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-gradient-to-tr from-sky-500/[0.02] to-transparent blur-2xl pointer-events-none -z-0"></div>
-        
-        <div class="min-h-full w-full flex flex-col justify-between items-center px-6 py-5 sm:px-10 sm:py-7 lg:px-12 xl:px-16">
+      <main class="flex-1 bg-slate-50 lg:h-screen overflow-x-hidden overflow-y-auto relative flex flex-col">
+        <div class="min-h-full w-full flex flex-col justify-start sm:justify-between items-center px-5 py-4 sm:px-10 sm:py-5 lg:px-12 xl:px-16 flex-1">
           <!-- Header Ringkas Khusus Mobile (Tampil di Layar HP/Tablet) -->
-          <div class="w-full max-w-[440px] lg:hidden flex items-center justify-between pb-3 mb-2 border-b border-slate-100 flex-shrink-0">
+          <div class="w-full max-w-[440px] lg:hidden flex items-center justify-between pb-3 mb-4 sm:mb-2 border-b border-slate-100 flex-shrink-0">
             <RouterLink to="/login" class="flex items-center gap-2.5">
               <img src="/assets/icons/bth.png" alt="Logo Universitas BTH" class="h-8 w-auto object-contain" />
               <div>
@@ -80,9 +76,9 @@
           <div class="hidden lg:block flex-shrink-0"></div>
 
           <!-- Kontainer Formulir Terpusat -->
-          <div :class="['w-full my-auto py-3 sm:py-4', cardMaxWidth]">
+          <div :class="['w-full my-2 sm:my-auto py-1 sm:py-1.5', cardMaxWidth]">
             <!-- Header Judul Formulir -->
-            <div class="text-left mb-4 sm:mb-5">
+            <div class="text-left mb-3.5 sm:mb-4">
               <h2 class="font-sora text-2xl sm:text-[26px] font-bold text-slate-900 tracking-tight leading-tight">
                 {{ headline }}
               </h2>
@@ -99,7 +95,7 @@
           </div>
 
           <!-- Footer Bersih & Kompak -->
-          <footer class="w-full max-w-[440px] pt-3 pb-2 text-center text-[11px] text-slate-400 font-sans border-t border-slate-100 mt-3 sm:mt-4 flex-shrink-0">
+          <footer class="w-full max-w-[440px] pt-2 pb-1.5 text-center text-[11px] text-slate-400 font-sans border-t border-slate-100 mt-2 sm:mt-2.5 flex-shrink-0">
             <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
               <span>&copy; 2026 Universitas BTH</span>
               <span>•</span>

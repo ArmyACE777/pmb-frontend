@@ -4,24 +4,6 @@
     subheadline="Masukkan alamat email Anda untuk menerima tautan instruksi reset kata sandi."
   >
     <div class="w-full">
-      <!-- Error Alert -->
-      <div
-        v-if="errorMessage"
-        class="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-xl text-xs mb-4 flex items-start gap-2 animate-fadeIn"
-      >
-        <span class="text-sm">⚠️</span>
-        <div class="leading-relaxed flex-1">{{ errorMessage }}</div>
-      </div>
-
-      <!-- Success Alert -->
-      <div
-        v-if="successMessage"
-        class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-3 py-2 rounded-xl text-xs mb-4 flex items-start gap-2 animate-fadeIn"
-      >
-        <span class="text-sm">✓</span>
-        <div class="leading-relaxed flex-1">{{ successMessage }}</div>
-      </div>
-
       <form @submit.prevent="handleForgotPassword" class="space-y-3.5">
         <div>
           <label for="email" class="block font-sans font-medium text-slate-700 text-xs mb-1">
@@ -75,23 +57,21 @@
 import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { useToast } from '@/composables/useToast';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 
 const authStore = useAuthStore();
+const toast = useToast();
 const email = ref('');
 const isLoading = ref(false);
-const errorMessage = ref('');
-const successMessage = ref('');
 
 const handleForgotPassword = async () => {
   isLoading.value = true;
-  errorMessage.value = '';
-  successMessage.value = '';
   try {
     const res = await authStore.forgotPassword(email.value.trim());
-    successMessage.value = res.message || 'Instruksi reset kata sandi telah dikirim ke email Anda. Silakan periksa kotak masuk atau spam.';
+    toast.success(res?.message || 'Instruksi reset kata sandi telah dikirim ke email Anda.');
   } catch (err) {
-    errorMessage.value = err.response?.data?.message || 'Gagal memproses permintaan lupa password.';
+    toast.error(err.response?.data?.message || 'Gagal memproses permintaan reset kata sandi.');
   } finally {
     isLoading.value = false;
   }

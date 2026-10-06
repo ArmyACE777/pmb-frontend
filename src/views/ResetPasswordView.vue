@@ -4,15 +4,6 @@
     subheadline="Masukkan token reset yang Anda terima di email dan tentukan kata sandi baru akun Anda."
   >
     <div class="w-full">
-      <!-- Error Alert -->
-      <div
-        v-if="errorMessage"
-        class="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-xl text-xs mb-4 flex items-start gap-2 animate-fadeIn"
-      >
-        <span class="text-sm">⚠️</span>
-        <div class="leading-relaxed flex-1">{{ errorMessage }}</div>
-      </div>
-
       <form @submit.prevent="handleResetPassword" class="space-y-3.5">
         <!-- Token Input -->
         <div>
@@ -46,8 +37,10 @@
             <button
               type="button"
               @click="showPassword = !showPassword"
-              class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700 transition-colors"
+              tabindex="-1"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700 transition-colors focus:outline-none cursor-pointer"
               :title="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
+              :aria-label="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
             >
               <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -78,8 +71,10 @@
             <button
               type="button"
               @click="showPasswordConfirm = !showPasswordConfirm"
-              class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700 transition-colors"
+              tabindex="-1"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700 transition-colors focus:outline-none cursor-pointer"
               :title="showPasswordConfirm ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
+              :aria-label="showPasswordConfirm ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
             >
               <svg v-if="!showPasswordConfirm" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -128,11 +123,13 @@
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute, RouterLink } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { useToast } from '@/composables/useToast';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const toast = useToast();
 
 const token = ref('');
 const password = ref('');
@@ -140,7 +137,6 @@ const passwordConfirmation = ref('');
 const showPassword = ref(false);
 const showPasswordConfirm = ref(false);
 const isLoading = ref(false);
-const errorMessage = ref('');
 
 onMounted(() => {
   if (route.query.token) {
@@ -150,16 +146,15 @@ onMounted(() => {
 
 const handleResetPassword = async () => {
   if (password.value !== passwordConfirmation.value) {
-    errorMessage.value = 'Konfirmasi kata sandi tidak cocok.';
+    toast.error('Konfirmasi kata sandi tidak cocok.');
     return;
   }
   if (password.value.length < 8) {
-    errorMessage.value = 'Kata sandi minimal 8 karakter.';
+    toast.error('Kata sandi minimal 8 karakter.');
     return;
   }
 
   isLoading.value = true;
-  errorMessage.value = '';
 
   try {
     // Send exact DTO payload matching backend ResetPasswordRequest
@@ -168,18 +163,19 @@ const handleResetPassword = async () => {
       password: password.value,
       password_confirmation: passwordConfirmation.value,
     });
+    toast.success('Kata sandi baru berhasil disimpan. Silakan masuk menggunakan kata sandi Anda.');
     router.push({ path: '/login', query: { reset: 'true' } });
   } catch (err) {
     const data = err.response?.data;
     if (data?.error_code === 'TOKEN_INVALID' || data?.error_code === 'RESET_TOKEN_INVALID') {
-      errorMessage.value = 'Token reset tidak valid atau sudah pernah digunakan.';
+      toast.error('Token reset tidak valid atau sudah pernah digunakan.');
       return;
     }
     if (data?.error_code === 'TOKEN_EXPIRED' || data?.error_code === 'RESET_TOKEN_EXPIRED') {
-      errorMessage.value = 'Token reset sudah kedaluwarsa (berlaku 30 menit). Silakan minta tautan baru.';
+      toast.error('Token reset sudah kedaluwarsa (berlaku 30 menit). Silakan minta tautan baru.');
       return;
     }
-    errorMessage.value = data?.message || 'Gagal mengatur ulang kata sandi. Pastikan token dan data yang diisi valid.';
+    toast.error(data?.message || 'Gagal mengatur ulang kata sandi. Pastikan data yang diisi telah sesuai.');
   } finally {
     isLoading.value = false;
   }

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
 import { useAuthStore } from './auth';
+import { useReferralStore } from './referral';
 import {
   identityApi,
   admissionApi,
@@ -176,11 +177,11 @@ function createInitialState(user) {
         uploadDate: '',
         status: 'unuploaded',
         statusLabel: 'Belum Diunggah',
-        notes: 'Kartu Keluarga terbaru dengan barcode resmi Disdukcapil.',
+        notes: 'Kartu Keluarga terbaru dengan barcode Disdukcapil.',
       },
       {
         id: 'doc-4',
-        title: 'Pas Foto Resmi 4x6',
+        title: 'Pas Foto 4x6',
         category: 'Identitas',
         required: true,
         filename: '',
@@ -204,7 +205,7 @@ function createInitialState(user) {
         uploadDate: '',
         status: 'unuploaded',
         statusLabel: 'Belum Diunggah',
-        notes: 'Surat dokter resmi dari Puskesmas, Rumah Sakit, atau Klinik.',
+        notes: 'Surat dokter dari Puskesmas, Rumah Sakit, atau Klinik.',
       },
     ],
     payments: {
@@ -272,6 +273,24 @@ function createInitialState(user) {
       pkkmbGroup: '',
       siakadAccess: 'Aktif setelah pelunasan UKT',
     },
+    referral: {
+      code: '',
+      picName: '',
+      schoolName: '',
+      appliedAt: null,
+      isApplied: false,
+    },
+    statusLogs: [
+      {
+        id: 'log-1',
+        timestamp: new Date().toISOString(),
+        stage: 'Registrasi Akun',
+        title: 'Akun Calon Mahasiswa Berhasil Dibuat',
+        description: 'Pendaftaran akun resmi sistem PMB Universitas Bakti Tunas Husada berhasil diverifikasi.',
+        status: 'completed',
+        actor: 'Sistem PMB',
+      },
+    ],
   };
 }
 
@@ -305,6 +324,8 @@ export const useApplicantStore = defineStore('applicant', () => {
               registrationFee: { ...(initial.payments.registrationFee || {}), ...(parsed.payments?.registrationFee || {}) },
               uktFee: { ...(initial.payments.uktFee || {}), ...(parsed.payments?.uktFee || {}) }
             },
+            referral: { ...(initial.referral || {}), ...(parsed.referral || {}) },
+            statusLogs: Array.isArray(parsed.statusLogs) && parsed.statusLogs.length > 0 ? parsed.statusLogs : initial.statusLogs,
             schedule: { ...initial.schedule, ...(parsed.schedule || {}) },
             exam: { ...initial.exam, ...(parsed.exam || {}) },
             result: { ...initial.result, ...(parsed.result || {}) },
@@ -422,7 +443,45 @@ export const useApplicantStore = defineStore('applicant', () => {
     return docs.length > 0 && docs.every((d) => d.status === 'verified');
   });
 
+  const isFreeTrack = computed(() => {
+    const regFee = state.value?.payments?.registrationFee;
+    const track = (state.value?.admission?.track || '').toLowerCase();
+    return (
+      regFee?.amount === 0 ||
+      regFee?.scheme === 'free' ||
+      regFee?.isFree === true ||
+      state.value?.admission?.isFreeTrack === true ||
+      track.includes('beasiswa') ||
+      track.includes('kemitraan')
+    );
+  });
+
   const isRegPaymentComplete = computed(() => {
+    // Jika belum memilih program studi atau formulir kosong, belum ada pembayaran formulir yang sah
+    if (!state.value?.admission?.prodi1) {
+      return false;
+    }
+    const backendStatus = state.value?.admission?.backendStatus;
+    if (backendStatus === 'cancelled') {
+      return false;
+    }
+
+    // 1. Jalur Bebas Biaya (Rp 0) atau Kode Referal Kemitraan Sekolah selalu dianggap lunas
+    if (state.value?.referral?.isApplied || isFreeTrack.value) {
+      return true;
+    }
+
+    // 2. Jika backend admission menyatakan status belum bayar (awaiting_payment / draft)
+    if (backendStatus === 'awaiting_payment' || backendStatus === 'draft') {
+      return state.value?.payments?.registrationFee?.status === 'paid';
+    }
+
+    // 3. Status backend yang menandakan pendaftaran sudah melewati tahap pembayaran formulir
+    if (backendStatus === 'form_open' || backendStatus === 'submitted' || backendStatus === 'verified' || backendStatus === 'exam_scheduled') {
+      return true;
+    }
+
+    // 4. Default fallback: cek status pembayaran registrasi di store
     return state.value?.payments?.registrationFee?.status === 'paid';
   });
 
@@ -442,14 +501,22 @@ export const useApplicantStore = defineStore('applicant', () => {
     return state.value?.payments?.uktFee?.status === 'paid';
   });
 
-  // Syarat Fitur Batalkan Pendaftaran (CR Revisian):
-  // Aktif HANYA SEBELUM dia bayar biaya pendaftaran (sudah pilih prodi tapi biaya pendaftaran belum lunas)
+  // Syarat Fitur Batalkan Pendaftaran:
+  // Aktif sebelum ujian dimulai (untuk jalur gratis) atau sebelum pembayaran formulir (jalur berbayar)
   const canCancelAdmission = computed(() => {
-    return !!state.value?.admission?.prodi1 && !isRegPaymentComplete.value;
+    if (isWithdrawn.value) return false;
+    if (!state.value?.admission?.prodi1) return false;
+    if (isExamCompleted.value) return false;
+    if (isFreeTrack.value) {
+      return !state.value?.exam?.status || state.value?.exam?.status === 'not_started';
+    }
+    return !isRegPaymentComplete.value;
   });
 
-  // Jika sudah bayar biaya pendaftaran, pendaftaran terkunci permanen dan tidak bisa dibatalkan
+  // Pendaftaran hanya terkunci jika sudah memilih prodi DAN biaya pendaftaran telah lunas
   const isAdmissionLocked = computed(() => {
+    if (isWithdrawn.value) return false;
+    if (!state.value?.admission?.prodi1) return false;
     return isRegPaymentComplete.value;
   });
 
@@ -474,7 +541,19 @@ export const useApplicantStore = defineStore('applicant', () => {
     return Math.round((completedStepsCount.value / 6) * 100);
   });
 
+  const isWithdrawn = computed(() => {
+    return state.value?.admission?.backendStatus === 'withdrawn';
+  });
+
   const overallStatus = computed(() => {
+    if (isWithdrawn.value) {
+      return {
+        label: 'Telah Mengundurkan Diri',
+        shortLabel: 'Mengundurkan Diri',
+        theme: 'rose',
+        description: 'Pendaftaran Anda di Universitas BTH telah berstatus mengundurkan diri.',
+      };
+    }
     if (isUktPaid.value) {
       return {
         label: 'Mahasiswa Baru Terdaftar',
@@ -741,11 +820,18 @@ export const useApplicantStore = defineStore('applicant', () => {
     state.value.admission.prodi2Faculty = '';
     state.value.admission.prodi2Degree = '';
     state.value.admission.status = 'Pengisian Formulir Pendaftaran';
+    state.value.admission.backendStatus = 'draft';
+    state.value.admission.isDraftReapply = true;
 
-    // Reset nominal tagihan UKT karena prodi dibatalkan
+    // Reset status pembayaran pendaftaran & UKT
+    if (state.value.payments?.registrationFee) {
+      state.value.payments.registrationFee.status = 'unpaid';
+      state.value.payments.registrationFee.paidAt = null;
+      state.value.payments.registrationFee.isFree = false;
+    }
     if (state.value.payments?.uktFee) {
       state.value.payments.uktFee.amount = 0;
-      state.value.payments.uktFee.status = 'pending';
+      state.value.payments.uktFee.status = 'unpaid';
       state.value.payments.uktFee.paidAt = null;
     }
 
@@ -761,7 +847,7 @@ export const useApplicantStore = defineStore('applicant', () => {
 
     return {
       success: true,
-      message: 'Pendaftaran berhasil dibatalkan. Anda dapat memilih kembali jalur pendaftaran dan program studi yang diinginkan.',
+      message: 'Pilihan pendaftaran berhasil dibatalkan. Anda dapat memilih kembali jalur pendaftaran dan program studi yang diinginkan.',
     };
   };
 
@@ -770,6 +856,16 @@ export const useApplicantStore = defineStore('applicant', () => {
    */
   const reapplyNewTrack = async () => {
     // 1. Buka pendaftaran baru dengan tetap menjaga keutuhan biodata profil dan dokumen
+    state.value.admission.backendStatus = '';
+    state.value.admission.applicationId = null;
+    state.value.admission.isDraftReapply = true;
+    withdrawalInfo.value = null;
+    pendingWithdrawal.value = null;
+    if (state.value) {
+      delete state.value.withdrawalInfo;
+      delete state.value.pendingWithdrawal;
+    }
+    state.value.admission.track = '';
     state.value.admission.prodi1 = '';
     state.value.admission.prodi1Code = '';
     state.value.admission.prodi1NimCode = '';
@@ -890,8 +986,10 @@ export const useApplicantStore = defineStore('applicant', () => {
 
       // 2. Admission Service (Pilihan Prodi, Status, & Berkas Dokumen)
       const appRes = await admissionApi.getMyApplications().catch(() => null);
-      if (appRes?.data?.data && appRes.data.data.length > 0) {
-        const app = appRes.data.data[0];
+      const rawAppData = appRes?.data?.data;
+      const app = rawAppData?.active_application || (Array.isArray(rawAppData) ? rawAppData[0] : (rawAppData?.id ? rawAppData : null));
+
+      if (app) {
         if (app.id) state.value.admission.applicationId = app.id;
         if (app.registration_no || app.application_number) {
           state.value.candidate.registrationNumber = app.registration_no || app.application_number;
@@ -941,6 +1039,72 @@ export const useApplicantStore = defineStore('applicant', () => {
             });
           }
         }
+      } else {
+        // Jika tidak ada active_application, cek apakah pendaftar sedang dalam mode draft pendaftaran baru
+        if (!state.value?.admission?.isDraftReapply) {
+          // Cek riwayat pendaftaran apakah berstatus withdrawn
+          const histRes = await admissionApi.getMyHistory().catch(() => null);
+          const historyList = histRes?.data?.data || [];
+          if (historyList.length > 0) {
+            const latestHist = historyList[0];
+            if (latestHist.status === 'withdrawn') {
+              state.value.admission.backendStatus = 'withdrawn';
+              state.value.admission.status = 'Pendaftaran Ditarik (Mengundurkan Diri)';
+              if (latestHist.registration_no) {
+                state.value.candidate.registrationNumber = latestHist.registration_no;
+              }
+              if (latestHist.admission_path?.name) {
+                state.value.admission.track = latestHist.admission_path.name;
+              }
+            }
+          }
+
+          // Cek data pengunduran diri resmi
+          const wRes = await admissionApi.getMyWithdrawal().catch(() => null);
+          if (wRes?.data?.data) {
+            const wd = wRes.data.data;
+            if (wd.status === 'effective' || wd.status === 'approved') {
+              withdrawalInfo.value = wd;
+              state.value.withdrawalInfo = wd;
+              state.value.admission.backendStatus = 'withdrawn';
+              state.value.admission.status = 'Pendaftaran Ditarik (Mengundurkan Diri)';
+              pendingWithdrawal.value = null;
+              if (state.value) delete state.value.pendingWithdrawal;
+            } else if (wd.status === 'pending') {
+              pendingWithdrawal.value = wd;
+              state.value.pendingWithdrawal = wd;
+              withdrawalInfo.value = wd;
+            } else if (wd.status === 'rejected') {
+              rejectedWithdrawal.value = wd;
+              state.value.rejectedWithdrawal = wd;
+              pendingWithdrawal.value = null;
+              withdrawalInfo.value = null;
+              if (state.value) {
+                delete state.value.pendingWithdrawal;
+                delete state.value.withdrawalInfo;
+              }
+            } else {
+              // Status 'cancelled'
+              rejectedWithdrawal.value = null;
+              withdrawalInfo.value = null;
+              pendingWithdrawal.value = null;
+              if (state.value) {
+                delete state.value.withdrawalInfo;
+                delete state.value.pendingWithdrawal;
+                delete state.value.rejectedWithdrawal;
+              }
+            }
+          } else {
+            withdrawalInfo.value = null;
+            pendingWithdrawal.value = null;
+            rejectedWithdrawal.value = null;
+            if (state.value) {
+              delete state.value.withdrawalInfo;
+              delete state.value.pendingWithdrawal;
+              delete state.value.rejectedWithdrawal;
+            }
+          }
+        }
       }
 
       // 3. Finance Service (Tagihan Formulir & UKT)
@@ -955,13 +1119,30 @@ export const useApplicantStore = defineStore('applicant', () => {
 
           if (inv.fee_type === 'registration') {
             state.value.payments.registrationFee.id = inv.id;
-            if (inv.status === 'paid') state.value.payments.registrationFee.status = 'paid';
-            if (inv.amount) state.value.payments.registrationFee.amount = inv.amount;
+            if (inv.status === 'paid') {
+              state.value.payments.registrationFee.status = 'paid';
+              state.value.payments.registrationFee.statusLabel = 'Lunas';
+            } else if (!state.value?.referral?.isApplied && !isFreeTrack.value) {
+              state.value.payments.registrationFee.status = 'pending';
+              state.value.payments.registrationFee.statusLabel = 'Menunggu Pembayaran';
+            }
+            if (inv.amount !== undefined && inv.amount !== null) {
+              state.value.payments.registrationFee.amount = inv.amount;
+            }
+            if (inv.payment_scheme === 'free' || inv.amount === 0) {
+              state.value.payments.registrationFee.isFree = true;
+              state.value.payments.registrationFee.scheme = 'free';
+              state.value.payments.registrationFee.status = 'paid';
+              state.value.payments.registrationFee.paymentMethod = 'Jalur Bebas Biaya (Gratis)';
+              state.value.payments.registrationFee.statusLabel = 'Bebas Biaya (Lunas Otomatis)';
+            }
             if (vaNum) state.value.payments.registrationFee.vaNumber = vaNum;
           } else if (inv.fee_type === 'reregistration') {
             state.value.payments.uktFee.id = inv.id;
             if (inv.status === 'paid') state.value.payments.uktFee.status = 'paid';
-            if (inv.amount) state.value.payments.uktFee.amount = inv.amount;
+            if (inv.amount !== undefined && inv.amount !== null) {
+              state.value.payments.uktFee.amount = inv.amount;
+            }
             if (vaNum) state.value.payments.uktFee.vaNumber = vaNum;
           }
         });
@@ -1004,12 +1185,445 @@ export const useApplicantStore = defineStore('applicant', () => {
         if (s.is_completed) state.value.onboarding.isCompleted = true;
       }
 
+      // 7. Riwayat Pendaftaran & Permohonan Pindah Jalur (CR-006 & CR-005)
+      const pcRes = await admissionApi.getMyPendingPathChange().catch(() => null);
+      if (pcRes?.data?.data && pcRes.data.data.status === 'pending') {
+        const p = pcRes.data.data;
+        pendingPathChange.value = {
+          id: p.id,
+          request_id: p.id,
+          status: 'pending',
+          new_track_name: p.to_path?.name || 'Jalur Pilihan Baru',
+          old_track_name: p.from_path?.name || state.value.admission?.track,
+          reason: p.reason || 'Permohonan perubahan jalur seleksi pendaftaran',
+          submitted_at: p.created_at ? new Date(p.created_at).toLocaleDateString('id-ID') : 'Hari ini',
+          fee_difference: p.fee_difference || 0,
+        };
+        state.value.pendingPathChange = pendingPathChange.value;
+      } else {
+        pendingPathChange.value = null;
+        if (state.value) delete state.value.pendingPathChange;
+      }
+
+      const histRes = await admissionApi.getMyHistory().catch(() => null);
+      if (histRes?.data?.data && Array.isArray(histRes.data.data)) {
+        applicationHistory.value = histRes.data.data;
+      }
+
+      const changesRes = await admissionApi.getMyChanges().catch(() => null);
+      const changes = changesRes?.data?.data?.items || (Array.isArray(changesRes?.data?.data) ? changesRes.data.data : []);
+      if (changes.length > 0) {
+        // Urutkan riwayat perubahan dari yang terbaru (newest first)
+        const sortedChanges = [...changes].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+        const latestPathChange = sortedChanges.find((c) =>
+          c.change_type === 'path_change_requested' ||
+          c.change_type === 'path_change' ||
+          c.change_type === 'path_change_approved' ||
+          c.change_type === 'path_change_rejected' ||
+          c.change_type === 'path_change_cancelled'
+        );
+
+        if (latestPathChange) {
+          if (latestPathChange.change_type === 'path_change_requested' || latestPathChange.change_type === 'path_change') {
+            if (!pendingPathChange.value) {
+              let toVal = {};
+              try {
+                toVal = typeof latestPathChange.to_values === 'string' ? JSON.parse(latestPathChange.to_values) : (latestPathChange.to_values || {});
+              } catch(e) {}
+              pendingPathChange.value = {
+                id: latestPathChange.related_request_id || latestPathChange.id,
+                new_track_name: toVal.path_name || toVal.target_path_name || 'Jalur Pilihan Baru',
+                reason: latestPathChange.reason,
+                submitted_at: latestPathChange.created_at_label || new Date(latestPathChange.created_at).toLocaleDateString('id-ID'),
+              };
+              state.value.pendingPathChange = pendingPathChange.value;
+            }
+          } else if (latestPathChange.change_type === 'path_change_approved') {
+            pendingPathChange.value = null;
+            if (state.value) delete state.value.pendingPathChange;
+            pathChangeNotice.value = {
+              type: 'approved',
+              title: 'Permohonan Pindah Jalur Disetujui',
+              message: 'Panitia PMB telah menyetujui permohonan alih jalur Anda. Data pendaftaran telah dimutakhirkan.',
+            };
+          } else if (latestPathChange.change_type === 'path_change_rejected') {
+            pendingPathChange.value = null;
+            if (state.value) delete state.value.pendingPathChange;
+            pathChangeNotice.value = {
+              type: 'rejected',
+              title: 'Permohonan Pindah Jalur Ditolak',
+              message: latestPathChange.reason || 'Permohonan pindah jalur belum dapat disetujui panitia.',
+            };
+          } else if (latestPathChange.change_type === 'path_change_cancelled') {
+            // Permohonan telah dibatalkan secara sah: WAJIB NULL!
+            pendingPathChange.value = null;
+            if (state.value) delete state.value.pendingPathChange;
+          }
+        }
+      }
+
+      // 8. Cek Pengunduran Diri Resmi (CR-007)
+      const wRes = await admissionApi.getMyWithdrawal().catch(() => null);
+      if (wRes?.data?.data) {
+        const wd = wRes.data.data;
+        if (wd.status === 'effective' || wd.status === 'approved') {
+          withdrawalInfo.value = wd;
+          state.value.withdrawalInfo = wd;
+          state.value.admission.backendStatus = 'withdrawn';
+          state.value.admission.status = 'Pendaftaran Ditarik (Mengundurkan Diri)';
+          pendingWithdrawal.value = null;
+          if (state.value) delete state.value.pendingWithdrawal;
+        } else if (wd.status === 'pending') {
+          withdrawalInfo.value = wd;
+          pendingWithdrawal.value = wd;
+          state.value.pendingWithdrawal = wd;
+        } else if (wd.status === 'rejected') {
+          rejectedWithdrawal.value = wd;
+          state.value.rejectedWithdrawal = wd;
+          pendingWithdrawal.value = null;
+          withdrawalInfo.value = null;
+          if (state.value) {
+            delete state.value.pendingWithdrawal;
+            delete state.value.withdrawalInfo;
+          }
+        } else {
+          // Status 'cancelled'
+          rejectedWithdrawal.value = null;
+          pendingWithdrawal.value = null;
+          withdrawalInfo.value = null;
+          if (state.value) {
+            delete state.value.pendingWithdrawal;
+            delete state.value.withdrawalInfo;
+            delete state.value.rejectedWithdrawal;
+          }
+        }
+      } else {
+        pendingWithdrawal.value = null;
+        withdrawalInfo.value = null;
+        rejectedWithdrawal.value = null;
+        if (state.value) {
+          delete state.value.pendingWithdrawal;
+          delete state.value.withdrawalInfo;
+          delete state.value.rejectedWithdrawal;
+        }
+      }
+
       lastBackendSync.value = new Date().toLocaleTimeString('id-ID');
     } catch (err) {
       console.warn('Gagal sinkronisasi data pendaftar dari backend:', err);
     } finally {
       isSyncingBackend.value = false;
     }
+  };
+
+  // State baru CR-006 & CR-007 & CR-010
+  const applicationHistory = ref([]);
+  const pendingPathChange = ref(null);
+  const pendingWithdrawal = ref(null);
+  const rejectedWithdrawal = ref(null);
+  const pathChangeNotice = ref(null);
+  const withdrawalInfo = ref(null);
+  const installmentSchedule = ref([]);
+
+  const dismissRejectedWithdrawal = () => {
+    rejectedWithdrawal.value = null;
+    if (state.value) delete state.value.rejectedWithdrawal;
+  };
+
+  const fetchHistory = async () => {
+    try {
+      const res = await admissionApi.getMyHistory();
+      if (res.data?.data) {
+        applicationHistory.value = res.data.data;
+      }
+    } catch (e) {
+      console.warn('Gagal memuat riwayat pendaftaran:', e);
+    }
+  };
+
+  const requestPathChange = async ({ newPathId, choice1Id, choice2Id, reason, trackName }) => {
+    try {
+      const res = await admissionApi.requestPathChange({
+        new_path_id: newPathId,
+        choice1_id: choice1Id,
+        choice2_id: choice2Id,
+        reason,
+      });
+      const data = res.data?.data;
+      if (data) {
+        if (!data.applied_directly) {
+          const pendingObj = {
+            id: data.request_id || data.id,
+            request_id: data.request_id || data.id,
+            status: 'pending',
+            new_track_name: trackName || 'Jalur Pilihan Baru',
+            old_track_name: state.value.admission?.track,
+            reason: reason || 'Permohonan alih jalur seleksi',
+            submitted_at: new Date().toLocaleDateString('id-ID'),
+          };
+          pendingPathChange.value = pendingObj;
+          state.value.pendingPathChange = pendingObj;
+        } else {
+          pendingPathChange.value = null;
+          if (state.value) delete state.value.pendingPathChange;
+        }
+      }
+      await syncFromBackend();
+      return res.data;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const cancelPendingPathChange = async () => {
+    try {
+      await admissionApi.cancelPendingPathChange();
+      pendingPathChange.value = null;
+      if (state.value) {
+        delete state.value.pendingPathChange;
+      }
+      await syncFromBackend();
+      return { success: true };
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const withdrawApplication = async ({ reasonCategory, reason, password }) => {
+    try {
+      const res = await admissionApi.withdrawApplication({
+        reason_category: reasonCategory,
+        reason,
+        password,
+      });
+      if (res.data?.data) {
+        const wd = res.data.data.withdrawal || res.data.data;
+        const status = wd.status || res.data.data.status;
+        withdrawalInfo.value = wd;
+        state.value.withdrawalInfo = wd;
+        if (status === 'effective' || status === 'approved') {
+          state.value.admission.backendStatus = 'withdrawn';
+          state.value.admission.status = 'Pendaftaran Ditarik (Mengundurkan Diri)';
+          pendingWithdrawal.value = null;
+          if (state.value) delete state.value.pendingWithdrawal;
+        } else {
+          // Status pending: menunggu persetujuan panitia PMB / BAAK
+          pendingWithdrawal.value = wd;
+          state.value.pendingWithdrawal = wd;
+        }
+      }
+      await syncFromBackend();
+      return res.data;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const renewInvoice = async (invoiceId) => {
+    try {
+      const res = await financeApi.renewInvoice(invoiceId);
+      await syncFromBackend();
+      return res.data;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const requestInstallment = async ({ invoiceId, numTerms, reason }) => {
+    try {
+      const res = await financeApi.requestInstallment(invoiceId, {
+        num_terms: numTerms,
+        reason,
+      });
+      await fetchInstallments(invoiceId);
+      return res.data;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const fetchInstallments = async (invoiceId) => {
+    try {
+      const res = await financeApi.getInstallments(invoiceId);
+      if (res.data?.data) {
+        installmentSchedule.value = res.data.data;
+      }
+      return res.data;
+    } catch (e) {
+      console.warn('Gagal memuat jadwal cicilan:', e);
+    }
+  };
+
+  const cancelPendingWithdrawal = async () => {
+    try {
+      await admissionApi.cancelPendingWithdrawal();
+      pendingWithdrawal.value = null;
+      withdrawalInfo.value = null;
+      if (state.value) {
+        delete state.value.pendingWithdrawal;
+        delete state.value.withdrawalInfo;
+      }
+      await syncFromBackend();
+      return { success: true };
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const downloadWithdrawalLetter = async () => {
+    try {
+      const res = await admissionApi.getWithdrawalLetterPDF();
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `SK_Pengunduran_Diri_${state.value.candidate.registrationNumber || 'BTH'}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      console.warn('Gagal mengunduh SK Pengunduran Diri:', e);
+      window.print();
+    }
+  };
+
+  const addStatusLog = ({ stage, title, description, status = 'completed', actor = 'Sistem PMB' }) => {
+    if (!state.value.statusLogs) {
+      state.value.statusLogs = [];
+    }
+    const newLog = {
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      stage,
+      title,
+      description,
+      status,
+      actor,
+    };
+    state.value.statusLogs.unshift(newLog);
+    return newLog;
+  };
+
+  const computedStatusHistory = computed(() => {
+    const logs = [...(state.value?.statusLogs || [])];
+    const hasStage = (stageName) => logs.some((l) => l.stage === stageName);
+
+    if (isProfileComplete.value && !hasStage('Pengisian Biodata')) {
+      logs.push({
+        id: 'log-profile',
+        timestamp: new Date(Date.now() - 3600000 * 24).toISOString(),
+        stage: 'Pengisian Biodata',
+        title: 'Biodata Calon Mahasiswa Lengkap',
+        description: 'Informasi identitas diri, data orang tua, dan asal sekolah berhasil disimpan.',
+        status: 'completed',
+        actor: 'Calon Mahasiswa',
+      });
+    }
+
+    if (isAdmissionComplete.value && !hasStage('Pemilihan Jalur')) {
+      logs.push({
+        id: 'log-admission',
+        timestamp: new Date(Date.now() - 3600000 * 20).toISOString(),
+        stage: 'Pemilihan Jalur',
+        title: 'Jalur Pendaftaran & Pilihan Program Studi Disimpan',
+        description: `Memilih ${state.value?.admission?.track || 'Jalur Masuk'} dengan pilihan utama ${state.value?.admission?.prodi1 || 'Program Studi'}.`,
+        status: 'completed',
+        actor: 'Calon Mahasiswa',
+      });
+    }
+
+    if (isRegPaymentComplete.value && !hasStage('Pembayaran Formulir')) {
+      logs.push({
+        id: 'log-regpay',
+        timestamp: state.value?.payments?.registrationFee?.paidAt || new Date(Date.now() - 3600000 * 16).toISOString(),
+        stage: 'Pembayaran Formulir',
+        title: state.value?.referral?.isApplied ? 'Bypass Formulir via Kode Referal' : 'Pembayaran Formulir Terverifikasi',
+        description: state.value?.referral?.isApplied
+          ? `Biaya pendaftaran dialihkan melalui kode referal sekolah mitra (${state.value.referral.code} - ${state.value.referral.schoolName}).`
+          : 'Pembayaran biaya formulir pendaftaran PMB sebesar Rp 250.000 dinyatakan lunas.',
+        status: 'completed',
+        actor: state.value?.referral?.isApplied ? 'Mitra Sekolah PMB' : 'Biro Keuangan',
+      });
+    }
+
+    if (isDocumentsComplete.value && !hasStage('Unggah Berkas')) {
+      logs.push({
+        id: 'log-docs',
+        timestamp: new Date(Date.now() - 3600000 * 12).toISOString(),
+        stage: 'Unggah Berkas',
+        title: 'Seluruh Berkas Persyaratan Terunggah',
+        description: 'Dokumen ijazah/SKL, kartu identitas, dan dokumen pendukung berhasil dikirim ke sistem.',
+        status: 'completed',
+        actor: 'Calon Mahasiswa',
+      });
+    }
+
+    if (isExamCompleted.value && !hasStage('Ujian Seleksi')) {
+      logs.push({
+        id: 'log-exam',
+        timestamp: state.value?.exam?.completedAt || new Date(Date.now() - 3600000 * 8).toISOString(),
+        stage: 'Ujian Seleksi',
+        title: 'Ujian Mandiri CBT Diselesaikan',
+        description: `Mengerjakan ujian Computer-Based Test dengan perolehan skor ${state.value?.exam?.score || 0}/100.`,
+        status: 'completed',
+        actor: 'Sistem Ujian CBT',
+      });
+    }
+
+    if (isResultPassed.value && !hasStage('Hasil Seleksi')) {
+      logs.push({
+        id: 'log-result',
+        timestamp: new Date(Date.now() - 3600000 * 4).toISOString(),
+        stage: 'Hasil Seleksi',
+        title: 'Dinyatakan Lulus Seleksi PMB',
+        description: `Selamat! Anda dinyatakan lulus pada program studi ${state.value?.result?.acceptedProdi || state.value?.admission?.prodi1}.`,
+        status: 'completed',
+        actor: 'Panitia Seleksi PMB',
+      });
+    }
+
+    return logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  });
+
+  const applyReferralCode = (code) => {
+    const referralStore = useReferralStore();
+    const result = referralStore.applyReferralForStudent(code, {
+      candidateName: state.value.candidate.fullName,
+      registrationNumber: state.value.candidate.registrationNumber,
+      prodi: state.value.admission.prodi1,
+    });
+
+    if (!result.success) {
+      return result;
+    }
+
+    const refData = result.referral;
+    state.value.referral = {
+      code: refData.code,
+      picName: refData.picName,
+      schoolName: refData.schoolName,
+      appliedAt: new Date().toISOString(),
+      isApplied: true,
+    };
+
+    state.value.payments.registrationFee.status = 'paid';
+    state.value.payments.registrationFee.statusLabel = 'Lunas (Kemitraan Sekolah)';
+    state.value.payments.registrationFee.paidAt = new Date().toISOString();
+    state.value.payments.registrationFee.paymentMethod = `Kemitraan Guru BK (${refData.code})`;
+    if (state.value.admission) {
+      state.value.admission.backendStatus = 'form_open';
+    }
+
+    addStatusLog({
+      stage: 'Pembayaran Formulir',
+      title: 'Biaya Formulir Dialihkan via Kode Referal',
+      description: `Biaya pendaftaran dialihkan melalui kemitraan sekolah mitra (${refData.picName} - ${refData.schoolName}).`,
+      status: 'completed',
+      actor: 'Mitra Sekolah PMB',
+    });
+
+    return result;
   };
 
   return {
@@ -1023,16 +1637,35 @@ export const useApplicantStore = defineStore('applicant', () => {
     uploadedDocsCount,
     isDocumentsComplete,
     isDocumentsVerified,
+    isFreeTrack,
     isRegPaymentComplete,
     isScheduleReady,
     isExamCompleted,
     isResultPassed,
     isUktPaid,
+    isWithdrawn,
     canCancelAdmission,
     isAdmissionLocked,
     isExamFailed,
     completedStepsCount,
     progressPercent,
+    applicationHistory,
+    pendingPathChange,
+    pendingWithdrawal,
+    rejectedWithdrawal,
+    dismissRejectedWithdrawal,
+    pathChangeNotice,
+    withdrawalInfo,
+    installmentSchedule,
+    fetchHistory,
+    requestPathChange,
+    cancelPendingPathChange,
+    withdrawApplication,
+    cancelPendingWithdrawal,
+    downloadWithdrawalLetter,
+    renewInvoice,
+    requestInstallment,
+    fetchInstallments,
     updateProfile,
     updateAdmission,
     cancelAdmission,
@@ -1049,5 +1682,8 @@ export const useApplicantStore = defineStore('applicant', () => {
     lastBackendSync,
     candidatePhoto,
     hasCandidatePhoto,
+    addStatusLog,
+    computedStatusHistory,
+    applyReferralCode,
   };
 });

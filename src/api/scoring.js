@@ -26,6 +26,10 @@ export const scoringApi = {
   },
 
   async submitExaminerScore(applicationId, payload) {
+    if (typeof applicationId === 'object' && applicationId !== null) {
+      const id = applicationId.application_id || applicationId.applicant_id || applicationId.id;
+      return apiClient.put(`/scoring/examiner/scores/${id}`, applicationId);
+    }
     return apiClient.put(`/scoring/examiner/scores/${applicationId}`, payload);
   },
 };

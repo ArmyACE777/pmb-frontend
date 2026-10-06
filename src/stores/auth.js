@@ -18,6 +18,20 @@ export const useAuthStore = defineStore('auth', () => {
   const userRoles = computed(() => user.value?.roles || []);
   const userScopes = computed(() => user.value?.scopes || []);
   const isSuperAdmin = computed(() => userRoles.value.includes('superadmin'));
+  const isDekan = computed(() => userRoles.value.includes('dekan'));
+  const isAdmin = computed(() => {
+    const adminRoles = ['superadmin', 'admin_pmb', 'admin', 'panitia', 'verifikator', 'keuangan', 'penguji', 'pimpinan', 'prodi', 'dosen', 'dekan'];
+    return userRoles.value.some((r) => adminRoles.includes(r));
+  });
+
+  const permissions = ref([]);
+  const hasPermission = (code) => {
+    if (isSuperAdmin.value) return true;
+    if (permissions.value.includes(code)) return true;
+    const tokenPerms = decodedToken.value?.perms;
+    if (Array.isArray(tokenPerms) && tokenPerms.includes(code)) return true;
+    return false;
+  };
 
   const decodedToken = computed(() => {
     if (!accessToken.value) return null;
@@ -305,6 +319,17 @@ export const useAuthStore = defineStore('auth', () => {
     return res.data;
   };
 
+  const fetchPermissions = async () => {
+    try {
+      const res = await apiClient.get('/auth/me/permissions');
+      if (res.data?.data) {
+        permissions.value = res.data.data;
+      }
+    } catch (e) {
+      console.warn('Gagal memuat izin RBAC:', e);
+    }
+  };
+
   return {
     accessToken,
     refreshToken,
@@ -319,6 +344,11 @@ export const useAuthStore = defineStore('auth', () => {
     userRoles,
     userScopes,
     isSuperAdmin,
+    isDekan,
+    isAdmin,
+    permissions,
+    hasPermission,
+    fetchPermissions,
     decodedToken,
     clearApiError,
     setAuth,

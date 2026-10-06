@@ -8,3 +8,4 @@ export { scoringApi } from './scoring';
 export { selectionApi } from './selection';
 export { studentApi } from './student';
 export { nimApi } from './nim';
+export { authApi } from './auth';

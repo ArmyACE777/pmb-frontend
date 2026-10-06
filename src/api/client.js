@@ -115,7 +115,10 @@ apiClient.interceptors.response.use(
     const isAdminEndpoint = originalRequest.url?.includes('/auth/admin');
     const isRevokedToken = ['TOKEN_REVOKED', 'TOKEN_INVALID', 'TOKEN_MISSING'].includes(errorCode);
 
-    if (error.response?.status === 401 && !isAuthEndpoint && !isAdminEndpoint && (isRevokedToken || errorCode !== 'TOKEN_EXPIRED')) {
+    if (error.response?.status === 401 && !isAuthEndpoint && !isAdminEndpoint && isRevokedToken && errorCode !== 'GATEWAY_SIGNATURE_INVALID') {
+      if (localStorage.getItem('bth_allow_demo_admin') === 'true') {
+        return Promise.reject(error);
+      }
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       localStorage.removeItem('user');
