@@ -113,52 +113,51 @@
               :key="t.id"
               class="hover:bg-slate-50/70 transition-colors"
             >
-              <td class="py-3.5 px-4 font-mono text-slate-400">{{ idx + 1 }}</td>
-              <td class="py-3.5 px-4">
-                <span class="font-mono font-bold text-slate-900 text-xs px-2 py-0.5 bg-slate-100 rounded">
+              <td class="py-3.5 px-4 font-mono text-slate-400 whitespace-nowrap">{{ idx + 1 }}</td>
+              <td class="py-3.5 px-4 whitespace-nowrap">
+                <span class="font-mono font-bold text-slate-900 text-xs px-2.5 py-0.5 bg-slate-100 rounded whitespace-nowrap inline-block">
                   {{ t.code }}
                 </span>
               </td>
-              <td class="py-3.5 px-4">
-                <div class="font-bold text-slate-900 text-xs">{{ t.name }}</div>
+              <td class="py-3.5 px-4 min-w-[180px]">
+                <div class="font-bold text-slate-900 text-xs whitespace-nowrap">{{ t.name }}</div>
                 <div class="text-[11px] text-slate-500 mt-0.5 line-clamp-1">{{ t.description }}</div>
               </td>
-              <td class="py-3.5 px-4">
+              <td class="py-3.5 px-4 whitespace-nowrap min-w-[150px]">
                 <span
-                  class="font-mono font-semibold text-xs px-2 py-0.5 rounded"
+                  class="font-mono font-semibold text-xs px-2.5 py-0.5 rounded whitespace-nowrap inline-block"
                   :class="t.fee === 0 ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-800'"
                 >
                   {{ t.fee === 0 ? 'Bebas Biaya (Rp 0)' : `Rp ${t.fee.toLocaleString('id-ID')}` }}
                 </span>
               </td>
-              <td class="py-3.5 px-4 text-center font-mono font-bold text-slate-800 text-xs">
+              <td class="py-3.5 px-4 text-center font-mono font-bold text-slate-800 text-xs whitespace-nowrap">
                 {{ t.quota }}
               </td>
-              <td class="py-3.5 px-4 text-slate-600">
-                <span class="inline-flex items-center gap-1 text-[11px] font-medium bg-blue-50 text-[#1E3A8A] px-2 py-0.5 rounded border border-blue-200/60">
+              <td class="py-3.5 px-4 text-slate-600 whitespace-nowrap min-w-[130px]">
+                <span class="inline-flex items-center gap-1 text-[11px] font-medium bg-blue-50 text-[#1E3A8A] px-2.5 py-0.5 rounded border border-blue-200/60 whitespace-nowrap">
                   {{ t.selectionMethod }}
                 </span>
               </td>
-              <td class="py-3.5 px-4 text-[11px] text-slate-600 font-mono">
+              <td class="py-3.5 px-4 text-[11px] text-slate-600 font-mono whitespace-nowrap min-w-[150px]">
                 {{ t.period }}
               </td>
-              <td class="py-3.5 px-4">
+              <td class="py-3.5 px-4 whitespace-nowrap min-w-[130px]">
                 <a
                   v-if="t.whatsappGroupUrl"
                   :href="t.whatsappGroupUrl"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                  class="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200 hover:bg-emerald-100 transition-colors whitespace-nowrap"
                   title="Buka Tautan Grup WhatsApp"
                 >
                   <span>Grup Terhubung</span>
-                  <span class="text-[10px] text-emerald-600">↗</span>
                 </a>
-                <span v-else class="text-[11px] text-slate-400">Belum diatur</span>
+                <span v-else class="text-[11px] text-slate-400 whitespace-nowrap">Belum diatur</span>
               </td>
-              <td class="py-3.5 px-4 text-center">
+              <td class="py-3.5 px-4 text-center whitespace-nowrap min-w-[90px]">
                 <span
-                  class="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                  class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap inline-block"
                   :class="t.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'"
                 >
                   {{ t.isActive ? 'Buka' : 'Tutup' }}
@@ -202,13 +201,13 @@
     <Teleport to="body">
       <div
         v-if="showModal"
-        class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm overflow-y-auto modal-sharp"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm modal-sharp"
         @click.self="showModal = false"
       >
-        <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto">
-          <div class="h-1.5 w-full bg-gradient-to-r from-[#1E3A8A] via-blue-600 to-indigo-500"></div>
+        <div class="relative w-full max-w-lg max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto">
+          <div class="h-1 w-full bg-[#1E3A8A] flex-shrink-0"></div>
 
-          <div class="p-5 sm:p-6 pb-4 flex items-center justify-between border-b border-slate-100">
+          <div class="p-5 sm:p-6 pb-4 flex items-center justify-between border-b border-slate-100 flex-shrink-0">
             <div>
               <h3 class="font-sora font-bold text-slate-900 text-base">
                 {{ isEditing ? 'Edit Jalur Pendaftaran' : 'Tambah Jalur Pendaftaran Baru' }}
@@ -220,7 +219,7 @@
             </button>
           </div>
 
-          <form @submit.prevent="saveTrack" class="p-5 sm:p-6 space-y-4 text-xs font-sans">
+          <form @submit.prevent="saveTrack" class="p-5 sm:p-6 space-y-4 text-xs font-sans flex-1 overflow-y-auto">
             <div>
               <label class="block font-semibold text-slate-800 mb-1">Kode Jalur *</label>
               <input
@@ -313,7 +312,7 @@
               ></textarea>
             </div>
 
-            <div class="pt-3 border-t border-slate-100 flex justify-end gap-2.5">
+            <div class="pt-3 border-t border-slate-100 flex justify-end gap-2.5 flex-shrink-0">
               <button
                 type="button"
                 @click="showModal = false"
@@ -336,11 +335,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { Plus, X } from 'lucide-vue-next';
 import { useToast } from '@/composables/useToast';
+import { useCmsStore } from '@/stores/cms';
 
 const toast = useToast();
+const cmsStore = useCmsStore();
 
 const statusFilter = ref('ALL');
 const searchQuery = ref('');
@@ -474,9 +475,34 @@ const filteredTracks = computed(() => {
   });
 });
 
+const syncTrackToCms = (track) => {
+  if (!cmsStore || !Array.isArray(cmsStore.tracks)) return;
+  const matchIdx = cmsStore.tracks.findIndex(
+    (ct) =>
+      ct.name?.toLowerCase().includes(track.name?.toLowerCase()) ||
+      track.name?.toLowerCase().includes(ct.name?.toLowerCase()) ||
+      ct.id?.toLowerCase() === track.code?.toLowerCase()
+  );
+  if (matchIdx !== -1) {
+    cmsStore.tracks[matchIdx].fee = Number(track.fee) || 0;
+    cmsStore.tracks[matchIdx].isActive = track.isActive;
+    if (track.description) cmsStore.tracks[matchIdx].description = track.description;
+  } else {
+    cmsStore.tracks.push({
+      id: track.code?.toLowerCase() || `track-${Date.now()}`,
+      name: track.name,
+      fee: Number(track.fee) || 0,
+      description: track.description || '',
+      isActive: track.isActive,
+    });
+  }
+  cmsStore.saveAll();
+};
+
 const toggleTrackStatus = (track) => {
   track.isActive = !track.isActive;
   persistTracks();
+  syncTrackToCms(track);
   toast.success(`Jalur ${track.name} berhasil diubah statusnya menjadi ${track.isActive ? 'Buka Pendaftaran' : 'Tutup Pendaftaran'}.`);
 };
 
@@ -509,13 +535,34 @@ const saveTrack = () => {
     if (idx !== -1) {
       tracksList.value[idx] = { ...form.value };
       persistTracks();
+      syncTrackToCms(form.value);
       toast.success(`Jalur ${form.value.name} berhasil diperbarui.`);
     }
   } else {
-    tracksList.value.unshift({ ...form.value, id: Date.now() });
+    const newTrack = { ...form.value, id: Date.now() };
+    tracksList.value.unshift(newTrack);
     persistTracks();
+    syncTrackToCms(newTrack);
     toast.success(`Jalur ${form.value.name} berhasil ditambahkan.`);
   }
   showModal.value = false;
 };
+
+onMounted(() => {
+  if (cmsStore.tracks && cmsStore.tracks.length > 0) {
+    // Sinkronkan biaya jalur dari CMS jika ada pembaruan terpusat
+    tracksList.value.forEach((t) => {
+      const cmsMatch = cmsStore.tracks.find(
+        (ct) =>
+          ct.name?.toLowerCase().includes(t.name?.toLowerCase()) ||
+          t.name?.toLowerCase().includes(ct.name?.toLowerCase()) ||
+          ct.id?.toLowerCase() === t.code?.toLowerCase()
+      );
+      if (cmsMatch && cmsMatch.fee !== undefined) {
+        t.fee = cmsMatch.fee;
+      }
+    });
+    persistTracks();
+  }
+});
 </script>

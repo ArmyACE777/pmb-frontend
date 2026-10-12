@@ -24,6 +24,19 @@ export const useAuthStore = defineStore('auth', () => {
     return userRoles.value.some((r) => adminRoles.includes(r));
   });
 
+  const isBkPartner = computed(() => {
+    if (isAdmin.value) return false;
+    return (
+      userRoles.value.includes('guru_bk') ||
+      userRoles.value.includes('mitra_bk') ||
+      user.value?.role === 'guru_bk' ||
+      !!localStorage.getItem('bth_bk_session')
+    );
+  });
+  const isApplicant = computed(() => {
+    return !isAdmin.value && !isBkPartner.value;
+  });
+
   const permissions = ref([]);
   const hasPermission = (code) => {
     if (isSuperAdmin.value) return true;
@@ -55,6 +68,7 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   const setAuth = (data) => {
+    localStorage.removeItem('bth_bk_session');
     if (data.access_token) {
       accessToken.value = data.access_token;
       localStorage.setItem('access_token', data.access_token);
@@ -69,6 +83,27 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
+  const setBkUser = (partner) => {
+    localStorage.removeItem('bth_allow_demo_admin');
+    localStorage.removeItem('refresh_token');
+    const bkUser = {
+      id: partner.id,
+      name: partner.picName,
+      full_name: partner.picName,
+      email: partner.email,
+      school_name: partner.schoolName,
+      code: partner.code,
+      roles: ['guru_bk'],
+      role: 'guru_bk',
+      status: 'active',
+    };
+    user.value = bkUser;
+    accessToken.value = `bk_token_${partner.id}`;
+    localStorage.setItem('access_token', accessToken.value);
+    localStorage.setItem('user', JSON.stringify(bkUser));
+    localStorage.setItem('bth_bk_session', JSON.stringify(partner));
+  };
+
   const clearAuth = () => {
     accessToken.value = null;
     refreshToken.value = null;
@@ -76,6 +111,8 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
+    localStorage.removeItem('bth_bk_session');
+    localStorage.removeItem('bth_allow_demo_admin');
   };
 
   const updateUserAvatar = (avatarUrl) => {
@@ -346,6 +383,9 @@ export const useAuthStore = defineStore('auth', () => {
     isSuperAdmin,
     isDekan,
     isAdmin,
+    isBkPartner,
+    isApplicant,
+    setBkUser,
     permissions,
     hasPermission,
     fetchPermissions,

@@ -51,9 +51,9 @@
             <!-- Tombol CTA Utama: Tambah Pendaftaran Jalur / Pilihan Lain -->
             <button
               @click="showReapplyModal = true"
-              class="rounded-xl px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold text-xs transition-all shadow-xs cursor-pointer flex-shrink-0 flex items-center justify-center gap-2"
+              class="rounded-xl px-5 py-2.5 bg-white hover:bg-slate-100 text-slate-900 font-semibold text-xs transition-all shadow-xs cursor-pointer flex-shrink-0 flex items-center justify-center gap-2"
             >
-              <PlusCircle class="w-4 h-4" />
+              <PlusCircle class="w-4 h-4 text-slate-700" />
               <span>Tambah Pendaftaran Jalur / Pilihan Lain</span>
             </button>
           </div>
@@ -216,7 +216,7 @@
       <!-- Acceptance Banner BTH -->
       <div class="bg-gradient-to-r from-[#1E3A8A] via-[#1b3478] to-[#12285a] text-white rounded-2xl p-6 sm:p-7 shadow-xs relative overflow-hidden border border-blue-900/40">
         <div class="relative z-10 space-y-3 max-w-3xl">
-          <div class="inline-flex items-center px-2.5 py-0.5 bg-amber-400/20 border border-amber-300/30 text-amber-300 rounded-md text-[11px] font-medium">
+          <div class="inline-flex items-center px-2.5 py-0.5 bg-white/15 border border-white/20 text-white rounded-md text-[11px] font-medium">
             <span>SK Rektor: {{ result.decisionLetterNo }}</span>
           </div>
 
@@ -236,14 +236,14 @@
               <div class="font-sora font-bold text-base sm:text-lg text-white mt-0.5">
                 {{ result.acceptedProdi }}
               </div>
-              <div class="text-xs text-amber-300 mt-0.5">
+              <div class="text-xs text-blue-200 mt-0.5">
                 {{ result.acceptedFaculty }} - Jenjang Sarjana ({{ result.acceptedDegree }})
               </div>
             </div>
 
             <button
               @click="openLoAModal = true"
-              class="rounded-xl px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-900 font-semibold text-xs transition-all shadow-xs cursor-pointer flex-shrink-0"
+              class="rounded-xl px-5 py-2.5 bg-white hover:bg-slate-100 text-[#1E3A8A] font-semibold text-xs transition-all shadow-xs cursor-pointer flex-shrink-0"
             >
               Unduh Surat Penerimaan (LoA)
             </button>
@@ -345,13 +345,10 @@
               <GraduationCap class="w-6 h-6" />
             </div>
             <div>
-              <div class="flex items-center gap-2">
+              <div>
                 <h3 class="font-sora font-bold text-slate-900 text-base sm:text-lg">
                   Penetapan Mahasiswa Baru & Kartu Mahasiswa (KTM-S)
                 </h3>
-                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
-                  Terdaftar Aktif
-                </span>
               </div>
               <p class="text-xs text-slate-500 font-sans mt-0.5">
                 Nomor Induk Mahasiswa, akun SIAKAD institusi, dan pembagian gugus pengenalan kampus PKKMB 2026.
@@ -725,6 +722,7 @@ import {
   User,
 } from 'lucide-vue-next';
 import { useApplicantStore, PRODI_METADATA } from '@/stores/applicant';
+import { useCmsStore } from '@/stores/cms';
 import { selectionApi } from '@/api/selection';
 import { studentApi } from '@/api/student';
 import { useToast } from '@/composables/useToast';
@@ -732,6 +730,7 @@ import { useToast } from '@/composables/useToast';
 const emit = defineEmits(['switch-tab']);
 
 const applicantStore = useApplicantStore();
+const cmsStore = useCmsStore();
 const toast = useToast();
 const candidate = computed(() => applicantStore.state.candidate);
 const result = computed(() => applicantStore.state.result);
@@ -744,7 +743,7 @@ const currentUktAmount = computed(() => {
   if (payments.value?.uktFee?.amount) return payments.value.uktFee.amount;
   const prodi = result.value?.acceptedProdi || applicantStore.state.admission?.prodi1;
   const meta = PRODI_METADATA[prodi];
-  return meta?.uktFee || 4500000;
+  return cmsStore.getUktFee(prodi) || meta?.uktFee || 4500000;
 });
 
 const openLoAModal = ref(false);

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 36" fill="none">
+  <!-- LinkAja Official Logo -->
+  <g transform="translate(4, 4)">
+    <rect width="28" height="28" rx="6" fill="#ED1C24"/>
+    <!-- LinkAja A mark -->
+    <path fill="#FFFFFF" d="M14 6l6 14h-4l-2-5-2 5h-4l6-14z"/>
+    <circle cx="14" cy="19" r="2.5" fill="#FFFFFF"/>
+    <text x="36" y="21" fill="#ED1C24" font-family="'Arial', sans-serif" font-weight="900" font-size="16" letter-spacing="0.5">LinkAja</text>
+  </g>
+</svg>

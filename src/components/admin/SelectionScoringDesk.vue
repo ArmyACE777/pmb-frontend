@@ -53,7 +53,7 @@
           </button>
           <span class="text-slate-400">/</span>
           <span class="font-bold text-slate-800 truncate max-w-xs">{{ selectedBank.name }}</span>
-          <span class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-medium text-[11px] border border-indigo-200/60">
+          <span class="px-2.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-medium text-[11px] border border-indigo-200/60 whitespace-nowrap inline-block">
             {{ selectedBank.category || 'Umum' }}
           </span>
         </div>
@@ -122,7 +122,7 @@
           >
             <div class="space-y-2.5">
               <div class="flex items-start justify-between gap-2">
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-800 border border-blue-200/70">
+                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-800 border border-blue-200/70 whitespace-nowrap inline-block">
                   {{ bank.category || 'Kategori Umum' }}
                 </span>
                 <span class="text-[11px] font-mono text-slate-400">
@@ -213,7 +213,7 @@
                     {{ q.question_text }}
                   </div>
                   <div class="flex items-center gap-2 mt-2">
-                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span class="px-2.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap inline-block">
                       Bobot: {{ q.points || 1 }} Poin
                     </span>
                     <span class="text-[11px] text-slate-400 font-mono">
@@ -515,7 +515,7 @@
                 </td>
 
                 <td class="py-3.5 px-4 text-center font-mono text-[11px] text-slate-500 whitespace-nowrap">
-                  <span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-600">
+                  <span class="px-2.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-600 whitespace-nowrap inline-block">
                     {{ att.ip_address || '127.0.0.1' }}
                   </span>
                 </td>
@@ -761,7 +761,7 @@
     <Teleport to="body">
       <div
         v-if="showQuestionModal"
-        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
         @click.self="showQuestionModal = false"
       >
         <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh] flex flex-col">
@@ -804,7 +804,7 @@
                 <label class="block font-semibold text-slate-800 mb-1">Format Butir Soal</label>
                 <div class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 flex items-center justify-between">
                   <span>Pilihan Ganda (A – E)</span>
-                  <span class="text-[10px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">Standar CBT</span>
+                  <span class="text-[10px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded whitespace-nowrap inline-block">Standar CBT</span>
                 </div>
               </div>
             </div>
@@ -1030,17 +1030,17 @@
     <Teleport to="body">
       <div
         v-if="activeApplicant"
-        class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm overflow-y-auto modal-sharp"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm modal-sharp"
         @click.self="activeApplicant = null"
       >
         <div class="relative w-full max-w-xl max-h-[92vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden my-auto transform-gpu">
           <!-- Top Accent Bar -->
-          <div class="h-1.5 w-full bg-gradient-to-r from-[#1E3A8A] via-indigo-600 to-sky-500 flex-shrink-0"></div>
+          <div class="h-1 w-full bg-[#1E3A8A] flex-shrink-0"></div>
 
           <!-- Modal Header -->
-          <div class="p-5 sm:p-6 pb-4 flex items-start justify-between gap-4 border-b border-slate-100">
+          <div class="p-5 sm:p-6 pb-4 flex items-start justify-between gap-4 border-b border-slate-100 flex-shrink-0">
             <div class="flex items-center gap-3.5">
-              <div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200/80 flex items-center justify-center text-[#1E3A8A] flex-shrink-0 shadow-2xs">
+              <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center justify-center text-[#1E3A8A] flex-shrink-0 shadow-2xs">
                 <GraduationCap class="w-5 h-5 text-[#1E3A8A]" />
               </div>
               <div>
@@ -1063,9 +1063,9 @@
             </button>
           </div>
 
-          <form @submit.prevent="saveInterview" class="p-5 sm:p-6 space-y-4 max-h-[calc(85vh-130px)] overflow-y-auto text-xs font-sans">
+          <form @submit.prevent="saveInterview" class="p-5 sm:p-6 space-y-4 flex-1 overflow-y-auto text-xs font-sans">
             <!-- Candidate Identity Card -->
-            <div class="bg-gradient-to-br from-slate-50 via-indigo-50/20 to-white border border-slate-200/90 rounded-xl p-4 space-y-2.5 shadow-2xs">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2.5 shadow-2xs">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div class="flex items-center gap-2.5">
                   <div class="w-8 h-8 rounded-full bg-[#1E3A8A] text-white font-bold text-xs flex items-center justify-center shadow-xs">
@@ -1191,7 +1191,7 @@
             </div>
 
             <!-- Modal Footer Actions -->
-            <div class="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-end gap-2.5">
+            <div class="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-end gap-2.5 flex-shrink-0">
               <button
                 type="button"
                 @click="activeApplicant = null"

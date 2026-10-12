@@ -189,42 +189,13 @@
         <div class="pt-1.5">
           <button
             type="submit"
-            :disabled="isLoading || isGoogleLoading || !termsAgreed || passwordsMismatch"
+            :disabled="isLoading || !termsAgreed || passwordsMismatch"
             class="w-full py-3 sm:py-3.5 px-4 min-h-[46px] sm:min-h-[48px] bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-sm rounded-xl shadow-xs hover:shadow-sm active:scale-[0.99] transition-all flex justify-center items-center gap-2.5 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer"
           >
             <span v-if="!isLoading">Daftar Akun PMB</span>
             <span v-else class="flex items-center gap-2">
               <Loader2 class="w-4 h-4 animate-spin text-white" />
               <span>Memproses Pendaftaran...</span>
-            </span>
-          </button>
-        </div>
-
-        <!-- Divider Atau -->
-        <div class="relative my-3 sm:my-3.5 flex items-center justify-center">
-          <div class="w-full border-t border-slate-200/90"></div>
-          <span class="absolute bg-white px-3 text-xs font-sans text-slate-400">
-            atau
-          </span>
-        </div>
-
-        <!-- Tombol Daftar dengan Google -->
-        <div>
-          <button
-            type="button"
-            @click="handleGoogleRegister"
-            :disabled="isGoogleLoading || isLoading"
-            class="w-full py-3 sm:py-3.5 px-4 min-h-[46px] sm:min-h-[48px] bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-sora font-semibold text-sm rounded-xl shadow-xs hover:shadow-sm active:scale-[0.99] transition-all flex justify-center items-center gap-3 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            <img
-              src="/images/icons/google.svg"
-              alt="Logo Google"
-              class="w-5 h-5 object-contain flex-shrink-0"
-            />
-            <span v-if="!isGoogleLoading">Daftar dengan Google</span>
-            <span v-else class="flex items-center gap-2 text-slate-500">
-              <Loader2 class="w-4 h-4 animate-spin text-slate-500" />
-              <span>Menghubungkan...</span>
             </span>
           </button>
         </div>
@@ -268,7 +239,6 @@ const termsAgreed = ref(true);
 const showPassword = ref(false);
 const showPasswordConfirm = ref(false);
 const isLoading = ref(false);
-const isGoogleLoading = ref(false);
 
 // Password validation checks
 const hasMinLength = computed(() => form.password.length >= 8);
@@ -379,13 +349,5 @@ const handleRegister = async () => {
   } finally {
     isLoading.value = false;
   }
-};
-
-const handleGoogleRegister = () => {
-  isGoogleLoading.value = true;
-  setTimeout(() => {
-    isGoogleLoading.value = false;
-    toast.info('Pendaftaran via Google SSO sedang dalam penyesuaian domain kampus. Silakan gunakan formulir pendaftaran.');
-  }, 400);
 };
 </script>

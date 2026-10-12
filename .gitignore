@@ -33,3 +33,4 @@ audit_screenshots/
 *.njsproj
 *.sln
 *.sw?
+.shared_sync_state.json

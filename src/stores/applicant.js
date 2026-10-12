@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
 import { useAuthStore } from './auth';
 import { useReferralStore } from './referral';
+import { useCmsStore } from './cms';
 import {
   identityApi,
   admissionApi,
@@ -91,50 +92,100 @@ export function getUpcomingDateString(daysFromNow, weekdayPrefix = true) {
  * Inisialisasi state awal pendaftaran calon mahasiswa
  */
 function createInitialState(user) {
-  const regNo = generateRegNumber(user?.id, user?.email);
-  const regSuffix = regNo.split('-').pop() || String(Math.floor(10000 + Math.random() * 90000));
+  let adminSeed = null;
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const raw = localStorage.getItem('bth_admin_data_real_v5');
+      if (raw) {
+        const list = JSON.parse(raw);
+        if (Array.isArray(list)) {
+          const uEmail = (user?.email || '').toLowerCase().trim();
+          adminSeed = list.find((a) => uEmail && a.email?.toLowerCase().trim() === uEmail);
+        }
+      }
+    }
+  } catch {}
+
+  const isUjang = user?.email === 'ujang@gmail.com' || adminSeed?.email === 'ujang@gmail.com';
+  const regNo = adminSeed?.id || (isUjang ? 'BTH-2026-REG-09182' : generateRegNumber(user?.id, user?.email));
+  const regSuffix = isUjang ? '09182' : (regNo.split('-').pop() || String(Math.floor(10000 + Math.random() * 90000)));
   const currentYear = new Date().getFullYear();
+
+  const isFeePaid = adminSeed?.payments?.registrationFee?.status === 'paid' || isUjang;
+  const isUktPaid = adminSeed?.payments?.uktFee?.status === 'paid';
+  const isPassed = adminSeed?.selection?.passedStatus === 'passed';
+  const hasNim = !!adminSeed?.onboarding?.nim;
 
   return {
     candidate: {
       registrationNumber: regNo,
-      fullName: user?.full_name || '',
-      nik: '',
-      nisn: '',
-      email: user?.email || '',
-      phone: user?.phone || '',
-      gender: '',
-      birthPlace: '',
-      birthDate: '',
-      religion: '',
+      fullName: isUjang ? 'Ujang Mahasiswa' : (adminSeed?.fullName || user?.full_name || ''),
+      nik: isUjang ? '3278011204040008' : (adminSeed?.nik && adminSeed.nik !== '-' ? adminSeed.nik : ''),
+      nisn: isUjang ? '0061284918' : (adminSeed?.nisn && adminSeed.nisn !== '-' ? adminSeed.nisn : ''),
+      email: user?.email || adminSeed?.email || '',
+      phone: isUjang ? '08123456789' : (adminSeed?.phone && adminSeed.phone !== '-' ? adminSeed.phone : (user?.phone || '')),
+      gender: isUjang ? 'Laki-laki' : (adminSeed?.gender && adminSeed.gender !== '-' ? adminSeed.gender : 'Laki-laki'),
+      birthPlace: isUjang ? 'Bandung' : 'Tasikmalaya',
+      birthDate: isUjang ? '2008-04-12' : '2008-05-15',
+      religion: isUjang ? 'Islam' : 'Islam',
       citizenship: 'WNI',
-      address: '',
-      city: '',
-      province: '',
-      postalCode: '',
-      schoolName: '',
-      schoolMajor: '',
-      graduationYear: '',
-      averageScore: '',
-      fatherName: '',
-      fatherJob: '',
-      motherName: '',
-      motherJob: '',
-      parentIncome: '',
-      emergencyContact: '',
+      address: isUjang ? 'Jl. Raya Margahayu No. 45' : 'Jl. Cilolohan No. 35',
+      city: isUjang ? 'Kab. Bandung' : (adminSeed?.city || 'Kota Tasikmalaya'),
+      province: isUjang ? 'Jawa Barat' : 'Jawa Barat',
+      postalCode: isUjang ? '40225' : '46115',
+      schoolName: isUjang ? 'SMK MARHAS MARGAHAYU' : (adminSeed?.schoolName && adminSeed.schoolName !== 'Belum Diisi' ? adminSeed.schoolName : ''),
+      schoolMajor: isUjang ? 'Farmasi Klinis dan Komunitas' : 'MIPA / IPA',
+      graduationYear: isUjang ? '2026' : '2026',
+      averageScore: isUjang ? '86.50' : (adminSeed?.averageScore && adminSeed.averageScore !== '-' ? adminSeed.averageScore : ''),
+      fatherName: isUjang ? 'Asep Hidayat' : 'Budi Santoso',
+      fatherJob: isUjang ? 'Wiraswasta' : 'Karyawan Swasta',
+      fatherIncome: isUjang ? 'Rp 3.000.000 - Rp 5.000.000' : 'Rp 3.000.000 - Rp 5.000.000',
+      fatherEducation: 'SMA',
+      fatherLifeStatus: '1',
+      fatherAddress: isUjang ? 'Jl. Raya Margahayu No. 45' : 'Jl. Cilolohan No. 35',
+      fatherBirthPlace: isUjang ? 'Bandung' : 'Tasikmalaya',
+      fatherBirthDate: isUjang ? '1978-05-10' : '1975-06-12',
+      motherName: isUjang ? 'Eni Rohaeni' : 'Siti Maryam',
+      motherJob: isUjang ? 'Ibu Rumah Tangga' : 'Ibu Rumah Tangga',
+      motherIncome: isUjang ? 'Tidak Berpenghasilan' : 'Tidak Berpenghasilan',
+      motherEducation: 'SMA',
+      motherLifeStatus: '1',
+      motherAddress: isUjang ? 'Jl. Raya Margahayu No. 45' : 'Jl. Cilolohan No. 35',
+      motherBirthPlace: isUjang ? 'Bandung' : 'Tasikmalaya',
+      motherBirthDate: isUjang ? '1982-08-20' : '1978-09-14',
+      parentIncome: isUjang ? 'Rp 3.000.000 - Rp 5.000.000' : 'Rp 3.000.000 - Rp 5.000.000',
+      emergencyContact: isUjang ? '08123456789' : (user?.phone || '081234567890'),
       photoUrl: user?.avatar || '',
+      // Atribut Tambahan Format Migrasi SEVIMA (20261007 format migrasi sevima.xlsx)
+      rt: isUjang ? '03' : '02',
+      rw: '05',
+      dusun: 'Sukajaya',
+      subDistrict: 'Tawang',
+      familyCardNumber: '',
+      almamaterSize: 'L',
+      programType: 'IPA',
+      lastEducation: 'SMA',
+      institutionType: '7',
+      isPesantren: '0',
+      pesantrenName: '',
+      pesantrenDuration: '',
+      isKipKuliah: '0',
+      npsn: '',
+      schoolProvince: 'Jawa Barat',
+      schoolCity: 'Kota Tasikmalaya',
+      unScore: '',
     },
     admission: {
-      track: 'Jalur Reguler Gelombang 1',
+      track: isUjang ? 'Jalur Kemitraan Guru BK (SMK MARHAS MARGAHAYU)' : (adminSeed?.track || 'Jalur Reguler Gelombang 1'),
       academicYear: `${currentYear}/${currentYear + 1}`,
-      prodi1: '',
-      prodi1Faculty: '',
-      prodi1Degree: '',
-      prodi2: '',
-      prodi2Faculty: '',
-      prodi2Degree: '',
+      prodi1: isUjang ? 'S1 Farmasi' : (adminSeed?.prodi1 && adminSeed.prodi1 !== 'Belum Memilih Prodi' ? adminSeed.prodi1 : ''),
+      prodi1Faculty: isUjang ? 'Fakultas Farmasi' : (adminSeed?.faculty && adminSeed.faculty !== '-' ? adminSeed.faculty : ''),
+      prodi1Degree: isUjang ? 'S.Farm.' : 'S.Kom.',
+      prodi2: isUjang ? 'D3 Farmasi' : (adminSeed?.prodi2 && adminSeed.prodi2 !== '-' ? adminSeed.prodi2 : ''),
+      prodi2Faculty: isUjang ? 'Fakultas Farmasi' : '',
+      prodi2Degree: isUjang ? 'A.Md.Farm.' : '',
       quotaWave1: 120,
-      status: 'Pengisian Formulir Pendaftaran',
+      status: hasNim ? 'Mahasiswa Resmi Terdaftar (NIM Terbit)' : (isPassed ? 'Dinyatakan Lulus Seleksi' : (isFeePaid ? 'Berkas & Pembayaran Terverifikasi' : 'Pengisian Formulir Pendaftaran')),
     },
     documents: [
       {
@@ -211,12 +262,12 @@ function createInitialState(user) {
     payments: {
       registrationFee: {
         id: `INV-REG-${currentYear}-${regSuffix}`,
-        title: 'Biaya Formulir Pendaftaran PMB',
+        title: isUjang ? 'Pembebasan Biaya Formulir (Mitra SMK MARHAS MARGAHAYU)' : 'Biaya Formulir Pendaftaran PMB',
         amount: 250000,
-        status: 'pending',
-        statusLabel: 'Menunggu Pembayaran',
-        paidAt: null,
-        paymentMethod: 'Virtual Account BSI',
+        status: isUjang ? 'paid' : 'pending',
+        statusLabel: isUjang ? 'Lunas (Kemitraan Guru BK)' : 'Menunggu Pembayaran',
+        paidAt: isUjang ? '15 Februari 2026 10:00 WIB' : null,
+        paymentMethod: isUjang ? 'Kemitraan Guru BK (MARHASBISA)' : 'Virtual Account BSI',
         vaNumber: `988 2026 01 ${regSuffix}`,
       },
       uktFee: {
@@ -274,11 +325,11 @@ function createInitialState(user) {
       siakadAccess: 'Aktif setelah pelunasan UKT',
     },
     referral: {
-      code: '',
-      picName: '',
-      schoolName: '',
-      appliedAt: null,
-      isApplied: false,
+      code: isUjang ? 'MARHASBISA' : '',
+      picName: isUjang ? 'Kemal Ramadhan' : '',
+      schoolName: isUjang ? 'SMK MARHAS MARGAHAYU' : '',
+      appliedAt: isUjang ? '2026-02-15T08:00:00Z' : null,
+      isApplied: isUjang ? true : false,
     },
     statusLogs: [
       {
@@ -296,6 +347,7 @@ function createInitialState(user) {
 
 export const useApplicantStore = defineStore('applicant', () => {
   const authStore = useAuthStore();
+  const cmsStore = useCmsStore();
   const isSyncingBackend = ref(false);
   const lastBackendSync = ref(null);
 
@@ -338,6 +390,8 @@ export const useApplicantStore = defineStore('applicant', () => {
                 notes: initDoc?.notes || doc.notes,
               };
             }),
+            withdrawalInfo: parsed.withdrawalInfo || null,
+            pendingWithdrawal: parsed.pendingWithdrawal || null,
           };
 
           // Sinkronisasi foto pasfoto doc-4 ke candidate.photoUrl & avatar pengguna
@@ -356,14 +410,148 @@ export const useApplicantStore = defineStore('applicant', () => {
             merged.candidate.email = user.email || merged.candidate.email || '';
             merged.candidate.phone = user.phone || merged.candidate.phone || '';
           }
+
+          // Sinkronisasi khusus akun demo Ujang Mahasiswa ke mitra MARHASBISA
+          if (user?.email === 'ujang@gmail.com') {
+            merged.candidate.registrationNumber = merged.candidate.registrationNumber || 'BTH-2026-REG-09182';
+            merged.candidate.fullName = 'Ujang Mahasiswa';
+            merged.candidate.nik = merged.candidate.nik || '3278011204040008';
+            merged.candidate.nisn = merged.candidate.nisn || '0061284918';
+            merged.candidate.phone = merged.candidate.phone || '08123456789';
+            merged.candidate.schoolName = merged.candidate.schoolName || 'SMK MARHAS MARGAHAYU';
+            merged.candidate.city = merged.candidate.city || 'Kab. Bandung';
+            merged.admission.track = merged.admission.track || 'Jalur Kemitraan Guru BK (SMK MARHAS MARGAHAYU)';
+            merged.admission.prodi1 = merged.admission.prodi1 || 'S1 Farmasi';
+            merged.admission.prodi1Faculty = merged.admission.prodi1Faculty || 'Fakultas Farmasi';
+            merged.referral = {
+              code: 'MARHASBISA',
+              schoolName: 'SMK MARHAS MARGAHAYU',
+              picName: 'Kemal Ramadhan',
+              isApplied: true,
+              appliedAt: merged.referral?.appliedAt || '2026-02-15T08:00:00Z',
+            };
+            if (merged.payments?.registrationFee) {
+              merged.payments.registrationFee.status = 'paid';
+              merged.payments.registrationFee.statusLabel = 'Lunas (Kemitraan Guru BK)';
+              merged.payments.registrationFee.paymentMethod = 'Kemitraan Guru BK (MARHASBISA)';
+            }
+          }
+
+          // Rekonsiliasi dengan data resmi dari Meja Admin jika ada update
+          try {
+            const adminRaw = localStorage.getItem('bth_admin_data_real_v5');
+            const adminList = adminRaw ? JSON.parse(adminRaw) : [];
+            const userEmail = (user?.email || merged.candidate.email || '').toLowerCase().trim();
+            const regNo = merged.candidate.registrationNumber;
+            const matchedAdmin = Array.isArray(adminList)
+              ? adminList.find((a) => (userEmail && a.email?.toLowerCase().trim() === userEmail) || (regNo && a.id === regNo))
+              : null;
+            if (matchedAdmin) {
+              if (matchedAdmin.payments?.registrationFee?.status === 'paid') {
+                merged.payments.registrationFee.status = 'paid';
+                merged.payments.registrationFee.statusLabel = matchedAdmin.payments.registrationFee.statusLabel || 'Lunas (Dikonfirmasi Admin)';
+                merged.payments.registrationFee.paidAt = matchedAdmin.payments.registrationFee.paidAt || merged.payments.registrationFee.paidAt;
+              }
+              if (matchedAdmin.payments?.uktFee?.status === 'paid') {
+                merged.payments.uktFee.status = 'paid';
+                merged.payments.uktFee.statusLabel = matchedAdmin.payments.uktFee.statusLabel || 'Lunas (Dikonfirmasi Admin)';
+                merged.payments.uktFee.paidAt = matchedAdmin.payments.uktFee.paidAt || merged.payments.uktFee.paidAt;
+              }
+              if (matchedAdmin.selection?.passedStatus === 'passed') {
+                merged.result.isPassed = true;
+                merged.result.isAnnounced = true;
+                merged.result.decisionLetterNo = matchedAdmin.selection.decisionLetterNo || merged.result.decisionLetterNo;
+                merged.admission.status = 'Dinyatakan Lulus Seleksi';
+              }
+              if (matchedAdmin.onboarding?.nim) {
+                merged.onboarding.nim = matchedAdmin.onboarding.nim;
+                merged.onboarding.pkkmbGroup = matchedAdmin.onboarding.pkkmbGroup || 'Gugus 01 - Hygeia Farmasi';
+                merged.onboarding.isEnrolled = true;
+              }
+              if (Array.isArray(matchedAdmin.documents) && Array.isArray(merged.documents)) {
+                matchedAdmin.documents.forEach((ad) => {
+                  const md = merged.documents.find((d) => d.id === ad.id);
+                  if (md && ad.status) {
+                    md.status = ad.status;
+                    md.statusLabel = ad.status === 'verified' ? 'Terverifikasi' : ad.status === 'revision' ? 'Perlu Perbaikan' : 'Sedang Ditinjau';
+                    md.notes = ad.notes || md.notes;
+                  }
+                });
+              }
+            }
+          } catch (admErr) {
+            console.warn('Reconcile applicant with admin error:', admErr);
+          }
+
+          // Rekonsiliasi otomatis dengan referralStore jika siswa terdaftar di kemitraan Guru BK
+          try {
+            const userEmail = (user?.email || merged.candidate.email || '').toLowerCase().trim();
+            const userRegNo = (merged.candidate.registrationNumber || '').toLowerCase().trim();
+            const userName = (user?.full_name || user?.name || merged.candidate.fullName || '').toLowerCase().trim();
+
+            const refStore = useReferralStore();
+            const foundRef =
+              (userEmail ? refStore.findReferralByStudent(userEmail) : null) ||
+              (userRegNo ? refStore.findReferralByStudent(userRegNo) : null) ||
+              (userName ? refStore.findReferralByStudent(userName) : null);
+
+            if (foundRef && foundRef.partner) {
+              const p = foundRef.partner;
+              merged.referral = {
+                code: p.code,
+                schoolName: p.schoolName,
+                picName: p.picName,
+                appliedAt: foundRef.student?.appliedAt || merged.referral?.appliedAt || new Date().toISOString(),
+                isApplied: true,
+              };
+              if (merged.payments?.registrationFee) {
+                merged.payments.registrationFee.amount = 0;
+                merged.payments.registrationFee.isFree = true;
+                merged.payments.registrationFee.status = 'paid';
+                merged.payments.registrationFee.statusLabel = 'Lunas (Kemitraan Guru BK)';
+                merged.payments.registrationFee.paymentMethod = `Kemitraan Guru BK (${p.code})`;
+              }
+              if (merged.admission && !merged.admission.track?.includes('Guru BK')) {
+                merged.admission.track = `Jalur Kemitraan Guru BK (${p.schoolName})`;
+              }
+            }
+          } catch (refErr) {
+            console.warn('Auto-sync referral with applicant store notice:', refErr);
+          }
+
           return merged;
         }
       } catch (e) {
         console.warn('Gagal memuat data pendaftar dari storage:', e);
       }
     }
-    // Jika belum ada data tersimpan untuk akun ini (pendaftar baru), buat state 100% bersih!
-    return createInitialState(user);
+    // Jika belum ada data tersimpan untuk akun ini (pendaftar baru), buat state awal
+    const fresh = createInitialState(user);
+    try {
+      const userEmail = (user?.email || fresh.candidate.email || '').toLowerCase().trim();
+      const refStore = useReferralStore();
+      const foundRef = userEmail ? refStore.findReferralByStudent(userEmail) : null;
+      if (foundRef && foundRef.partner) {
+        const p = foundRef.partner;
+        fresh.referral = {
+          code: p.code,
+          schoolName: p.schoolName,
+          picName: p.picName,
+          appliedAt: foundRef.student?.appliedAt || new Date().toISOString(),
+          isApplied: true,
+        };
+        if (fresh.payments?.registrationFee) {
+          fresh.payments.registrationFee.amount = 0;
+          fresh.payments.registrationFee.isFree = true;
+          fresh.payments.registrationFee.status = 'paid';
+          fresh.payments.registrationFee.statusLabel = 'Lunas (Kemitraan Guru BK)';
+          fresh.payments.registrationFee.paymentMethod = `Kemitraan Guru BK (${p.code})`;
+        }
+      }
+    } catch (refErr) {
+      console.warn('Auto-sync referral with new applicant notice:', refErr);
+    }
+    return fresh;
   };
 
   const state = ref(loadInitialData());
@@ -382,6 +570,35 @@ export const useApplicantStore = defineStore('applicant', () => {
     },
     { deep: true }
   );
+
+  // Realtime Cross-Component Event Listeners (Sinkronisasi Pembayaran & Referral BK)
+  if (typeof window !== 'undefined') {
+    window.addEventListener('bth_payment_confirmed', (e) => {
+      const email = e?.detail?.email;
+      const regNo = e?.detail?.regNo;
+      const myEmail = (state.value?.candidate?.email || authStore.currentUser?.email || '').toLowerCase().trim();
+      const myRegNo = state.value?.candidate?.registrationNumber;
+
+      if ((email && myEmail === email.toLowerCase().trim()) || (regNo && myRegNo === regNo)) {
+        if (state.value?.payments?.registrationFee) {
+          state.value.payments.registrationFee.status = 'paid';
+          state.value.payments.registrationFee.statusLabel = 'Lunas (Disetujui Guru BK)';
+          state.value.payments.registrationFee.paidAt = new Date().toLocaleString('id-ID');
+        }
+      }
+    });
+
+    window.addEventListener('bth_applicant_synced_from_admin', (e) => {
+      const email = e?.detail?.email;
+      const applicantId = e?.detail?.applicantId;
+      const myEmail = (state.value?.candidate?.email || authStore.currentUser?.email || '').toLowerCase().trim();
+      const myRegNo = state.value?.candidate?.registrationNumber;
+
+      if ((email && myEmail === email.toLowerCase().trim()) || (applicantId && myRegNo === applicantId)) {
+        state.value = loadInitialData(authStore.currentUser);
+      }
+    });
+  }
 
   let lastHandledUserId = authStore.currentUser?.id || null;
 
@@ -457,18 +674,25 @@ export const useApplicantStore = defineStore('applicant', () => {
   });
 
   const isRegPaymentComplete = computed(() => {
-    // Jika belum memilih program studi atau formulir kosong, belum ada pembayaran formulir yang sah
-    if (!state.value?.admission?.prodi1) {
-      return false;
-    }
     const backendStatus = state.value?.admission?.backendStatus;
     if (backendStatus === 'cancelled') {
       return false;
     }
 
-    // 1. Jalur Bebas Biaya (Rp 0) atau Kode Referal Kemitraan Sekolah selalu dianggap lunas
-    if (state.value?.referral?.isApplied || isFreeTrack.value) {
+    // 1. Jalur Bebas Biaya (Rp 0), Kode Referal Kemitraan Sekolah, atau status registrasi lunas
+    if (
+      state.value?.referral?.isApplied ||
+      isFreeTrack.value ||
+      state.value?.payments?.registrationFee?.isFree === true ||
+      state.value?.payments?.registrationFee?.amount === 0 ||
+      state.value?.payments?.registrationFee?.status === 'paid'
+    ) {
       return true;
+    }
+
+    // Jika belum memilih program studi atau formulir kosong, belum ada pembayaran formulir yang sah
+    if (!state.value?.admission?.prodi1) {
+      return false;
     }
 
     // 2. Jika backend admission menyatakan status belum bayar (awaiting_payment / draft)
@@ -657,12 +881,130 @@ export const useApplicantStore = defineStore('applicant', () => {
     { immediate: true }
   );
 
+  /**
+   * Helper Pencatatan Riwayat Aktivitas & Perubahan Data Terstruktur (CR-Riwayat Activity Stream)
+   */
+  const recordActivity = ({
+    category = 'system',
+    categoryLabel,
+    action,
+    title,
+    description,
+    actor = 'Calon Mahasiswa',
+    badgeColor,
+    status = 'completed',
+  }) => {
+    if (!state.value.statusLogs) {
+      state.value.statusLogs = [];
+    }
+
+    const categoryMap = {
+      profile: { label: 'Biodata & Profil', color: 'emerald' },
+      admission: { label: 'Jalur Seleksi', color: 'blue' },
+      document: { label: 'Berkas Dokumen', color: 'amber' },
+      payment: { label: 'Pembayaran', color: 'purple' },
+      exam: { label: 'Ujian Mandiri CBT', color: 'indigo' },
+      system: { label: 'Sistem PMB', color: 'slate' },
+    };
+
+    const catInfo = categoryMap[category] || { label: categoryLabel || 'Aktivitas PMB', color: 'blue' };
+    const resolvedTitle = action || title || 'Aktivitas Tersimpan';
+    const resolvedDesc = description || '';
+
+    // Mencegah duplikasi entri identik beruntun dalam rentang 3 detik
+    const now = Date.now();
+    const isDuplicate =
+      state.value.statusLogs.length > 0 &&
+      state.value.statusLogs[0].action === resolvedTitle &&
+      state.value.statusLogs[0].description === resolvedDesc &&
+      now - new Date(state.value.statusLogs[0].timestamp).getTime() < 3000;
+
+    if (isDuplicate) {
+      return state.value.statusLogs[0];
+    }
+
+    const newLog = {
+      id: `act-${now}-${Math.random().toString(36).slice(2, 6)}`,
+      timestamp: new Date().toISOString(),
+      category,
+      categoryLabel: categoryLabel || catInfo.label,
+      action: resolvedTitle,
+      title: resolvedTitle,
+      stage: catInfo.label,
+      description: resolvedDesc,
+      status,
+      actor,
+      badgeColor: badgeColor || catInfo.color,
+    };
+
+    state.value.statusLogs.unshift(newLog);
+    // Batasi log maksimal 80 aktivitas agar storage tetap bersih & efisien
+    if (state.value.statusLogs.length > 80) {
+      state.value.statusLogs.pop();
+    }
+    return newLog;
+  };
+
   const updateProfile = (data) => {
     state.value.candidate = { ...state.value.candidate, ...data };
+
+    // Catat log aktivitas simpan data biodata
+    const summaryItems = [];
+    if (data.fullName) summaryItems.push(`Nama: ${data.fullName}`);
+    if (data.nik) summaryItems.push(`NIK: ${data.nik}`);
+    if (data.schoolName) summaryItems.push(`Sekolah: ${data.schoolName}`);
+    if (data.phone) summaryItems.push(`No. HP: ${data.phone}`);
+
+    const details = summaryItems.length > 0
+      ? `Data tersimpan: ${summaryItems.join(' • ')}`
+      : 'Data identitas diri, domisili, data orang tua, dan riwayat asal sekolah berhasil diperbarui.';
+
+    recordActivity({
+      category: 'profile',
+      action: 'Simpan Data Biodata Pribadi',
+      description: details,
+      actor: 'Calon Mahasiswa',
+      badgeColor: 'emerald',
+    });
+
+    if (state.value.referral?.isApplied && state.value.referral?.code) {
+      try {
+        const referralStore = useReferralStore();
+        referralStore.applyReferralForStudent(state.value.referral.code, {
+          candidateName: state.value.candidate?.fullName || 'Calon Mahasiswa',
+          email: state.value.candidate?.email || '',
+          nik: state.value.candidate?.nik || '-',
+          nisn: state.value.candidate?.nisn || '-',
+          phone: state.value.candidate?.phone || '',
+          registrationNumber: state.value.candidate?.registrationNumber || '',
+          prodi: state.value.admission?.prodi1 || '',
+          nominal: 300000,
+        });
+      } catch (e) {
+        console.warn('Sync referral on profile update:', e);
+      }
+    }
   };
 
   const updateAdmission = (data) => {
+    const prevTrack = state.value.admission?.track;
+    const prevProdi1 = state.value.admission?.prodi1;
+    const isTrackChange = prevTrack && prevTrack !== data.track;
+    const isProdiChange = prevProdi1 && prevProdi1 !== data.prodi1;
+
     state.value.admission = { ...state.value.admission, ...data };
+
+    // Update nominal biaya formulir pendaftaran dinamis sesuai jalur dari CMS
+    if (state.value.payments?.registrationFee && state.value.payments.registrationFee.status !== 'paid') {
+      const dynamicRegFee = cmsStore.getRegistrationFee(data.track || state.value.admission?.track);
+      state.value.payments.registrationFee.amount = dynamicRegFee;
+      if (dynamicRegFee === 0) {
+        state.value.payments.registrationFee.status = 'paid';
+        state.value.payments.registrationFee.paymentMethod = 'Jalur Bebas Biaya (Subsidi / Kemitraan)';
+        state.value.payments.registrationFee.statusLabel = 'Bebas Biaya (Lunas Otomatis)';
+      }
+    }
+
     if (data.prodi1) {
       const meta = PRODI_METADATA[data.prodi1];
       const faculty = data.prodi1Faculty || meta?.faculty || state.value.admission.prodi1Faculty;
@@ -684,9 +1026,43 @@ export const useApplicantStore = defineStore('applicant', () => {
         state.value.onboarding.faculty = faculty;
       }
 
-      // Update nominal tagihan UKT dinamis sesuai prodi pilihan
-      if (meta?.uktFee && state.value.payments?.uktFee) {
-        state.value.payments.uktFee.amount = meta.uktFee;
+      // Update nominal tagihan UKT dinamis sesuai prodi pilihan dari CMS
+      const dynamicUkt = cmsStore.getUktFee(data.prodi1);
+      if (state.value.payments?.uktFee) {
+        state.value.payments.uktFee.amount = dynamicUkt || meta?.uktFee || 4500000;
+      }
+    }
+
+    // Catat log aktivitas simpan / ubah jalur & prodi
+    const actionLabel = (isTrackChange || isProdiChange)
+      ? 'Ubah Pilihan Jalur & Program Studi'
+      : 'Simpan Pilihan Jalur & Program Studi';
+
+    const desc = `Jalur: ${data.track || 'Jalur Seleksi'} | Pilihan 1: ${data.prodi1 || '-'}${data.prodi2 ? ` • Pilihan 2: ${data.prodi2}` : ''}`;
+
+    recordActivity({
+      category: 'admission',
+      action: actionLabel,
+      description: desc,
+      actor: 'Calon Mahasiswa',
+      badgeColor: 'blue',
+    });
+
+    if (state.value.referral?.isApplied && state.value.referral?.code) {
+      try {
+        const referralStore = useReferralStore();
+        referralStore.applyReferralForStudent(state.value.referral.code, {
+          candidateName: state.value.candidate?.fullName || 'Calon Mahasiswa',
+          email: state.value.candidate?.email || '',
+          nik: state.value.candidate?.nik || '-',
+          nisn: state.value.candidate?.nisn || '-',
+          phone: state.value.candidate?.phone || '',
+          registrationNumber: state.value.candidate?.registrationNumber || '',
+          prodi: state.value.admission?.prodi1 || '',
+          nominal: 300000,
+        });
+      } catch (e) {
+        console.warn('Sync referral on admission update:', e);
       }
     }
   };
@@ -714,6 +1090,14 @@ export const useApplicantStore = defineStore('applicant', () => {
         }
       }
     }
+
+    recordActivity({
+      category: 'document',
+      action: `Unggah Berkas: ${doc?.title || 'Dokumen Persyaratan'}`,
+      description: `Berkas "${fileInfo.name}" (${fileInfo.size || 'Terlampir'}) berhasil diunggah ke sistem PMB.`,
+      actor: 'Calon Mahasiswa',
+      badgeColor: 'amber',
+    });
   };
 
   const submitRegPayment = (note = 'Pengajuan pembayaran via Virtual Account BSI') => {
@@ -721,6 +1105,14 @@ export const useApplicantStore = defineStore('applicant', () => {
     state.value.payments.registrationFee.statusLabel = 'Menunggu Konfirmasi Admin';
     state.value.payments.registrationFee.submittedAt = new Date().toLocaleString('id-ID');
     state.value.payments.registrationFee.notes = note;
+
+    recordActivity({
+      category: 'payment',
+      action: 'Pengajuan Pembayaran Biaya Formulir',
+      description: `Menyerahkan bukti pembayaran biaya formulir (Rp 250.000). Instruksi: ${note}`,
+      actor: 'Calon Mahasiswa',
+      badgeColor: 'purple',
+    });
   };
 
   const payRegFee = (confirmedBy = 'Panitia PMB / Biro Keuangan BTH') => {
@@ -728,6 +1120,27 @@ export const useApplicantStore = defineStore('applicant', () => {
     state.value.payments.registrationFee.statusLabel = 'Lunas (Dikonfirmasi Admin)';
     state.value.payments.registrationFee.confirmedBy = confirmedBy;
     state.value.payments.registrationFee.paidAt = new Date().toLocaleString('id-ID');
+
+    recordActivity({
+      category: 'payment',
+      action: 'Pelunasan Biaya Formulir Pendaftaran',
+      description: 'Biaya formulir pendaftaran PMB sebesar Rp 250.000 dinyatakan lunas dan diverifikasi.',
+      actor: confirmedBy,
+      badgeColor: 'emerald',
+    });
+
+    // Sinkronkan ke mitra referal Guru BK bila siswa menggunakan kode referal
+    if (state.value.referral?.isApplied && state.value.referral?.code) {
+      try {
+        const referralStore = useReferralStore();
+        referralStore.approveStudentPayment(
+          state.value.referral.code,
+          state.value.candidate?.email || state.value.candidate?.registrationNumber
+        );
+      } catch (e) {
+        console.warn('Sync referral on payRegFee error:', e);
+      }
+    }
   };
 
   const submitUktPayment = (note = 'Pengajuan pelunasan UKT Semester 1 via Virtual Account') => {
@@ -735,6 +1148,14 @@ export const useApplicantStore = defineStore('applicant', () => {
     state.value.payments.uktFee.statusLabel = 'Menunggu Konfirmasi Admin';
     state.value.payments.uktFee.submittedAt = new Date().toLocaleString('id-ID');
     state.value.payments.uktFee.notes = note;
+
+    recordActivity({
+      category: 'payment',
+      action: 'Pengajuan Pembayaran UKT Semester 1',
+      description: `Menyerahkan instruksi pelunasan UKT & registrasi ulang. Catatan: ${note}`,
+      actor: 'Calon Mahasiswa',
+      badgeColor: 'purple',
+    });
   };
 
   const payUktFee = (confirmedBy = 'Panitia PMB / Biro Keuangan BTH') => {
@@ -776,6 +1197,14 @@ export const useApplicantStore = defineStore('applicant', () => {
       state.value.onboarding.faculty = meta.faculty || state.value.admission.prodi1Faculty || 'Universitas BTH';
       state.value.onboarding.pkkmbGroup = meta.gugus || 'Gugus Mahasiswa Baru BTH';
     }
+
+    recordActivity({
+      category: 'payment',
+      action: 'Pelunasan UKT & Registrasi Ulang',
+      description: `Pembayaran UKT Semester 1 lunas. NIM Mahasiswa: ${state.value.onboarding.nim || 'Diterbitkan'}.`,
+      actor: confirmedBy,
+      badgeColor: 'emerald',
+    });
   };
 
   const submitExam = (score, correctCount) => {
@@ -797,6 +1226,14 @@ export const useApplicantStore = defineStore('applicant', () => {
       state.value.result.decisionLetterNo = `${regSuffix.slice(-3)}/SK-PMB/UBTH/X/${new Date().getFullYear()}`;
     }
     state.value.admission.status = isPass ? 'Dinyatakan Lulus Seleksi' : 'Belum Memenuhi Syarat Kelulusan';
+
+    recordActivity({
+      category: 'exam',
+      action: 'Penyelesaian Ujian Mandiri CBT',
+      description: `Menyelesaikan Computer-Based Test (CBT) dengan perolehan skor ${score}/100 (${correctCount}/5 soal benar). Status: ${isPass ? 'Lulus Passing Grade' : 'Belum Memenuhi Nilai Ambang Batas'}.`,
+      actor: 'Sistem Ujian CBT',
+      badgeColor: 'indigo',
+    });
   };
 
   /**
@@ -841,6 +1278,14 @@ export const useApplicantStore = defineStore('applicant', () => {
     } catch (e) {
       console.warn('Backend cancel notice:', e?.message);
     }
+
+    recordActivity({
+      category: 'admission',
+      action: 'Pembatalan Pilihan Jalur & Program Studi',
+      description: `Pilihan jalur dan program studi dibatalkan: "${reason}". Status pendaftaran dikembalikan ke tahap pemilihan jalur.`,
+      actor: 'Calon Mahasiswa',
+      badgeColor: 'rose',
+    });
 
     // Arahkan langsung ke modul pendaftaran agar pendaftar bisa langsung memilih lagi
     setActiveTab('admission');
@@ -906,6 +1351,14 @@ export const useApplicantStore = defineStore('applicant', () => {
     state.value.schedule.announcementDate = getUpcomingDateString(10);
     state.value.result.decisionDate = getUpcomingDateString(10, false);
     state.value.result.reRegistrationPeriod = `${getUpcomingDateString(11, false)} - ${getUpcomingDateString(25, false)}`;
+
+    recordActivity({
+      category: 'admission',
+      action: 'Buka Pendaftaran Jalur Baru',
+      description: 'Memulai formulir pendaftaran baru di Universitas Bakti Tunas Husada. Biodata identitas dan berkas persyaratan tetap tersimpan.',
+      actor: 'Calon Mahasiswa',
+      badgeColor: 'blue',
+    });
 
     // Pindah ke modul Jalur Pendaftaran
     setActiveTab('admission');
@@ -1319,10 +1772,10 @@ export const useApplicantStore = defineStore('applicant', () => {
   // State baru CR-006 & CR-007 & CR-010
   const applicationHistory = ref([]);
   const pendingPathChange = ref(null);
-  const pendingWithdrawal = ref(null);
-  const rejectedWithdrawal = ref(null);
+  const pendingWithdrawal = ref(state.value?.pendingWithdrawal || null);
+  const rejectedWithdrawal = ref(state.value?.rejectedWithdrawal || null);
   const pathChangeNotice = ref(null);
-  const withdrawalInfo = ref(null);
+  const withdrawalInfo = ref(state.value?.withdrawalInfo || null);
   const installmentSchedule = ref([]);
 
   const dismissRejectedWithdrawal = () => {
@@ -1368,6 +1821,13 @@ export const useApplicantStore = defineStore('applicant', () => {
           if (state.value) delete state.value.pendingPathChange;
         }
       }
+      recordActivity({
+        category: 'admission',
+        action: 'Pengajuan Alih Jalur Seleksi',
+        description: `Mengajukan permohonan alih jalur ke ${trackName || 'Jalur Baru'}. Alasan: "${reason || 'Penyesuaian minat studi'}"`,
+        actor: 'Calon Mahasiswa',
+        badgeColor: 'blue',
+      });
       await syncFromBackend();
       return res.data;
     } catch (err) {
@@ -1382,6 +1842,13 @@ export const useApplicantStore = defineStore('applicant', () => {
       if (state.value) {
         delete state.value.pendingPathChange;
       }
+      recordActivity({
+        category: 'admission',
+        action: 'Pembatalan Permohonan Alih Jalur',
+        description: 'Permohonan pindah jalur seleksi ditarik kembali oleh pendaftar.',
+        actor: 'Calon Mahasiswa',
+        badgeColor: 'rose',
+      });
       await syncFromBackend();
       return { success: true };
     } catch (err) {
@@ -1412,6 +1879,13 @@ export const useApplicantStore = defineStore('applicant', () => {
           state.value.pendingWithdrawal = wd;
         }
       }
+      recordActivity({
+        category: 'admission',
+        action: 'Pengajuan Pengunduran Diri Resmi',
+        description: `Mengajukan pengunduran diri kepesertaan seleksi PMB (Kategori: ${reasonCategory}). Alasan: "${reason}".`,
+        actor: 'Calon Mahasiswa',
+        badgeColor: 'rose',
+      });
       await syncFromBackend();
       return res.data;
     } catch (err) {
@@ -1463,6 +1937,13 @@ export const useApplicantStore = defineStore('applicant', () => {
         delete state.value.pendingWithdrawal;
         delete state.value.withdrawalInfo;
       }
+      recordActivity({
+        category: 'admission',
+        action: 'Pembatalan Permohonan Pengunduran Diri',
+        description: 'Permohonan pengunduran diri resmi dibatalkan. Status pendaftaran calon mahasiswa aktif kembali.',
+        actor: 'Calon Mahasiswa',
+        badgeColor: 'blue',
+      });
       await syncFromBackend();
       return { success: true };
     } catch (err) {
@@ -1488,110 +1969,156 @@ export const useApplicantStore = defineStore('applicant', () => {
     }
   };
 
-  const addStatusLog = ({ stage, title, description, status = 'completed', actor = 'Sistem PMB' }) => {
-    if (!state.value.statusLogs) {
-      state.value.statusLogs = [];
-    }
-    const newLog = {
-      id: `log-${Date.now()}`,
-      timestamp: new Date().toISOString(),
-      stage,
+  const addStatusLog = ({ stage, title, description, status = 'completed', actor = 'Sistem PMB', category = 'system' }) => {
+    return recordActivity({
+      category,
+      action: title,
       title,
       description,
       status,
       actor,
-    };
-    state.value.statusLogs.unshift(newLog);
-    return newLog;
+    });
   };
 
   const computedStatusHistory = computed(() => {
-    const logs = [...(state.value?.statusLogs || [])];
-    const hasStage = (stageName) => logs.some((l) => l.stage === stageName);
+    const recordedLogs = Array.isArray(state.value?.statusLogs) ? [...state.value.statusLogs] : [];
 
-    if (isProfileComplete.value && !hasStage('Pengisian Biodata')) {
-      logs.push({
-        id: 'log-profile',
+    // Helper untuk mengecek apakah sudah ada log untuk kategori tertentu
+    const hasCategoryAction = (cat, keyword) =>
+      recordedLogs.some((l) => l.category === cat || (l.action && l.action.toLowerCase().includes(keyword.toLowerCase())));
+
+    // Baseline fallbacks jika akun sudah memiliki data tapi belum tercatat di statusLogs
+    const baseline = [];
+
+    if (isProfileComplete.value && !hasCategoryAction('profile', 'biodata')) {
+      baseline.push({
+        id: 'base-profile',
         timestamp: new Date(Date.now() - 3600000 * 24).toISOString(),
-        stage: 'Pengisian Biodata',
+        category: 'profile',
+        categoryLabel: 'Biodata & Profil',
+        action: 'Simpan Data Biodata Pribadi',
         title: 'Biodata Calon Mahasiswa Lengkap',
-        description: 'Informasi identitas diri, data orang tua, dan asal sekolah berhasil disimpan.',
+        stage: 'Biodata & Profil',
+        description: `Informasi identitas diri (${state.value?.candidate?.fullName || 'Calon Mahasiswa'}), NIK, orang tua, dan asal sekolah berhasil disimpan.`,
         status: 'completed',
         actor: 'Calon Mahasiswa',
+        badgeColor: 'emerald',
       });
     }
 
-    if (isAdmissionComplete.value && !hasStage('Pemilihan Jalur')) {
-      logs.push({
-        id: 'log-admission',
+    if (isAdmissionComplete.value && !hasCategoryAction('admission', 'jalur')) {
+      baseline.push({
+        id: 'base-admission',
         timestamp: new Date(Date.now() - 3600000 * 20).toISOString(),
-        stage: 'Pemilihan Jalur',
-        title: 'Jalur Pendaftaran & Pilihan Program Studi Disimpan',
-        description: `Memilih ${state.value?.admission?.track || 'Jalur Masuk'} dengan pilihan utama ${state.value?.admission?.prodi1 || 'Program Studi'}.`,
+        category: 'admission',
+        categoryLabel: 'Jalur Seleksi',
+        action: 'Simpan Pilihan Jalur & Program Studi',
+        title: 'Jalur & Pilihan Program Studi Disimpan',
+        stage: 'Jalur Seleksi',
+        description: `Memilih ${state.value?.admission?.track || 'Jalur Reguler'} dengan Pilihan 1: ${state.value?.admission?.prodi1 || 'Program Studi'}.`,
         status: 'completed',
         actor: 'Calon Mahasiswa',
+        badgeColor: 'blue',
       });
     }
 
-    if (isRegPaymentComplete.value && !hasStage('Pembayaran Formulir')) {
-      logs.push({
-        id: 'log-regpay',
+    if (isRegPaymentComplete.value && !hasCategoryAction('payment', 'formulir')) {
+      baseline.push({
+        id: 'base-regpay',
         timestamp: state.value?.payments?.registrationFee?.paidAt || new Date(Date.now() - 3600000 * 16).toISOString(),
-        stage: 'Pembayaran Formulir',
+        category: 'payment',
+        categoryLabel: 'Pembayaran',
+        action: state.value?.referral?.isApplied ? 'Bypass Formulir via Kode Referal' : 'Pelunasan Biaya Formulir Pendaftaran',
         title: state.value?.referral?.isApplied ? 'Bypass Formulir via Kode Referal' : 'Pembayaran Formulir Terverifikasi',
+        stage: 'Pembayaran',
         description: state.value?.referral?.isApplied
-          ? `Biaya pendaftaran dialihkan melalui kode referal sekolah mitra (${state.value.referral.code} - ${state.value.referral.schoolName}).`
+          ? `Biaya pendaftaran dialihkan via kemitraan sekolah (${state.value.referral.code} - ${state.value.referral.schoolName}).`
           : 'Pembayaran biaya formulir pendaftaran PMB sebesar Rp 250.000 dinyatakan lunas.',
         status: 'completed',
-        actor: state.value?.referral?.isApplied ? 'Mitra Sekolah PMB' : 'Biro Keuangan',
+        actor: state.value?.referral?.isApplied ? 'Mitra Sekolah PMB' : 'Biro Keuangan BTH',
+        badgeColor: 'emerald',
       });
     }
 
-    if (isDocumentsComplete.value && !hasStage('Unggah Berkas')) {
-      logs.push({
-        id: 'log-docs',
+    if (isDocumentsComplete.value && !hasCategoryAction('document', 'berkas')) {
+      baseline.push({
+        id: 'base-docs',
         timestamp: new Date(Date.now() - 3600000 * 12).toISOString(),
-        stage: 'Unggah Berkas',
+        category: 'document',
+        categoryLabel: 'Berkas Persyaratan',
+        action: 'Unggah Berkas Persyaratan Lengkap',
         title: 'Seluruh Berkas Persyaratan Terunggah',
-        description: 'Dokumen ijazah/SKL, kartu identitas, dan dokumen pendukung berhasil dikirim ke sistem.',
+        stage: 'Berkas Persyaratan',
+        description: 'Seluruh dokumen persyaratan (Ijazah/SKL, KTP, KK, Pasfoto) berhasil diunggah ke sistem.',
         status: 'completed',
         actor: 'Calon Mahasiswa',
+        badgeColor: 'amber',
       });
     }
 
-    if (isExamCompleted.value && !hasStage('Ujian Seleksi')) {
-      logs.push({
-        id: 'log-exam',
+    if (isExamCompleted.value && !hasCategoryAction('exam', 'cbt')) {
+      baseline.push({
+        id: 'base-exam',
         timestamp: state.value?.exam?.completedAt || new Date(Date.now() - 3600000 * 8).toISOString(),
-        stage: 'Ujian Seleksi',
+        category: 'exam',
+        categoryLabel: 'Ujian Mandiri CBT',
+        action: 'Penyelesaian Ujian Mandiri CBT',
         title: 'Ujian Mandiri CBT Diselesaikan',
-        description: `Mengerjakan ujian Computer-Based Test dengan perolehan skor ${state.value?.exam?.score || 0}/100.`,
+        stage: 'Ujian Mandiri CBT',
+        description: `Mengerjakan sesi Computer-Based Test (CBT) dengan perolehan skor ${state.value?.exam?.score || 0}/100.`,
         status: 'completed',
         actor: 'Sistem Ujian CBT',
+        badgeColor: 'indigo',
       });
     }
 
-    if (isResultPassed.value && !hasStage('Hasil Seleksi')) {
-      logs.push({
-        id: 'log-result',
+    if (isResultPassed.value && !hasCategoryAction('system', 'lulus')) {
+      baseline.push({
+        id: 'base-result',
         timestamp: new Date(Date.now() - 3600000 * 4).toISOString(),
-        stage: 'Hasil Seleksi',
+        category: 'system',
+        categoryLabel: 'Hasil Seleksi',
+        action: 'Kelulusan Seleksi PMB',
         title: 'Dinyatakan Lulus Seleksi PMB',
-        description: `Selamat! Anda dinyatakan lulus pada program studi ${state.value?.result?.acceptedProdi || state.value?.admission?.prodi1}.`,
+        stage: 'Hasil Seleksi',
+        description: `Dinyatakan lulus seleksi pada program studi ${state.value?.result?.acceptedProdi || state.value?.admission?.prodi1}.`,
         status: 'completed',
         actor: 'Panitia Seleksi PMB',
+        badgeColor: 'emerald',
       });
     }
 
-    return logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const allLogs = [...recordedLogs, ...baseline];
+    return allLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
   });
 
   const applyReferralCode = (code) => {
     const referralStore = useReferralStore();
+    const authStore = useAuthStore();
+    const candidateData = state.value.candidate || {};
+    const currentUser = authStore.currentUser || {};
+
+    const studentName =
+      candidateData.fullName ||
+      currentUser.full_name ||
+      currentUser.name ||
+      (currentUser.email ? currentUser.email.split('@')[0] : 'Calon Mahasiswa');
+
+    const studentEmail =
+      candidateData.email ||
+      currentUser.email ||
+      '';
+
     const result = referralStore.applyReferralForStudent(code, {
-      candidateName: state.value.candidate.fullName,
-      registrationNumber: state.value.candidate.registrationNumber,
-      prodi: state.value.admission.prodi1,
+      candidateName: studentName,
+      email: studentEmail,
+      nik: candidateData.nik || '-',
+      nisn: candidateData.nisn || '-',
+      phone: candidateData.phone || currentUser.phone || '',
+      registrationNumber: candidateData.registrationNumber || '',
+      prodi: state.value.admission?.prodi1 || '',
+      user_id: currentUser.id || null,
+      nominal: 300000,
     });
 
     if (!result.success) {
@@ -1607,23 +2134,91 @@ export const useApplicantStore = defineStore('applicant', () => {
       isApplied: true,
     };
 
-    state.value.payments.registrationFee.status = 'paid';
-    state.value.payments.registrationFee.statusLabel = 'Lunas (Kemitraan Sekolah)';
-    state.value.payments.registrationFee.paidAt = new Date().toISOString();
-    state.value.payments.registrationFee.paymentMethod = `Kemitraan Guru BK (${refData.code})`;
     if (state.value.admission) {
+      state.value.admission.track = `Jalur Kemitraan Guru BK (${refData.schoolName})`;
       state.value.admission.backendStatus = 'form_open';
     }
 
-    addStatusLog({
-      stage: 'Pembayaran Formulir',
-      title: 'Biaya Formulir Dialihkan via Kode Referal',
-      description: `Biaya pendaftaran dialihkan melalui kemitraan sekolah mitra (${refData.picName} - ${refData.schoolName}).`,
+    if (state.value.payments?.registrationFee) {
+      state.value.payments.registrationFee.amount = 0;
+      state.value.payments.registrationFee.isFree = true;
+      state.value.payments.registrationFee.status = 'paid';
+      state.value.payments.registrationFee.statusLabel = 'Lunas (Kemitraan Sekolah)';
+      state.value.payments.registrationFee.paidAt = new Date().toISOString();
+      state.value.payments.registrationFee.paymentMethod = `Kemitraan Guru BK (${refData.code})`;
+    }
+
+    recordActivity({
+      category: 'admission',
+      action: 'Penerapan Kode Referal Sekolah Mitra BK',
+      description: `Biaya pendaftaran dialihkan melalui kemitraan sekolah (${refData.picName} - ${refData.schoolName}).`,
       status: 'completed',
       actor: 'Mitra Sekolah PMB',
+      badgeColor: 'amber',
     });
 
+    try {
+      const key = getStorageKey();
+      if (key && authStore.currentUser) {
+        localStorage.setItem(key, JSON.stringify(state.value));
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('bth_payment_confirmed', {
+            detail: { email: studentEmail, regNo: candidateData.registrationNumber },
+          })
+        );
+      }
+    } catch (e) {
+      console.warn('Gagal menyimpan status referal:', e);
+    }
+
     return result;
+  };
+
+  const removeReferralCode = () => {
+    const referralStore = useReferralStore();
+    const currentCode = state.value.referral?.code;
+    const authStore = useAuthStore();
+    const candidateData = state.value.candidate || {};
+    const currentUser = authStore.currentUser || {};
+    const studentEmail = candidateData.email || currentUser.email || '';
+
+    if (currentCode) {
+      referralStore.removeStudentFromReferral(currentCode, studentEmail);
+    }
+
+    state.value.referral = {
+      code: null,
+      picName: null,
+      schoolName: null,
+      appliedAt: null,
+      isApplied: false,
+    };
+
+    if (state.value.admission) {
+      state.value.admission.track = 'Reguler Tes CBT';
+    }
+
+    if (state.value.payments?.registrationFee) {
+      state.value.payments.registrationFee.amount = 250000;
+      state.value.payments.registrationFee.isFree = false;
+      state.value.payments.registrationFee.status = 'unpaid';
+      state.value.payments.registrationFee.statusLabel = 'Belum Dibayar';
+      state.value.payments.registrationFee.paidAt = null;
+      state.value.payments.registrationFee.paymentMethod = null;
+    }
+
+    recordActivity({
+      category: 'admission',
+      action: 'Pembatalan Kode Referal BK',
+      description: 'Kode referal kemitraan sekolah telah dibatalkan dari akun Anda.',
+      status: 'completed',
+      actor: 'Calon Mahasiswa',
+      badgeColor: 'rose',
+    });
+
+    return { success: true, message: 'Kode referal berhasil dibatalkan.' };
   };
 
   return {
@@ -1682,8 +2277,10 @@ export const useApplicantStore = defineStore('applicant', () => {
     lastBackendSync,
     candidatePhoto,
     hasCandidatePhoto,
+    recordActivity,
     addStatusLog,
     computedStatusHistory,
     applyReferralCode,
+    removeReferralCode,
   };
 });

@@ -153,25 +153,25 @@
             <!-- Status Badge -->
             <span
               v-if="applicant.documentStatus === 'verified'"
-              class="inline-flex items-center px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[11px] font-medium"
+              class="inline-flex items-center px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[11px] font-medium whitespace-nowrap"
             >
               Terverifikasi Sah
             </span>
             <span
               v-else-if="applicant.documentStatus === 'revision'"
-              class="inline-flex items-center px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded text-[11px] font-medium"
+              class="inline-flex items-center px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded text-[11px] font-medium whitespace-nowrap"
             >
               Perlu Perbaikan
             </span>
             <span
               v-else-if="applicant.documentStatus === 'pending'"
-              class="inline-flex items-center px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 rounded text-[11px] font-medium"
+              class="inline-flex items-center px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 rounded text-[11px] font-medium whitespace-nowrap"
             >
               Menunggu Verifikasi
             </span>
             <span
               v-else
-              class="inline-flex items-center px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded text-[11px] font-medium"
+              class="inline-flex items-center px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded text-[11px] font-medium whitespace-nowrap"
             >
               Belum Unggah
             </span>
@@ -190,7 +190,7 @@
           <!-- Bottom: Documents Count & Action Button -->
           <div class="flex items-center justify-between pt-2 border-t border-slate-100">
             <span
-              class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold"
+              class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold whitespace-nowrap"
               :class="{
                 'bg-emerald-50 text-emerald-700 border border-emerald-200': applicant.verifiedDocsCount === 5,
                 'bg-amber-50 text-amber-700 border border-amber-200': applicant.verifiedDocsCount > 0 && applicant.verifiedDocsCount < 5,
@@ -259,7 +259,7 @@
               <!-- Documents Count -->
               <td class="py-3.5 px-4 text-center whitespace-nowrap">
                 <span
-                  class="inline-flex items-center justify-center px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold"
+                  class="inline-flex items-center justify-center px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold whitespace-nowrap"
                   :class="{
                     'bg-emerald-50 text-emerald-700 border border-emerald-200': applicant.verifiedDocsCount === 5,
                     'bg-amber-50 text-amber-700 border border-amber-200': applicant.verifiedDocsCount > 0 && applicant.verifiedDocsCount < 5,
@@ -274,25 +274,25 @@
               <td class="py-3.5 px-4 whitespace-nowrap">
                 <span
                   v-if="applicant.documentStatus === 'verified'"
-                  class="inline-flex items-center px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[11px] font-medium"
+                  class="inline-flex items-center px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[11px] font-medium whitespace-nowrap"
                 >
                   Terverifikasi Sah
                 </span>
                 <span
                   v-else-if="applicant.documentStatus === 'revision'"
-                  class="inline-flex items-center px-2.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded text-[11px] font-medium"
+                  class="inline-flex items-center px-2.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded text-[11px] font-medium whitespace-nowrap"
                 >
                   Perlu Perbaikan
                 </span>
                 <span
                   v-else-if="applicant.documentStatus === 'pending'"
-                  class="inline-flex items-center px-2.5 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 rounded text-[11px] font-medium"
+                  class="inline-flex items-center px-2.5 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 rounded text-[11px] font-medium whitespace-nowrap"
                 >
                   Menunggu Verifikasi
                 </span>
                 <span
                   v-else
-                  class="inline-flex items-center px-2.5 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded text-[11px] font-medium"
+                  class="inline-flex items-center px-2.5 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded text-[11px] font-medium whitespace-nowrap"
                 >
                   Belum Unggah Berkas
                 </span>
@@ -379,9 +379,9 @@
                   <span class="font-semibold text-slate-500">Catatan Panitia:</span> {{ item.notes || item.reviewNote }}
                 </div>
               </td>
-              <td class="py-3.5 px-4">
+              <td class="py-3.5 px-4 whitespace-nowrap min-w-[150px]">
                 <span
-                  class="inline-block px-2 py-0.5 text-xs font-medium rounded border"
+                  class="inline-block px-2.5 py-0.5 text-xs font-medium rounded border whitespace-nowrap"
                   :class="item.status === 'approved'
                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                     : item.status === 'rejected'
@@ -468,9 +468,9 @@
               <td class="py-3.5 px-4 font-sans text-slate-600">
                 {{ item.submittedAt }}
               </td>
-              <td class="py-3.5 px-4">
+              <td class="py-3.5 px-4 whitespace-nowrap min-w-[170px]">
                 <span
-                  class="inline-block px-2 py-0.5 text-xs font-medium rounded border"
+                  class="inline-block px-2.5 py-0.5 text-xs font-medium rounded border whitespace-nowrap"
                   :class="item.status === 'approved'
                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                     : item.status === 'rejected'
@@ -529,11 +529,11 @@
                 <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base leading-tight truncate">
                   {{ activeApplicant.fullName }}
                 </h3>
-                <span class="font-mono text-[11px] sm:text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded border border-slate-200 font-medium">
+                <span class="font-mono text-[11px] sm:text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded border border-slate-200 font-medium whitespace-nowrap inline-block">
                   {{ activeApplicant.id }}
                 </span>
                 <span
-                  class="inline-flex items-center px-2 py-0.5 rounded text-[11px] sm:text-xs font-medium"
+                  class="inline-flex items-center px-2 py-0.5 rounded text-[11px] sm:text-xs font-medium whitespace-nowrap"
                   :class="{
                     'bg-emerald-50 text-emerald-700 border border-emerald-200': activeApplicant.documentStatus === 'verified',
                     'bg-rose-50 text-rose-700 border border-rose-200': activeApplicant.documentStatus === 'revision',
@@ -644,7 +644,7 @@
                 <div class="flex items-center gap-2">
                   <span class="text-slate-500 text-[11px]">Status:</span>
                   <span
-                    class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium"
+                    class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium whitespace-nowrap"
                     :class="{
                       'bg-emerald-50 text-emerald-700 border border-emerald-200': selectedDoc?.status === 'verified',
                       'bg-rose-50 text-rose-700 border border-rose-200': selectedDoc?.status === 'revision',

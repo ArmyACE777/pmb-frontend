@@ -11,17 +11,8 @@
         </p>
       </div>
 
-      <!-- Status Indicator & Riwayat Button -->
+      <!-- Status Indicator -->
       <div class="self-start sm:self-auto flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          @click="openHistoryModal"
-          class="px-3.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold font-sora shadow-2xs transition-colors cursor-pointer flex items-center gap-1.5"
-        >
-          <Clock class="w-3.5 h-3.5 text-slate-500" />
-          <span>Riwayat Pendaftaran</span>
-        </button>
-
         <span
           v-if="applicantStore.isWithdrawn"
           class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200"
@@ -66,14 +57,9 @@
       v-if="applicantStore.pendingPathChange"
       class="p-4 sm:p-5 bg-blue-50/90 border border-blue-200 rounded-xl text-xs space-y-3 text-blue-900 shadow-2xs animate-fadeIn"
     >
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-blue-100">
-        <div class="font-bold flex items-center gap-2 text-sm text-[#1E3A8A] font-sora">
-          <Clock class="w-4 h-4 text-[#1E3A8A]" />
-          <span>Permohonan Pindah Jalur Sedang Ditinjau Admin PMB</span>
-        </div>
-        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-blue-100 text-[#1E3A8A] self-start sm:self-auto border border-blue-200">
-          Menunggu Verifikasi Panitia PMB
-        </span>
+      <div class="flex items-center gap-2 pb-2.5 border-b border-blue-100 font-bold text-sm text-[#1E3A8A] font-sora">
+        <Clock class="w-4 h-4 text-[#1E3A8A]" />
+        <span>Permohonan Pindah Jalur Sedang Ditinjau Admin PMB</span>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-0.5">
@@ -140,14 +126,9 @@
       v-if="applicantStore.pendingWithdrawal"
       class="p-4 sm:p-5 bg-amber-50/90 border border-amber-200 rounded-xl text-xs space-y-3 text-amber-900 shadow-2xs animate-fadeIn font-sans"
     >
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-amber-200/80">
-        <div class="font-bold flex items-center gap-2 text-sm text-amber-900 font-sora">
-          <AlertCircle class="w-4 h-4 text-amber-600" />
-          <span>Permohonan Pengunduran Diri Sedang Diverifikasi</span>
-        </div>
-        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-amber-100 text-amber-800 self-start sm:self-auto border border-amber-200">
-          Menunggu Verifikasi Administratif BAAK
-        </span>
+      <div class="flex items-center gap-2 pb-2.5 border-b border-amber-200/80 font-bold text-sm text-amber-900 font-sora">
+        <AlertCircle class="w-4 h-4 text-amber-600" />
+        <span>Permohonan Pengunduran Diri Sedang Diverifikasi</span>
       </div>
 
       <p class="text-xs text-amber-800 leading-relaxed font-sans">
@@ -163,17 +144,17 @@
     </div>
 
     <!-- ========================================================================= -->
-    <!-- KONDISI A: TAMPILAN RESMI PENGUNDURAN DIRI (SURAT KEPUTUS RESMI BTH)       -->
+    <!-- KONDISI A: TAMPILAN RESMI PENGUNDURAN DIRI                                -->
     <!-- ========================================================================= -->
     <div
       v-if="applicantStore.isWithdrawn"
       class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden animate-fadeIn"
     >
-      <!-- Header Dokumen Akademik Resmi -->
+      <!-- Header Status Pengunduran Diri Resmi (Tanpa Tombol Unduh PDF) -->
       <div class="p-6 sm:p-7 bg-slate-50/80 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div class="flex items-center gap-4">
           <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center flex-shrink-0 border border-rose-200 shadow-2xs">
-            <FileText class="w-6 h-6 text-rose-600" />
+            <UserX class="w-6 h-6 text-rose-600" />
           </div>
           <div>
             <div class="flex items-center gap-2">
@@ -183,43 +164,19 @@
               <span class="text-xs text-slate-500 font-medium font-sans">Sekretariat PMB 2026/2027</span>
             </div>
             <h3 class="font-sora font-extrabold text-slate-900 text-base sm:text-lg mt-1">
-              Surat Keputusan Pengunduran Diri Calon Mahasiswa
+              Status Pengunduran Diri Calon Mahasiswa
             </h3>
             <p class="text-xs text-slate-500 font-sans mt-0.5">
               Universitas Bakti Tunas Husada • Biro Administrasi Akademik & Kemahasiswaan
             </p>
           </div>
         </div>
-
-        <div class="self-stretch sm:self-auto flex items-center gap-2 justify-end">
-          <button
-            type="button"
-            @click="applicantStore.downloadWithdrawalLetter"
-            class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold text-xs rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
-          >
-            <Download class="w-4 h-4 text-slate-500" />
-            <span>Unduh Dokumen PDF</span>
-          </button>
-        </div>
       </div>
 
-      <!-- Detail Keterangan SK Resmi -->
+      <!-- Detail Keterangan Status Pengunduran Diri -->
       <div class="p-6 sm:p-7 space-y-6 font-sans">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
-            <div class="text-[11px] text-slate-400 font-medium">Nomor Surat Keputusan (SK)</div>
-            <div class="font-mono font-bold text-xs sm:text-sm text-slate-900">
-              {{ applicantStore.withdrawalInfo?.letter_number || applicantStore.state.withdrawalInfo?.letter_number || 'PMB/UND/2026/0002' }}
-            </div>
-          </div>
-
-          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
-            <div class="text-[11px] text-slate-400 font-medium">Kode Verifikasi Keabsahan</div>
-            <div class="font-mono font-bold text-xs sm:text-sm text-rose-800">
-              {{ applicantStore.withdrawalInfo?.verification_code || applicantStore.state.withdrawalInfo?.verification_code || applicantStore.withdrawalInfo?.letter_number || 'VERIF-BTH-UND' }}
-            </div>
-          </div>
-
+        <!-- 4 Grid Informasi Esensial (Clean, Non-Over, Tanpa No SK & Tanpa Kode Keabsahan) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
             <div class="text-[11px] text-slate-400 font-medium">Tanggal Pengesahan</div>
             <div class="font-sans font-semibold text-xs sm:text-sm text-slate-900">
@@ -229,21 +186,21 @@
 
           <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
             <div class="text-[11px] text-slate-400 font-medium">Nama Calon Mahasiswa</div>
-            <div class="font-sora font-bold text-xs text-slate-900">
+            <div class="font-sora font-bold text-xs sm:text-sm text-slate-900 truncate">
               {{ applicantStore.state.candidate?.fullName || 'Calon Mahasiswa' }}
             </div>
           </div>
 
           <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
             <div class="text-[11px] text-slate-400 font-medium">Nomor Registrasi PMB</div>
-            <div class="font-mono font-semibold text-xs text-slate-700">
+            <div class="font-mono font-semibold text-xs sm:text-sm text-slate-700">
               {{ applicantStore.state.candidate?.registrationNumber || 'BTH-2026-REG' }}
             </div>
           </div>
 
           <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
             <div class="text-[11px] text-slate-400 font-medium">Kategori Alasan</div>
-            <div class="font-sans font-semibold text-xs text-slate-800">
+            <div class="font-sans font-semibold text-xs sm:text-sm text-slate-800">
               {{ applicantStore.withdrawalInfo?.reason_category || applicantStore.state.withdrawalInfo?.reason_category || 'Diterima di Perguruan Tinggi Lain' }}
             </div>
           </div>
@@ -257,12 +214,137 @@
           </p>
         </div>
 
-        <!-- Detail Catatan Panitia PMB -->
+        <!-- Detail Catatan Panitia PMB (Jika ada) -->
         <div v-if="applicantStore.withdrawalInfo?.review_note" class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-1.5 font-sans">
           <div class="text-xs font-semibold text-slate-800">Catatan Panitia PMB:</div>
           <p class="text-xs text-slate-700 leading-relaxed font-sans italic">
             "{{ applicantStore.withdrawalInfo.review_note }}"
           </p>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- INFORMASI PENGEMBALIAN DANA (REFUND) - JALUR REGULER VS JALUR BEASISWA     -->
+        <!-- ========================================================================= -->
+        <div
+          class="rounded-xl border p-5 sm:p-6 space-y-3.5 font-sans transition-all"
+          :class="applicantStore.isFreeTrack ? 'bg-slate-50 border-slate-200' : 'bg-blue-50/40 border-blue-200'"
+        >
+          <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b"
+            :class="applicantStore.isFreeTrack ? 'border-slate-200' : 'border-blue-100'"
+          >
+            <div class="flex items-center gap-2.5">
+              <div
+                class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                :class="applicantStore.isFreeTrack ? 'bg-slate-200 text-slate-700' : 'bg-[#1E3A8A] text-white'"
+              >
+                <CreditCard class="w-4 h-4" />
+              </div>
+              <div>
+                <h4 class="font-sora font-bold text-xs sm:text-sm text-slate-900">
+                  Informasi Pengembalian Dana (Refund)
+                </h4>
+                <div class="text-[11px] text-slate-500 font-sans">
+                  Status finansial pendaftaran pasca pengunduran diri
+                </div>
+              </div>
+            </div>
+
+            <!-- Status Refund Badge -->
+            <span
+              v-if="applicantStore.isFreeTrack"
+              class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-200 text-slate-700 self-start sm:self-auto border border-slate-300"
+            >
+              Tidak Berlaku Refund (Jalur Bebas Biaya)
+            </span>
+            <span
+              v-else-if="currentRefundReview?.status === 'approved'"
+              class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200 self-start sm:self-auto"
+            >
+              Refund Telah Dikonfirmasi & Diproses
+            </span>
+            <span
+              v-else-if="applicantStore.isRegPaymentComplete || applicantStore.isUktPaid"
+              class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800 border border-amber-200 self-start sm:self-auto"
+            >
+              Pengajuan Refund Sedang Ditinjau Keuangan
+            </span>
+            <span
+              v-else
+              class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200 self-start sm:self-auto"
+            >
+              Tagihan Dibatalkan (Belum Ada Pembayaran Masuk)
+            </span>
+          </div>
+
+          <!-- KASUS A: JALUR BEASISWA / BEBAS BIAYA -->
+          <template v-if="applicantStore.isFreeTrack">
+            <div class="text-xs text-slate-600 space-y-1.5 leading-relaxed">
+              <p>
+                Pendaftaran Anda tercatat melalui <strong class="text-slate-800">{{ applicantStore.state?.admission?.track || 'Jalur Beasiswa / Kemitraan' }}</strong> yang berstatus pembebasan biaya pendaftaran (<strong>Rp 0 / Bebas Biaya</strong>).
+              </p>
+              <p class="text-[11px] text-slate-500">
+                Karena tidak terdapat penerimaan transaksi pembayaran pada kas universitas untuk akun ini, proses pengembalian dana (refund) tidak berlaku.
+              </p>
+            </div>
+          </template>
+
+          <!-- KASUS B: JALUR REGULER (BERBAYAR) DENGAN PEMBAYARAN MASUK -->
+          <template v-else-if="applicantStore.isRegPaymentComplete || applicantStore.isUktPaid">
+            <div class="space-y-3.5">
+              <p class="text-xs text-slate-700 leading-relaxed">
+                Pengunduran diri pada <strong class="text-slate-900">{{ applicantStore.state?.admission?.track || 'Jalur Reguler' }}</strong> memenuhi syarat pengembalian dana pembayaran sesuai regulasi PMB Universitas BTH.
+              </p>
+
+              <!-- Jika Telah Dikonfirmasi Admin Keuangan -->
+              <div v-if="currentRefundReview?.status === 'approved'" class="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-2.5">
+                <div class="flex items-center gap-2 text-emerald-800 font-semibold text-xs font-sora">
+                  <CheckCircle2 class="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <span>Pengembalian Dana Telah Dikonfirmasi & Diproses</span>
+                </div>
+                <div v-if="currentRefundReview?.notes" class="p-3 bg-white border border-emerald-200/80 rounded-lg text-xs text-slate-700 leading-relaxed">
+                  <span class="text-[11px] font-semibold text-slate-500 block mb-0.5">Pesan dari Biro Administrasi Keuangan:</span>
+                  "{{ currentRefundReview.notes }}"
+                </div>
+                <p class="text-[11px] text-emerald-700 leading-relaxed">
+                  Pencairan dana dikembalikan melalui transfer ke rekening asal yang digunakan saat pembayaran. Silakan hubungi Helpdesk Keuangan jika dana belum diterima dalam 3–5 hari kerja.
+                </p>
+              </div>
+
+              <!-- Jika Masih Menunggu Konfirmasi Admin Keuangan -->
+              <div v-else class="p-4 bg-amber-50/70 border border-amber-200 rounded-xl space-y-2">
+                <div class="flex items-center gap-2 text-amber-900 font-semibold text-xs font-sora">
+                  <AlertCircle class="w-4 h-4 text-amber-700 flex-shrink-0" />
+                  <span>Menunggu Konfirmasi Biro Keuangan</span>
+                </div>
+                <p class="text-xs text-slate-700 leading-relaxed">
+                  Permohonan pengembalian dana pendaftaran Anda sedang dalam proses peninjauan oleh Biro Administrasi Keuangan PMB. Setelah dikonfirmasi oleh panitia, catatan konfirmasi resmi akan langsung ditampilkan pada bagian ini.
+                </p>
+                <div class="text-[11px] text-slate-500">
+                  Estimasi waktu peninjauan: 1 – 3 hari kerja sejak pengunduran diri disahkan.
+                </div>
+              </div>
+
+              <div class="p-3 bg-white rounded-xl border border-slate-200 text-[11px] text-slate-600 flex items-start gap-2.5">
+                <AlertCircle class="w-4 h-4 text-[#1E3A8A] flex-shrink-0 mt-0.5" />
+                <p class="leading-relaxed">
+                  Pencairan dana refund ditransfer ke rekening asal saat pembayaran. Apabila memerlukan konfirmasi nomor rekening penerima, silakan hubungi kontak layanan keuangan PMB BTH.
+                </p>
+              </div>
+            </div>
+          </template>
+
+          <!-- KASUS C: JALUR REGULER BELUM BAYAR -->
+          <template v-else>
+            <div class="text-xs text-slate-600 space-y-1 leading-relaxed">
+              <p>
+                Tagihan formulir pendaftaran belum diselesaikan sebelum pengunduran diri. Seluruh tagihan aktif telah dibatalkan otomatis (void).
+              </p>
+              <p class="text-[11px] text-slate-500">
+                Tidak ada kewajiban pembayaran yang tertunggak dan tidak ada dana yang perlu dikembalikan.
+              </p>
+            </div>
+          </template>
         </div>
 
         <!-- Callout Rekonsiliasi & Status Akun -->
@@ -271,32 +353,22 @@
           <div class="space-y-1">
             <div class="font-semibold text-slate-900">Status Kepesertaan Pendaftaran Ini Dinonaktifkan Permanen</div>
             <p class="text-[11px] text-slate-600 leading-relaxed font-sans">
-              Seluruh hak seleksi dan tagihan terkait formulir pendaftaran ini telah dinonaktifkan secara permanen. Pengunduran diri resmi ini bersifat final dan akun pendaftaran ini tidak dapat memilih jalur atau mendaftar kembali.
+              Seluruh hak seleksi, ujian CBT, kelulusan, dan hak daftar ulang terkait formulir pendaftaran ini telah dinonaktifkan secara permanen. Pengunduran diri resmi ini bersifat final dan akun pendaftaran ini tidak dapat memilih jalur kembali.
             </p>
           </div>
         </div>
       </div>
 
-      <!-- Action Footer -->
-      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 font-sans">
-        <button
-          type="button"
-          @click="openHistoryModal"
-          class="text-xs text-slate-600 hover:text-slate-900 font-medium underline cursor-pointer"
+      <!-- Action Footer (Clean: Pusat Layanan BTH) -->
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-end gap-3 font-sans">
+        <a
+          href="https://api.whatsapp.com/send?phone=6282117100200&text=Halo%20Helpdesk%20PMB%20BTH%2C%20saya%20ingin%20konfirmasi%20pengunduran%20diri%20dan%20refund."
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-xs text-[#1E3A8A] hover:underline font-semibold flex items-center gap-1.5"
         >
-          Lihat Riwayat Seluruh Pendaftaran
-        </button>
-
-        <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-          <button
-            type="button"
-            @click="applicantStore.downloadWithdrawalLetter"
-            class="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-semibold text-xs rounded-lg shadow-2xs transition-colors cursor-pointer flex items-center gap-1.5"
-          >
-            <Download class="w-4 h-4 text-slate-500" />
-            <span>Unduh Dokumen PDF</span>
-          </button>
-        </div>
+          <span>Pusat Layanan PMB & Keuangan BTH</span>
+        </a>
       </div>
     </div>
 
@@ -354,6 +426,27 @@
                 </p>
               </div>
             </div>
+          </div>
+
+          <!-- Status Referal Mitra Guru BK Aktif -->
+          <div
+            v-if="applicantStore.state?.referral?.isApplied"
+            class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-950 flex items-start justify-between gap-3 animate-fadeIn"
+          >
+            <div class="flex items-start gap-2.5">
+              <CheckCircle2 class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <div class="space-y-0.5">
+                <span class="font-bold text-emerald-900">
+                  Terhubung Kemitraan: {{ applicantStore.state.referral.schoolName }} (Kode: {{ applicantStore.state.referral.code }})
+                </span>
+                <p class="text-[11px] text-emerald-800 leading-relaxed font-sans">
+                  Pendaftaran Anda dikoordinasikan bersama Guru BK <strong>{{ applicantStore.state.referral.picName }}</strong>. Biaya formulir dialihkan menjadi Rp 0 (Bebas Biaya).
+                </p>
+              </div>
+            </div>
+            <span class="text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded font-bold uppercase tracking-wider whitespace-nowrap">
+              Mitra BK Aktif
+            </span>
           </div>
         </div>
 
@@ -527,7 +620,7 @@
               @click="(currentTrackDetails?.registration_fee ?? 250000) === 0 ? emit('switch-tab', 'documents') : emit('switch-tab', 'payment')"
               class="w-full sm:w-auto px-4 py-2 rounded-lg bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer text-center"
             >
-              {{ (currentTrackDetails?.registration_fee ?? 250000) === 0 ? 'Lanjut ke Berkas Dokumen →' : 'Lanjut ke Pembayaran →' }}
+              {{ (currentTrackDetails?.registration_fee ?? 250000) === 0 ? 'Lanjut ke Berkas Dokumen' : 'Lanjut ke Pembayaran' }}
             </button>
           </template>
 
@@ -1037,82 +1130,6 @@
       </div>
     </Teleport>
 
-    <!-- 7. Modal Riwayat Pendaftaran & Alih Jalur (CR-006) -->
-    <Teleport to="body">
-      <div
-        v-if="showHistoryModal"
-        class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fadeIn"
-      >
-        <div class="bg-white rounded-xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden">
-          <div class="p-6 space-y-4">
-            <div class="flex items-start justify-between pb-3 border-b border-slate-100">
-              <div>
-                <h3 class="text-base font-sora font-bold text-slate-900">
-                  Riwayat Pendaftaran & Alih Jalur PMB
-                </h3>
-                <p class="text-xs text-slate-500 mt-0.5 font-sans">
-                  Rekam jejak seluruh formulir pendaftaran, pembatalan, dan permohonan alih jalur Anda di Universitas BTH.
-                </p>
-              </div>
-              <button
-                type="button"
-                @click="showHistoryModal = false"
-                class="text-slate-400 hover:text-slate-600 font-bold text-lg p-1 leading-none cursor-pointer"
-              >
-                &times;
-              </button>
-            </div>
-
-            <!-- Tabel Riwayat Aplikasi -->
-            <div class="overflow-x-auto border border-slate-200 rounded-lg">
-              <table class="w-full text-left text-xs min-w-[640px]">
-                <thead class="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold font-sora whitespace-nowrap">
-                  <tr>
-                    <th class="py-2.5 px-3 whitespace-nowrap min-w-[140px]">No. Registrasi</th>
-                    <th class="py-2.5 px-3 whitespace-nowrap min-w-[130px]">Jalur Masuk</th>
-                    <th class="py-2.5 px-3 whitespace-nowrap min-w-[180px]">Pilihan Program Studi</th>
-                    <th class="py-2.5 px-3 whitespace-nowrap min-w-[110px]">Tanggal</th>
-                    <th class="py-2.5 px-3 text-center whitespace-nowrap min-w-[100px]">Status</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 font-sans">
-                  <tr v-for="(item, idx) in historyList" :key="item.id || idx" class="hover:bg-slate-50/60">
-                    <td class="py-2.5 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">
-                      {{ item.registration_number || applicantStore.state.candidate?.registrationNumber || 'BTH-2026-REG-00000' }}
-                    </td>
-                    <td class="py-2.5 px-3 text-slate-700 font-medium whitespace-nowrap">
-                      {{ item.track_name || item.track || applicantStore.state.admission.track || 'Jalur Reguler' }}
-                    </td>
-                    <td class="py-2.5 px-3 text-slate-800 min-w-[180px]">
-                      <div class="whitespace-nowrap font-medium">{{ item.choice1_name || item.prodi1 || applicantStore.state.admission.prodi1 || '-' }}</div>
-                      <div class="text-[10px] text-slate-400 whitespace-nowrap">Pil 2: {{ item.choice2_name || item.prodi2 || applicantStore.state.admission.prodi2 || '-' }}</div>
-                    </td>
-                    <td class="py-2.5 px-3 text-slate-500 text-[11px] whitespace-nowrap">
-                      {{ formatHistoryDate(item.created_at) }}
-                    </td>
-                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                      <span class="px-2 py-0.5 rounded text-[11px] font-semibold border whitespace-nowrap" :class="getHistoryStatusClass(item.status)">
-                        {{ getHistoryStatusLabel(item.status) }}
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end">
-            <button
-              type="button"
-              @click="showHistoryModal = false"
-              class="px-4 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold cursor-pointer shadow-2xs"
-            >
-              Tutup
-            </button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
   </div>
 </template>
 
@@ -1126,11 +1143,14 @@ import {
   AlertCircle,
   AlertTriangle,
   Lock,
-  X
+  X,
+  UserX,
+  CreditCard
 } from 'lucide-vue-next';
 import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { useApplicantStore } from '@/stores/applicant';
 import { useOrganizationStore } from '@/stores/organization';
+import { useCmsStore } from '@/stores/cms';
 import { admissionApi } from '@/api/admission';
 import { useToast } from '@/composables/useToast';
 
@@ -1138,11 +1158,35 @@ const emit = defineEmits(['switch-tab']);
 
 const applicantStore = useApplicantStore();
 const organizationStore = useOrganizationStore();
+const cmsStore = useCmsStore();
 const toast = useToast();
 
 const isSaving = ref(false);
 const isCancelling = ref(false);
 const showCancelModal = ref(false);
+
+// Pantau status refund dan catatan resmi dari Biro Keuangan
+const currentRefundReview = computed(() => {
+  if (applicantStore.state?.refundStatus) {
+    return applicantStore.state.refundStatus;
+  }
+  try {
+    const raw = localStorage.getItem('bth_admin_refunds_v4');
+    if (raw) {
+      const list = JSON.parse(raw);
+      const reg = applicantStore.state?.candidate?.registrationNumber || applicantStore.state?.admission?.registrationNo;
+      const found = list.find((r) => r.regNo === reg);
+      if (found) return found;
+      // Fallback: periksa nama jika akun aktif
+      const name = applicantStore.candidateName || applicantStore.state?.candidate?.fullName;
+      if (name) {
+        const byName = list.find((r) => r.candidateName?.toLowerCase() === name?.toLowerCase());
+        if (byName) return byName;
+      }
+    }
+  } catch {}
+  return null;
+});
 
 // Pantau notifikasi evaluasi perubahan jalur dan tampilkan popup bersih
 watch(
@@ -1311,73 +1355,7 @@ const confirmReapply = async () => {
   toast.info('Silakan pilih jalur seleksi dan program studi pendaftaran baru Anda.');
 };
 
-// Riwayat Pendaftaran
-const showHistoryModal = ref(false);
 
-const openHistoryModal = async () => {
-  showHistoryModal.value = true;
-  try {
-    await applicantStore.fetchHistory();
-  } catch (e) {
-    console.warn('Gagal memuat riwayat pendaftaran:', e);
-  }
-};
-
-const historyList = computed(() => {
-  if (applicantStore.applicationHistory && applicantStore.applicationHistory.length > 0) {
-    return applicantStore.applicationHistory;
-  }
-  return [
-    {
-      id: 'app-active',
-      registration_number: applicantStore.state.candidate?.registrationNumber || 'BTH-2026-REG-00000',
-      track_name: applicantStore.state.admission?.track || 'Jalur Reguler Gelombang 1',
-      choice1_name: applicantStore.state.admission?.prodi1 || 'Program Studi Terpilih',
-      choice2_name: applicantStore.state.admission?.prodi2 || '-',
-      created_at: applicantStore.state.admission?.submittedAt || new Date().toISOString(),
-      status: applicantStore.isAdmissionLocked ? 'paid' : applicantStore.state.admission?.prodi1 ? 'submitted' : 'draft',
-    }
-  ];
-});
-
-const formatHistoryDate = (dateStr) => {
-  if (!dateStr) return '-';
-  try {
-    return new Date(dateStr).toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return dateStr;
-  }
-};
-
-const getHistoryStatusLabel = (status) => {
-  const map = {
-    submitted: 'Tersimpan',
-    verified: 'Terverifikasi',
-    paid: 'Lunas',
-    passed: 'Lulus Seleksi',
-    failed: 'Tidak Lulus',
-    cancelled: 'Dibatalkan',
-    withdrawn: 'Mengundurkan Diri',
-    draft: 'Draft',
-  };
-  return map[status] || status || 'Aktif';
-};
-
-const getHistoryStatusClass = (status) => {
-  if (status === 'paid' || status === 'passed' || status === 'verified') {
-    return 'bg-emerald-50 text-emerald-800 border-emerald-200';
-  }
-  if (status === 'cancelled' || status === 'withdrawn' || status === 'failed') {
-    return 'bg-rose-50 text-rose-800 border-rose-200';
-  }
-  return 'bg-blue-50 text-[#1E3A8A] border-blue-200';
-};
 
 const backendPaths = ref([]);
 const activePeriod = ref(null);
@@ -1441,6 +1419,16 @@ const DEFAULT_TRACK_LIST = [
 ];
 
 const trackList = computed(() => {
+  if (Array.isArray(cmsStore.tracks) && cmsStore.tracks.length > 0) {
+    return cmsStore.tracks.map((t, idx) => ({
+      id: t.id || idx + 1,
+      name: t.name,
+      badge: t.wave || 'Gelombang 1',
+      description: t.description || 'Jalur seleksi resmi PMB Universitas BTH.',
+      registration_fee: typeof t.fee === 'number' ? t.fee : 250000,
+      requires_exam: !t.name.toLowerCase().includes('prestasi') && !t.name.toLowerCase().includes('bk'),
+    }));
+  }
   if (backendPaths.value && backendPaths.value.length > 0) {
     return backendPaths.value.map((p) => ({
       id: p.id,
@@ -1521,7 +1509,7 @@ const PRODI_METADATA_FEE = {
 
 const currentProdi1Fee = computed(() => {
   if (!admissionForm.value.prodi1) return 0;
-  return PRODI_METADATA_FEE[admissionForm.value.prodi1] || 4500000;
+  return cmsStore.getUktFee(admissionForm.value.prodi1) || PRODI_METADATA_FEE[admissionForm.value.prodi1] || 4500000;
 });
 
 const saveAdmission = async () => {

@@ -4,6 +4,7 @@
 
     <!-- KONDISI 1: BERANDA UTAMA (OVERVIEW) -->
     <div v-if="activeTab === 'overview'" class="space-y-6 animate-fadeIn pb-12">
+
       <!-- 1. Hero Card: Identitas Resmi Calon Mahasiswa & Status Seleksi -->
       <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-7">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5">
@@ -20,13 +21,10 @@
             </div>
 
             <div class="space-y-0.5 sm:space-y-1 min-w-0">
-              <div class="flex items-center gap-2">
+              <div>
                 <h1 class="text-sm sm:text-lg font-sora font-bold text-slate-900 tracking-tight capitalize truncate">
                   {{ candidateName }}
                 </h1>
-                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-[#1E3A8A] border border-blue-200 font-semibold hidden xs:inline-block">
-                  PMB 2026
-                </span>
               </div>
 
               <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 font-sans">
@@ -48,30 +46,39 @@
                   <span class="font-semibold text-slate-900">{{ applicantStore.state.admission.prodi1 }}</span>
                   <span class="text-slate-500 text-[11px]">({{ applicantStore.state?.admission?.prodi1Degree || 'S1' }})</span>
                 </template>
+                <template v-if="applicantStore.state?.referral?.isApplied">
+                  <span class="text-slate-300 hidden sm:inline">•</span>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    Mitra Guru BK: {{ applicantStore.state.referral.schoolName }} ({{ applicantStore.state.referral.code }})
+                  </span>
+                </template>
               </div>
             </div>
           </div>
 
-          <!-- Right: Status Seleksi -->
-          <div class="flex flex-col sm:items-end gap-1.5 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100 flex-shrink-0">
-            <div class="flex items-center gap-2">
-              <span class="text-[10px] sm:text-[11px] font-sans text-slate-400 font-medium">Status Pendaftaran</span>
-              <button
-                type="button"
-                @click="showStatusHistoryModal = true"
-                class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors cursor-pointer"
-                title="Buka riwayat pergeseran status pendaftaran"
+          <!-- Right: Status Pendaftaran & Riwayat Aktivitas (Sejajar & Rapi) -->
+          <div class="flex flex-wrap items-center sm:justify-end gap-2.5 sm:gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100 flex-shrink-0">
+            <!-- Teks Status Pendaftaran Sejajar Horizontal dengan Badge Status User Terkini -->
+            <div class="inline-flex items-center gap-2">
+              <span class="text-xs font-sans text-slate-500 font-medium whitespace-nowrap">Status Pendaftaran:</span>
+              <div
+                class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold border shadow-2xs"
+                :class="statusBadgeClass"
               >
-                <History class="w-3 h-3 text-slate-500" />
-                <span>Riwayat Status</span>
-              </button>
+                <span>{{ applicantStore.overallStatus.label }}</span>
+              </div>
             </div>
-            <div
-              class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold border shadow-2xs"
-              :class="statusBadgeClass"
+
+            <!-- Tombol Riwayat Aktivitas -->
+            <button
+              type="button"
+              @click="openAuditHistoryModal"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#1E3A8A] bg-blue-50/85 hover:bg-blue-100 border border-blue-200/90 transition-all cursor-pointer shadow-2xs hover:shadow-xs whitespace-nowrap"
+              title="Buka rekam jejak aktivitas simpan, ubah, berkas, dan transaksi"
             >
-              <span>{{ applicantStore.overallStatus.label }}</span>
-            </div>
+              <History class="w-3.5 h-3.5 text-[#1E3A8A]" />
+              <span>Riwayat Aktivitas</span>
+            </button>
           </div>
         </div>
       </div>
@@ -85,7 +92,7 @@
               Tahapan Pendaftaran & Seleksi Masuk
             </h2>
             <p class="text-xs text-slate-500 mt-0.5 font-sans">
-              Pantau progres penyelesaian 6 tahapan PMB Universitas Bakti Tunas Husada.
+              Pantau progres penyelesaian 6 tahapan PMB {{ cmsStore.identity.name || 'Universitas Bakti Tunas Husada' }}.
             </p>
           </div>
 
@@ -259,15 +266,17 @@
                 <div>
                   <div class="font-medium text-slate-800">Berkas Persyaratan</div>
                   <div class="text-[11px] text-slate-500">
-                    {{ applicantStore.uploadedDocsCount }} dari 5 berkas diunggah
+                    {{ applicantStore.isWithdrawn ? 'Dinonaktifkan (Mengundurkan Diri)' : `${applicantStore.uploadedDocsCount} dari 5 berkas diunggah` }}
                   </div>
                 </div>
               </div>
               <button
                 @click="switchTab('documents')"
-                class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-[11px] font-medium transition-colors cursor-pointer"
+                :disabled="applicantStore.isWithdrawn"
+                class="px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors"
+                :class="applicantStore.isWithdrawn ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 cursor-pointer'"
               >
-                Buka Berkas
+                {{ applicantStore.isWithdrawn ? 'Terkunci' : 'Buka Berkas' }}
               </button>
             </div>
 
@@ -277,16 +286,16 @@
                 <CreditCard class="w-4 h-4 text-slate-500" />
                 <div>
                   <div class="font-medium text-slate-800">Biaya Formulir PMB</div>
-                  <div class="text-[11px]" :class="applicantStore.isRegPaymentComplete ? 'text-emerald-700 font-semibold' : 'text-amber-700'">
-                    {{ applicantStore.isRegPaymentComplete ? 'Lunas (Rp 250.000)' : 'Menunggu Bayar (Rp 250.000)' }}
+                  <div class="text-[11px]" :class="applicantStore.isWithdrawn ? 'text-slate-600 font-medium' : applicantStore.isRegPaymentComplete ? 'text-emerald-700 font-semibold' : 'text-amber-700'">
+                    {{ applicantStore.isWithdrawn ? (applicantStore.isFreeTrack ? 'Bebas Biaya (Tidak Ada Refund)' : applicantStore.isRegPaymentComplete ? 'Pengajuan Refund Ditinjau' : 'Tagihan Dibatalkan') : applicantStore.isFreeTrack ? 'Bebas Biaya (Rp 0)' : applicantStore.isRegPaymentComplete ? `Lunas (${dynamicRegFeeFormatted})` : `Menunggu Bayar (${dynamicRegFeeFormatted})` }}
                   </div>
                 </div>
               </div>
               <button
-                @click="switchTab('payment')"
+                @click="applicantStore.isWithdrawn ? switchTab('admission') : switchTab('payment')"
                 class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-[11px] font-medium transition-colors cursor-pointer"
               >
-                {{ applicantStore.isRegPaymentComplete ? 'Bukti Bayar' : 'Bayar Sekarang' }}
+                {{ applicantStore.isWithdrawn ? 'Detail Refund' : applicantStore.isRegPaymentComplete ? 'Bukti Bayar' : 'Bayar Sekarang' }}
               </button>
             </div>
 
@@ -296,32 +305,29 @@
                 <ClipboardCheck class="w-4 h-4 text-slate-500" />
                 <div>
                   <div class="font-medium text-slate-800">Ujian Mandiri CBT</div>
-                  <div class="text-[11px]" :class="applicantStore.isExamCompleted ? 'text-emerald-700 font-semibold' : 'text-slate-500'">
-                    {{ applicantStore.isExamCompleted ? `Skor: ${applicantStore.state.exam.score}/100` : applicantStore.isRegPaymentComplete ? 'Sesi CBT Siap Dikerjakan' : 'Menunggu Bayar Formulir' }}
+                  <div class="text-[11px]" :class="applicantStore.isWithdrawn ? 'text-slate-500' : applicantStore.isExamCompleted ? 'text-emerald-700 font-semibold' : 'text-slate-500'">
+                    {{ applicantStore.isWithdrawn ? 'Dinonaktifkan (Mengundurkan Diri)' : applicantStore.isExamCompleted ? `Skor: ${applicantStore.state.exam.score}/100` : applicantStore.isRegPaymentComplete ? 'Sesi CBT Siap Dikerjakan' : 'Menunggu Bayar Formulir' }}
                   </div>
                 </div>
               </div>
               <button
                 @click="switchTab('exam')"
-                class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-[11px] font-medium transition-colors cursor-pointer"
+                :disabled="applicantStore.isWithdrawn"
+                class="px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors"
+                :class="applicantStore.isWithdrawn ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 cursor-pointer'"
               >
-                Buka CBT
+                {{ applicantStore.isWithdrawn ? 'Terkunci' : 'Buka CBT' }}
               </button>
             </div>
           </div>
 
           <!-- Card Grup WhatsApp Resmi Informasi PMB (Diatur oleh Admin) -->
           <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-3 text-xs font-sans">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-              <div class="flex items-center gap-2">
-                <MessageSquare class="w-4 h-4 text-emerald-600" />
-                <h3 class="font-sora font-bold text-slate-900 text-sm">
-                  Grup WhatsApp Calon Mahasiswa
-                </h3>
-              </div>
-              <span class="text-[10px] font-medium text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                Informasi Resmi
-              </span>
+            <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+              <MessageSquare class="w-4 h-4 text-emerald-600" />
+              <h3 class="font-sora font-bold text-slate-900 text-sm">
+                Grup WhatsApp Calon Mahasiswa
+              </h3>
             </div>
 
             <p class="text-[11px] text-slate-600 leading-relaxed">
@@ -330,8 +336,8 @@
 
             <div class="pt-1">
               <a
-                v-if="currentTrackWhatsappUrl"
-                :href="currentTrackWhatsappUrl"
+                v-if="currentTrackWhatsappUrl || cmsStore.links.onboardingWaGroup || cmsStore.links.officialWaGroup"
+                :href="currentTrackWhatsappUrl || cmsStore.links.onboardingWaGroup || cmsStore.links.officialWaGroup"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="w-full py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-sora font-semibold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs text-center"
@@ -353,24 +359,24 @@
             <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
               <Building class="w-4 h-4 text-[#1E3A8A]" />
               <h3 class="font-sora font-bold text-slate-900 text-sm">
-                Pusat Layanan PMB BTH
+                Pusat Layanan PMB {{ cmsStore.identity.shortName || 'BTH' }}
               </h3>
             </div>
 
             <div class="space-y-2 text-[11px] text-slate-600 leading-relaxed">
               <div class="flex items-start gap-2">
                 <MapPin class="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
-                <span>Gedung Rektorat Lt. 1, Universitas Bakti Tunas Husada, Jl. Cilolohan No. 36 Kota Tasikmalaya.</span>
+                <span>{{ cmsStore.contact.buildingName || 'Gedung Rektorat Lt. 1' }}, {{ cmsStore.identity.name || 'Universitas Bakti Tunas Husada' }}, {{ cmsStore.contact.address || 'Jl. Cilolohan No. 36 Kota Tasikmalaya' }}.</span>
               </div>
 
               <div class="flex items-center gap-2">
                 <Clock class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                <span>Senin - Jumat: 08.00 - 16.00 WIB | Sabtu: 08.00 - 13.00 WIB</span>
+                <span>{{ cmsStore.contact.officeHours || 'Senin - Jumat: 08.00 - 16.00 WIB' }}</span>
               </div>
 
               <div class="flex items-center gap-2">
                 <Phone class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                <span>Hotline: (0265) 334111 | WhatsApp: <strong>0812-2026-BTH</strong></span>
+                <span>Hotline: {{ cmsStore.contact.phone || '(0265) 345678' }} | WhatsApp: <strong>{{ cmsStore.contact.whatsapp || '0821-1710-0200' }}</strong></span>
               </div>
             </div>
           </div>
@@ -399,91 +405,167 @@
       <ResultModule v-else-if="activeTab === 'result'" @switch-tab="switchTab" />
     </div>
 
-    <!-- Modal Riwayat Perjalanan Pendaftaran (Linimasa Status) -->
+    <!-- Modal Riwayat Aktivitas & Perubahan Data (Clean & Structured Activity Stream) -->
     <Teleport to="body">
       <div
         v-if="showStatusHistoryModal"
-        class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fadeIn"
+        class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-sm animate-fadeIn"
+        @click.self="showStatusHistoryModal = false"
       >
-        <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[85vh]">
-          <!-- Header Modal -->
-          <div class="p-5 sm:p-6 border-b border-slate-100 flex items-start justify-between gap-3 flex-shrink-0">
-            <div>
-              <div class="flex items-center gap-2">
-                <History class="w-4 h-4 text-[#1E3A8A]" />
-                <h3 class="text-base font-sora font-bold text-slate-900">
-                  Riwayat Perjalanan Pendaftaran
-                </h3>
+        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[88vh] animate-scaleUp">
+          <!-- 1. Header Modal -->
+          <div class="p-5 sm:p-6 border-b border-slate-100 flex items-start justify-between gap-3 shrink-0 bg-white">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200/80 text-[#1E3A8A] flex items-center justify-center shrink-0 shadow-2xs">
+                <History class="w-5 h-5 text-[#1E3A8A]" />
               </div>
-              <p class="text-xs text-slate-500 mt-0.5 font-sans">
-                Catatan kronologis perubahan tahapan dan status pendaftaran calon mahasiswa.
-              </p>
+              <div>
+                <h3 class="text-base sm:text-lg font-sora font-bold text-slate-900 tracking-tight">
+                  Riwayat Aktivitas & Perubahan Data
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5 font-sans">
+                  Rekam jejak seluruh aksi penyimpanan data, perubahan pilihan, unggahan berkas, dan transaksi akun Anda.
+                </p>
+              </div>
             </div>
             <button
               type="button"
               @click="showStatusHistoryModal = false"
-              class="text-slate-400 hover:text-slate-700 font-bold text-xl p-1 leading-none cursor-pointer"
+              class="text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg p-1.5 transition-colors cursor-pointer"
+              title="Tutup Modal"
             >
-              &times;
+              <X class="w-5 h-5" />
             </button>
           </div>
 
-          <!-- Body Modal: Linimasa Kronologis -->
-          <div class="p-5 sm:p-6 overflow-y-auto space-y-4 font-sans text-xs">
-            <div
-              v-for="(log, idx) in applicantStore.computedStatusHistory"
-              :key="log.id || idx"
-              class="relative flex items-start gap-3.5 pb-4 last:pb-0"
-            >
-              <!-- Garis Penghubung Vertikal -->
-              <div
-                v-if="idx < applicantStore.computedStatusHistory.length - 1"
-                class="absolute left-[13px] top-6 bottom-0 w-0.5 bg-slate-200"
-              ></div>
-
-              <!-- Node Number -->
-              <div class="w-7 h-7 rounded-full bg-blue-50 border border-blue-200/80 text-[#1E3A8A] flex items-center justify-center flex-shrink-0 z-10 font-mono text-[11px] font-bold">
-                {{ applicantStore.computedStatusHistory.length - idx }}
+          <!-- 2. Filter Bar: Filter per Tanggal & Pencarian -->
+          <div class="px-5 sm:px-6 py-3 border-b border-slate-100 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                <Calendar class="w-4 h-4 text-[#1E3A8A]" />
+                <span>Filter Tanggal:</span>
               </div>
+              <div class="flex items-center gap-2">
+                <input
+                  v-model="activityDateFilter"
+                  type="date"
+                  class="px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-[#1E3A8A] font-sans text-slate-800 shadow-2xs cursor-pointer"
+                  title="Pilih tanggal aktivitas"
+                />
+                <button
+                  v-if="activityDateFilter"
+                  type="button"
+                  @click="activityDateFilter = ''"
+                  class="px-2 py-1 text-[11px] font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-md transition-colors cursor-pointer"
+                  title="Tampilkan semua tanggal"
+                >
+                  Reset Tanggal
+                </button>
+              </div>
+            </div>
 
-              <!-- Isi Konten Log -->
-              <div class="flex-1 bg-slate-50/80 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                  <span class="font-sora font-semibold text-slate-900 text-xs">
-                    {{ log.title }}
-                  </span>
-                  <span class="text-[11px] text-slate-400 font-mono">
-                    {{ formatLogDate(log.timestamp) }}
-                  </span>
+            <!-- Search Field -->
+            <div class="relative w-full sm:w-52 shrink-0">
+              <input
+                v-model="activitySearchQuery"
+                type="text"
+                placeholder="Cari aktivitas..."
+                class="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-[#1E3A8A] transition-all font-sans"
+              />
+              <Search class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            </div>
+          </div>
+
+          <!-- 4. Activity Timeline List (Pure Structured Activity Stream) -->
+          <div class="p-5 sm:p-6 overflow-y-auto space-y-4 font-sans text-xs flex-1">
+            <!-- Empty State -->
+            <div v-if="filteredActivityLogs.length === 0" class="py-12 text-center space-y-2.5">
+              <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                <History class="w-6 h-6" />
+              </div>
+              <p class="font-sora font-semibold text-slate-700 text-sm">Belum Ada Aktivitas Tercatat</p>
+              <p class="text-xs text-slate-400 max-w-sm mx-auto font-sans">
+                {{ activitySearchQuery ? 'Tidak ada riwayat aktivitas yang cocok dengan kata kunci pencarian Anda.' : 'Setiap aksi simpan biodata, perubahan jalur pilihan, unggahan berkas, atau transaksi akan otomatis tercatat di sini.' }}
+              </p>
+              <button
+                v-if="activitySearchQuery || activityDateFilter"
+                type="button"
+                @click="activitySearchQuery = ''; activityDateFilter = ''"
+                class="inline-block mt-2 px-3 py-1 text-xs font-semibold text-[#1E3A8A] bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
+              >
+                Reset Filter
+              </button>
+            </div>
+
+            <!-- Timeline Items -->
+            <div v-else class="space-y-3.5">
+              <div
+                v-for="(log, idx) in filteredActivityLogs"
+                :key="log.id || idx"
+                class="relative flex items-start gap-3.5 pb-2 last:pb-0"
+              >
+                <!-- Vertical Line -->
+                <div
+                  v-if="idx < filteredActivityLogs.length - 1"
+                  class="absolute left-[15px] top-8 bottom-0 w-0.5 bg-slate-200"
+                ></div>
+
+                <!-- Node Icon -->
+                <div
+                  class="w-8 h-8 rounded-full border flex items-center justify-center shrink-0 z-10 shadow-2xs"
+                  :class="getActivityNodeClass(log)"
+                >
+                  <component :is="getActivityIcon(log)" class="w-4 h-4" />
                 </div>
 
-                <p class="text-[11px] text-slate-600 leading-relaxed">
-                  {{ log.description }}
-                </p>
+                <!-- Card Detail -->
+                <div class="flex-1 bg-white border border-slate-200/90 rounded-xl p-3.5 space-y-1.5 hover:border-blue-200 transition-colors shadow-2xs">
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span
+                        class="px-2 py-0.5 rounded text-[10px] font-bold border"
+                        :class="getActivityBadgeClass(log)"
+                      >
+                        {{ log.categoryLabel || log.stage || 'Aktivitas' }}
+                      </span>
+                      <h4 class="font-sora font-semibold text-slate-900 text-xs">
+                        {{ log.action || log.title }}
+                      </h4>
+                    </div>
+                    <span class="text-[11px] text-slate-400 font-mono shrink-0">
+                      {{ formatLogDate(log.timestamp) }}
+                    </span>
+                  </div>
 
-                <div class="pt-1.5 flex items-center justify-between gap-2 text-[10px]">
-                  <span class="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-600 font-medium">
-                    Tahap: {{ log.stage }}
-                  </span>
-                  <span class="text-slate-400">
-                    Oleh: <strong class="text-slate-700 font-medium">{{ log.actor || 'Sistem PMB' }}</strong>
-                  </span>
+                  <p class="text-[11px] text-slate-600 leading-relaxed font-sans pt-0.5">
+                    {{ sanitizeActivityText(log.description) }}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Footer Modal -->
-          <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
-            <span class="text-[11px] text-slate-500 font-mono">
-              No. Reg: {{ candidateRegNo }}
-            </span>
+          <!-- 5. Footer Modal -->
+          <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+            <div class="flex items-center gap-2 text-[11px] text-slate-500 font-sans">
+              <span>Menampilkan <strong class="text-slate-800">{{ filteredActivityLogs.length }}</strong> dari <strong class="text-slate-800">{{ applicantStore.computedStatusHistory.length }}</strong> aktivitas</span>
+              <span>•</span>
+              <button
+                type="button"
+                @click="handleManualSync"
+                :disabled="isSyncingModal"
+                class="inline-flex items-center gap-1 text-[#1E3A8A] hover:underline font-semibold cursor-pointer disabled:opacity-50"
+              >
+                <RotateCcw class="w-3 h-3" :class="isSyncingModal ? 'animate-spin' : ''" />
+                <span>{{ isSyncingModal ? 'Menyinkronkan...' : 'Sinkronkan Data' }}</span>
+              </button>
+            </div>
             <button
               type="button"
               @click="showStatusHistoryModal = false"
-              class="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+              class="w-full sm:w-auto px-5 py-2 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold cursor-pointer transition-colors shadow-2xs"
             >
-              Tutup
+              Tutup Jendela
             </button>
           </div>
         </div>
@@ -514,13 +596,19 @@ import {
   Clock,
   History,
   MessageSquare,
-  ExternalLink
+  ExternalLink,
+  UserX,
+  Lock,
+  Search,
+  X,
+  Bell
 } from 'lucide-vue-next';
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import DashboardLayout from '@/layouts/DashboardLayout.vue';
 import { useApplicantStore } from '@/stores/applicant';
 import { useAuthStore } from '@/stores/auth';
+import { useCmsStore } from '@/stores/cms';
 
 // Import 6 Modul Utama PMB
 import ProfileModule from '@/components/applicant/ProfileModule.vue';
@@ -534,9 +622,117 @@ import { useToast } from '@/composables/useToast';
 const route = useRoute();
 const applicantStore = useApplicantStore();
 const authStore = useAuthStore();
+const cmsStore = useCmsStore();
 const toast = useToast();
 
+// Format nominal biaya formulir pendaftaran dinamis (dari CMS / store pendaftar)
+const dynamicRegFeeAmount = computed(() => {
+  if (applicantStore.isFreeTrack || applicantStore.state?.referral?.isApplied) return 0;
+  if (applicantStore.state?.payments?.registrationFee?.amount !== undefined) {
+    return applicantStore.state.payments.registrationFee.amount;
+  }
+  return cmsStore.getRegistrationFee(applicantStore.state?.admission?.track) || 250000;
+});
+
+const dynamicRegFeeFormatted = computed(() => {
+  return `Rp ${dynamicRegFeeAmount.value.toLocaleString('id-ID')}`;
+});
+
 const showStatusHistoryModal = ref(false);
+const activityDateFilter = ref('');
+const activitySearchQuery = ref('');
+const isSyncingModal = ref(false);
+
+const sanitizeActivityText = (text) => {
+  if (!text) return '';
+  return text
+    .replace(/\btersimpan di sistem\b\.?/gi, '')
+    .replace(/\bdisimpan oleh sistem\b\.?/gi, '')
+    .replace(/\bdisimpan ke dalam sistem\b\.?/gi, '')
+    .replace(/\bdisimpan ke sistem\b\.?/gi, '')
+    .trim();
+};
+
+const openAuditHistoryModal = () => {
+  showStatusHistoryModal.value = true;
+};
+
+// Filtered Activity Logs (Pure Structured Activity Stream dengan filter per tanggal)
+const filteredActivityLogs = computed(() => {
+  let list = applicantStore.computedStatusHistory || [];
+
+  // Filter per tanggal
+  if (activityDateFilter.value) {
+    list = list.filter((item) => {
+      if (!item.timestamp) return false;
+      try {
+        const itemDateStr = new Date(item.timestamp).toISOString().split('T')[0];
+        return itemDateStr === activityDateFilter.value;
+      } catch {
+        return false;
+      }
+    });
+  }
+
+  // Filter kata kunci pencarian
+  if (activitySearchQuery.value.trim()) {
+    const q = activitySearchQuery.value.toLowerCase().trim();
+    list = list.filter((item) => {
+      const action = (item.action || item.title || '').toLowerCase();
+      const desc = (item.description || '').toLowerCase();
+      const cat = (item.categoryLabel || item.stage || '').toLowerCase();
+      return action.includes(q) || desc.includes(q) || cat.includes(q);
+    });
+  }
+
+  return list;
+});
+
+const getActivityIcon = (log) => {
+  const cat = log.category || '';
+  if (cat === 'profile') return User;
+  if (cat === 'admission') return Compass;
+  if (cat === 'document') return FileText;
+  if (cat === 'payment') return CreditCard;
+  if (cat === 'exam') return ClipboardCheck;
+  return History;
+};
+
+const getActivityNodeClass = (log) => {
+  const color = log.badgeColor || '';
+  const cat = log.category || '';
+  if (color === 'emerald' || cat === 'profile') return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+  if (color === 'blue' || cat === 'admission') return 'bg-blue-50 text-[#1E3A8A] border-blue-200';
+  if (color === 'amber' || cat === 'document') return 'bg-amber-50 text-amber-700 border-amber-200';
+  if (color === 'purple' || cat === 'payment') return 'bg-purple-50 text-purple-700 border-purple-200';
+  if (color === 'indigo' || cat === 'exam') return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+  if (color === 'rose') return 'bg-rose-50 text-rose-700 border-rose-200';
+  return 'bg-blue-50 text-[#1E3A8A] border-blue-200';
+};
+
+const getActivityBadgeClass = (log) => {
+  const color = log.badgeColor || '';
+  const cat = log.category || '';
+  if (color === 'emerald' || cat === 'profile') return 'bg-emerald-50 text-emerald-800 border-emerald-200';
+  if (color === 'blue' || cat === 'admission') return 'bg-blue-50 text-[#1E3A8A] border-blue-200';
+  if (color === 'amber' || cat === 'document') return 'bg-amber-50 text-amber-800 border-amber-200';
+  if (color === 'purple' || cat === 'payment') return 'bg-purple-50 text-purple-800 border-purple-200';
+  if (color === 'indigo' || cat === 'exam') return 'bg-indigo-50 text-indigo-800 border-indigo-200';
+  if (color === 'rose') return 'bg-rose-50 text-rose-800 border-rose-200';
+  return 'bg-slate-100 text-slate-700 border-slate-200';
+};
+
+const handleManualSync = async () => {
+  isSyncingModal.value = true;
+  try {
+    await applicantStore.syncFromBackend();
+    toast.success('Data rekam jejak pendaftaran berhasil disinkronkan.');
+  } catch (e) {
+    toast.error('Gagal menyinkronkan data.');
+  } finally {
+    isSyncingModal.value = false;
+  }
+};
 
 const currentTrackName = computed(() => {
   return applicantStore.state?.admission?.track || 'Jalur Reguler Gelombang 1';
@@ -583,6 +779,9 @@ onMounted(() => {
   }
   if (route.query.unauthorized === 'admin') {
     toast.warning('Akses ditolak: Portal Panitia PMB hanya diperuntukkan bagi Panitia Seleksi & Superadmin.');
+  }
+  if (route.query.unauthorized === 'bk') {
+    toast.warning('Akses ditolak: Portal Mitra Guru BK hanya dapat diakses oleh Guru BK terdaftar.');
   }
   // Sinkronisasi data terkini dari microservices backend
   applicantStore.syncFromBackend();
@@ -648,6 +847,18 @@ const currentStageLabel = computed(() => {
 
 // Rekomendasi langkah selanjutnya dinamis
 const nextActionInfo = computed(() => {
+  if (applicantStore.isWithdrawn) {
+    return {
+      title: 'Status Pendaftaran: Telah Mengundurkan Diri',
+      desc: 'Pendaftaran Anda telah dihentikan secara permanen. Anda dapat meninjau informasi pengunduran diri dan status refund dana.',
+      cta: 'Lihat Status & Info Refund',
+      tab: 'admission',
+      section: null,
+      badge: 'Mengundurkan Diri',
+      theme: 'rose',
+      icon: UserX,
+    };
+  }
   if (!applicantStore.isProfileComplete) {
     return {
       title: 'Lengkapi Formulir Biodata Pribadi',
@@ -672,10 +883,10 @@ const nextActionInfo = computed(() => {
       icon: Compass,
     };
   }
-  if (!applicantStore.isRegPaymentComplete && !applicantStore.isFreeTrack) {
+  if (!applicantStore.isRegPaymentComplete && !applicantStore.isFreeTrack && !applicantStore.state?.referral?.isApplied) {
     return {
       title: 'Selesaikan Pembayaran Biaya Pendaftaran',
-      desc: 'Selesaikan pembayaran biaya registrasi formulir PMB sebesar Rp 250.000 agar sesi pendaftaran dan Ujian CBT Online aktif.',
+      desc: `Selesaikan pembayaran biaya registrasi formulir PMB sebesar ${dynamicRegFeeFormatted.value} agar sesi pendaftaran dan Ujian CBT Online aktif.`,
       cta: 'Bayar Biaya Pendaftaran Sekarang',
       tab: 'payment',
       section: null,
@@ -782,9 +993,9 @@ const steps = computed(() => [
     id: 'payment',
     number: 3,
     title: 'Biaya Pendaftaran',
-    statusText: applicantStore.isFreeTrack ? 'Bebas Biaya (Rp 0)' : applicantStore.isRegPaymentComplete ? 'Lunas' : 'Rp 250.000',
-    isCompleted: applicantStore.isRegPaymentComplete || applicantStore.isFreeTrack,
-    isCurrent: applicantStore.isAdmissionComplete && !applicantStore.isRegPaymentComplete && !applicantStore.isFreeTrack,
+    statusText: applicantStore.state?.referral?.isApplied ? 'Lunas (Mitra BK)' : applicantStore.isFreeTrack ? 'Bebas Biaya (Rp 0)' : applicantStore.isRegPaymentComplete ? 'Lunas' : dynamicRegFeeFormatted.value,
+    isCompleted: applicantStore.isRegPaymentComplete || applicantStore.isFreeTrack || applicantStore.state?.referral?.isApplied,
+    isCurrent: applicantStore.isAdmissionComplete && !applicantStore.isRegPaymentComplete && !applicantStore.isFreeTrack && !applicantStore.state?.referral?.isApplied,
     icon: CreditCard,
   },
   {
@@ -827,16 +1038,16 @@ const timelineEvents = computed(() => [
   {
     title: 'Pembayaran Formulir Pendaftaran',
     date: 'Batas: 3 Hari Kerja',
-    desc: 'Pembayaran Rp 250.000 via Virtual Account BSI / Mandiri untuk aktivasi sesi Ujian CBT.',
-    isDone: applicantStore.isRegPaymentComplete,
-    isActive: applicantStore.isAdmissionComplete && !applicantStore.isRegPaymentComplete,
+    desc: `Pembayaran ${dynamicRegFeeFormatted.value} via Virtual Account BSI / Mandiri untuk aktivasi sesi Ujian CBT.`,
+    isDone: applicantStore.isRegPaymentComplete || applicantStore.state?.referral?.isApplied || applicantStore.isFreeTrack,
+    isActive: applicantStore.isAdmissionComplete && !applicantStore.isRegPaymentComplete && !applicantStore.state?.referral?.isApplied && !applicantStore.isFreeTrack,
   },
   {
     title: 'Ujian Mandiri Berbasis Komputer (CBT) & Wawancara',
     date: applicantStore.state.schedule?.cbt?.date || 'Sesuai Jadwal Sesi',
     desc: 'Pelaksanaan ujian potensi akademik daring dan presensi tes lisan / wawancara.',
     isDone: applicantStore.isExamCompleted,
-    isActive: applicantStore.isRegPaymentComplete && !applicantStore.isExamCompleted,
+    isActive: (applicantStore.isRegPaymentComplete || applicantStore.state?.referral?.isApplied || applicantStore.isFreeTrack) && !applicantStore.isExamCompleted,
   },
   {
     title: 'Pengumuman Kelulusan & Surat Penerimaan (LoA)',
@@ -865,6 +1076,10 @@ const copyRegNumber = async () => {
 };
 
 const switchTab = (tabId) => {
+  if (applicantStore.isWithdrawn && ['documents', 'exam', 'result'].includes(tabId)) {
+    toast.warning('Pendaftaran telah berstatus mengundurkan diri. Fitur berkas, seleksi, dan daftar ulang dinonaktifkan.');
+    return;
+  }
   applicantStore.setActiveTab(tabId);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
 import { useApplicantStore, PRODI_METADATA } from './applicant';
 import { useAuthStore } from './auth';
+import { useReferralStore } from './referral';
 import axios from 'axios';
 import { admissionApi, financeApi, scoringApi, studentApi, nimApi } from '@/api';
 
@@ -60,6 +61,60 @@ function buildDocumentsForApplicant(applicantId, docStatus, verifiedCount = 5, p
 }
 
 export const OFFICIAL_CANDIDATE_SEEDS = [
+  {
+    id: 'BTH-2026-REG-09182',
+    fullName: 'Ujang Mahasiswa',
+    email: 'ujang@gmail.com',
+    phone: '08123456789',
+    gender: 'Laki-laki',
+    nik: '3278011204040008',
+    nisn: '0061284918',
+    schoolName: 'SMK MARHAS MARGAHAYU',
+    city: 'Kab. Bandung',
+    averageScore: '86.50',
+    track: 'Jalur Kemitraan Guru BK (SMK MARHAS MARGAHAYU)',
+    faculty: 'Fakultas Farmasi',
+    prodi1: 'S1 Farmasi',
+    prodi2: 'D3 Farmasi',
+    registrationDate: '15 Feb 2026',
+    documentStatus: 'verified',
+    pendingDocsCount: 0,
+    verifiedDocsCount: 5,
+    referralCode: 'MARHASBISA',
+    referralSchool: 'SMK MARHAS MARGAHAYU',
+    referralPic: 'Kemal Ramadhan',
+    documents: buildDocumentsForApplicant('BTH-2026-REG-09182', 'verified', 5, 0),
+    payments: {
+      registrationFee: {
+        id: 'INV-REG-09182',
+        amount: 250000,
+        status: 'paid',
+        paidAt: '15 Feb 2026 10:00',
+        method: 'Duitku Virtual Account BSI',
+      },
+      uktFee: {
+        id: 'INV-UKT-09182',
+        amount: 6500000,
+        status: 'unpaid',
+        paidAt: null,
+        dueDate: '30 Apr 2026',
+        method: 'Virtual Account BSI',
+      },
+    },
+    selection: {
+      cbtScore: 85,
+      interviewScore: 84,
+      interviewer: 'apt. Dr. Nining Suryani, M.Si.',
+      interviewNotes: 'Pendaftar jalur kemitraan BK SMK MARHAS MARGAHAYU.',
+      passedStatus: 'passed',
+      decisionLetterNo: '09182/SK-PMB/UBTH/X/2026',
+    },
+    onboarding: {
+      isEnrolled: false,
+      nim: null,
+      pkkmbGroup: null,
+    },
+  },
   {
     id: 'BTH-2026-REG-10928',
     fullName: 'Rian Firdaus',
@@ -717,6 +772,18 @@ function updateApplicantWithLocalState(applicant, localState) {
   if (adm.prodi1) applicant.prodi1 = adm.prodi1;
   if (adm.prodi2) applicant.prodi2 = adm.prodi2;
 
+  // Sinkronisasi data referal kemitraan sekolah BK
+  const ref = localState.referral || {};
+  if (ref.isApplied && ref.code) {
+    applicant.referralCode = ref.code;
+    applicant.referralSchool = ref.schoolName || applicant.schoolName || '-';
+    applicant.referralPic = ref.picName || '-';
+  } else if (ref.isApplied === false && applicant.referralCode) {
+    applicant.referralCode = null;
+    applicant.referralSchool = null;
+    applicant.referralPic = null;
+  }
+
   if (Array.isArray(docs) && docs.length > 0) {
     const verifiedDocs = docs.filter((d) => d.status === 'verified').length;
     const pendingDocs = docs.filter((d) => d.status === 'pending' || d.status === 'revision').length;
@@ -893,12 +960,18 @@ export const useAdminStore = defineStore('admin', () => {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.filter(
+          const cleaned = parsed.filter(
             (a) =>
               !a.email?.includes('admin.pmb@bth') &&
               a.fullName !== 'Administrator PMB' &&
               !a.email?.includes('superadmin@bth')
           );
+          const hasUjang = cleaned.some((a) => a.email === 'ujang@gmail.com');
+          if (!hasUjang) {
+            const ujangSeed = OFFICIAL_CANDIDATE_SEEDS.find((a) => a.email === 'ujang@gmail.com');
+            if (ujangSeed) cleaned.unshift(ujangSeed);
+          }
+          return cleaned;
         }
       }
     } catch (e) {
@@ -908,6 +981,24 @@ export const useAdminStore = defineStore('admin', () => {
   };
 
   const applicants = ref(loadInitialData());
+
+  // Realtime Event Listener untuk konfirmasi pembayaran dari BK / User
+  if (typeof window !== 'undefined') {
+    window.addEventListener('bth_payment_confirmed', (e) => {
+      const email = e?.detail?.email;
+      const regNo = e?.detail?.regNo;
+      const found = applicants.value.find(
+        (a) =>
+          (email && a.email && a.email.toLowerCase().trim() === email.toLowerCase().trim()) ||
+          (regNo && a.id === regNo)
+      );
+      if (found && found.payments?.registrationFee) {
+        found.payments.registrationFee.status = 'paid';
+        found.payments.registrationFee.statusLabel = 'Lunas (Disetujui Guru BK)';
+        found.payments.registrationFee.paidAt = new Date().toLocaleString('id-ID');
+      }
+    });
+  }
 
   watch(
     applicants,
@@ -1006,6 +1097,9 @@ export const useAdminStore = defineStore('admin', () => {
       prodi1: admission?.prodi1 || existingApplicant?.prodi1 || 'Belum Memilih',
       prodi2: admission?.prodi2 || existingApplicant?.prodi2 || '-',
       registrationDate: existingApplicant?.registrationDate || 'Hari ini',
+      referralCode: applicantStore.state?.referral?.isApplied ? applicantStore.state.referral.code : existingApplicant?.referralCode || null,
+      referralSchool: applicantStore.state?.referral?.isApplied ? applicantStore.state.referral.schoolName : existingApplicant?.referralSchool || null,
+      referralPic: applicantStore.state?.referral?.isApplied ? applicantStore.state.referral.picName : existingApplicant?.referralPic || null,
       documentStatus: currentDocStatus,
       pendingDocsCount: pendingDocs,
       verifiedDocsCount: verifiedDocs,
@@ -1164,6 +1258,109 @@ export const useAdminStore = defineStore('admin', () => {
       });
   };
 
+  // Helper Sinkronisasi Balik ke Penyimpanan Calon Mahasiswa (Local Storage & Reactive State)
+  const syncApplicantToLocalApplicantStorage = (applicant) => {
+    if (!applicant) return;
+    try {
+      if (typeof window === 'undefined' || !window.localStorage) return;
+      const targetKeys = new Set();
+      if (applicant.backendUserId) targetKeys.add(`bth_applicant_v3_${applicant.backendUserId}`);
+      if (applicant.email) targetKeys.add(`bth_applicant_v3_${applicant.email.toLowerCase().trim()}`);
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('bth_applicant_v3_')) {
+          const raw = localStorage.getItem(k);
+          if (raw) {
+            try {
+              const p = JSON.parse(raw);
+              const matchEmail = applicant.email && p.candidate?.email?.toLowerCase().trim() === applicant.email.toLowerCase().trim();
+              const matchReg = applicant.id && p.candidate?.registrationNumber === applicant.id;
+              if (matchEmail || matchReg) targetKeys.add(k);
+            } catch {}
+          }
+        }
+      }
+
+      targetKeys.forEach((k) => {
+        const raw = localStorage.getItem(k);
+        let parsed = raw ? JSON.parse(raw) : null;
+        if (!parsed) return;
+
+        // 1. Sync Payments
+        if (applicant.payments) {
+          if (!parsed.payments) parsed.payments = {};
+          if (applicant.payments.registrationFee) {
+            parsed.payments.registrationFee = {
+              ...(parsed.payments.registrationFee || {}),
+              status: applicant.payments.registrationFee.status,
+              statusLabel: applicant.payments.registrationFee.statusLabel || (applicant.payments.registrationFee.status === 'paid' ? 'Lunas (Dikonfirmasi Admin)' : 'Menunggu'),
+              paidAt: applicant.payments.registrationFee.paidAt || parsed.payments.registrationFee?.paidAt,
+              confirmedBy: applicant.payments.registrationFee.confirmedBy || parsed.payments.registrationFee?.confirmedBy,
+            };
+          }
+          if (applicant.payments.uktFee) {
+            parsed.payments.uktFee = {
+              ...(parsed.payments.uktFee || {}),
+              status: applicant.payments.uktFee.status,
+              statusLabel: applicant.payments.uktFee.statusLabel || (applicant.payments.uktFee.status === 'paid' ? 'Lunas (Dikonfirmasi Admin)' : 'Menunggu'),
+              paidAt: applicant.payments.uktFee.paidAt || parsed.payments.uktFee?.paidAt,
+              confirmedBy: applicant.payments.uktFee.confirmedBy || parsed.payments.uktFee?.confirmedBy,
+            };
+          }
+        }
+
+        // 2. Sync Selection Result
+        if (applicant.selection) {
+          if (!parsed.result) parsed.result = {};
+          if (applicant.selection.passedStatus === 'passed') {
+            parsed.result.isPassed = true;
+            parsed.result.isAnnounced = true;
+            parsed.result.decisionLetterNo = applicant.selection.decisionLetterNo || parsed.result.decisionLetterNo || `08${applicant.id.slice(-3)}/SK-PMB/UBTH/X/2026`;
+            if (!parsed.admission) parsed.admission = {};
+            parsed.admission.status = 'Dinyatakan Lulus Seleksi';
+          } else if (applicant.selection.passedStatus === 'failed') {
+            parsed.result.isPassed = false;
+            parsed.result.isAnnounced = true;
+            if (!parsed.admission) parsed.admission = {};
+            parsed.admission.status = 'Tidak Lulus Seleksi';
+          }
+        }
+
+        // 3. Sync Onboarding & NIM
+        if (applicant.onboarding?.nim || applicant.payments?.uktFee?.status === 'paid') {
+          if (!parsed.onboarding) parsed.onboarding = {};
+          if (applicant.onboarding?.nim) parsed.onboarding.nim = applicant.onboarding.nim;
+          if (applicant.onboarding?.pkkmbGroup) parsed.onboarding.pkkmbGroup = applicant.onboarding.pkkmbGroup;
+          if (applicant.payments?.uktFee?.status === 'paid') parsed.onboarding.isEnrolled = true;
+        }
+
+        // 4. Sync Documents
+        if (Array.isArray(applicant.documents) && Array.isArray(parsed.documents)) {
+          applicant.documents.forEach((ad) => {
+            const pd = parsed.documents.find((d) => d.id === ad.id);
+            if (pd && ad.status) {
+              pd.status = ad.status;
+              pd.statusLabel = ad.status === 'verified' ? 'Terverifikasi' : ad.status === 'revision' ? 'Perlu Perbaikan' : 'Sedang Ditinjau';
+              pd.notes = ad.notes || pd.notes;
+            }
+          });
+        }
+
+        localStorage.setItem(k, JSON.stringify(parsed));
+      });
+
+      // Siarkan event realtime antar modul & tab
+      window.dispatchEvent(
+        new CustomEvent('bth_applicant_synced_from_admin', {
+          detail: { applicantId: applicant.id, email: applicant.email },
+        })
+      );
+    } catch (e) {
+      console.warn('Sync applicant to localStorage error:', e);
+    }
+  };
+
   // Action: Konfirmasi pelunasan tagihan VA oleh admin
   const confirmPayment = (applicantId, paymentType) => {
     const applicant = applicants.value.find((a) => a.id === applicantId);
@@ -1188,7 +1385,19 @@ export const useAdminStore = defineStore('admin', () => {
       if (isCurrentApplicant(applicantId)) {
         applicantStore.payRegFee(confirmedBy);
       }
+      // Sinkronkan ke mitra BK bila calon mahasiswa terdaftar lewat referal
+      if (applicant.referralCode) {
+        try {
+          const referralStore = useReferralStore();
+          referralStore.approveStudentPayment(applicant.referralCode, applicant.email || applicant.id);
+        } catch (e) {
+          console.warn('Sync referral on confirmPayment error:', e);
+        }
+      }
     }
+
+    // Sinkronkan ke local storage siswa dan siarkan update
+    syncApplicantToLocalApplicantStorage(applicant);
 
     // Dispatch ke backend finance-service
     const invoiceId =
@@ -1231,6 +1440,9 @@ export const useAdminStore = defineStore('admin', () => {
       applicantStore.state.admission.status = isPass ? 'Dinyatakan Lulus Seleksi' : 'Tidak Lulus Seleksi';
     }
 
+    // Sinkronkan ke local storage siswa dan siarkan update
+    syncApplicantToLocalApplicantStorage(applicant);
+
     // Dispatch ke backend scoring-service
     scoringApi
       .submitExaminerScore(applicantId, {
@@ -1258,6 +1470,9 @@ export const useAdminStore = defineStore('admin', () => {
       applicantStore.state.onboarding.nim = applicant.onboarding.nim;
       applicantStore.state.onboarding.pkkmbGroup = applicant.onboarding.pkkmbGroup;
     }
+
+    // Sinkronkan ke local storage siswa dan siarkan update
+    syncApplicantToLocalApplicantStorage(applicant);
 
     // Dispatch ke backend nim-service
     nimApi

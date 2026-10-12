@@ -103,34 +103,34 @@
 
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs min-w-[700px]">
-            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-sora font-semibold">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-sora font-semibold whitespace-nowrap">
               <tr>
-                <th class="py-3 px-4">No</th>
-                <th class="py-3 px-4">Kode</th>
-                <th class="py-3 px-4">Nama Jenjang</th>
-                <th class="py-3 px-4">Masa Studi Standar</th>
-                <th class="py-3 px-4">Gelar Kelulusan</th>
-                <th class="py-3 px-4 text-center">Jumlah Prodi</th>
-                <th class="py-3 px-4 text-center">Alokasi Kuota</th>
-                <th class="py-3 px-4 text-center">Status PMB</th>
+                <th class="py-3 px-4 whitespace-nowrap">No</th>
+                <th class="py-3 px-4 whitespace-nowrap">Kode</th>
+                <th class="py-3 px-4 whitespace-nowrap">Nama Jenjang</th>
+                <th class="py-3 px-4 whitespace-nowrap">Masa Studi Standar</th>
+                <th class="py-3 px-4 whitespace-nowrap">Gelar Kelulusan</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">Jumlah Prodi</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">Alokasi Kuota</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap min-w-[130px]">Status PMB</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 font-sans">
               <tr v-for="(deg, idx) in degreesList" :key="deg.code" class="hover:bg-slate-50/70 transition-colors">
-                <td class="py-3 px-4 font-mono text-slate-400">{{ idx + 1 }}</td>
-                <td class="py-3 px-4">
-                  <span class="font-mono font-bold text-xs px-2 py-0.5 bg-blue-50 text-[#1E3A8A] rounded border border-blue-200/60">
+                <td class="py-3 px-4 font-mono text-slate-400 whitespace-nowrap">{{ idx + 1 }}</td>
+                <td class="py-3 px-4 whitespace-nowrap">
+                  <span class="font-mono font-bold text-xs px-2.5 py-1 bg-blue-50 text-[#1E3A8A] rounded border border-blue-200/60 inline-block whitespace-nowrap">
                     {{ deg.code }}
                   </span>
                 </td>
-                <td class="py-3 px-4 font-bold text-slate-900">{{ deg.name }}</td>
-                <td class="py-3 px-4 text-slate-600">{{ deg.studyDuration }}</td>
-                <td class="py-3 px-4 font-medium text-slate-700">{{ deg.degreeTitle }}</td>
-                <td class="py-3 px-4 text-center font-mono font-bold text-slate-800">{{ deg.prodiCount }} Prodi</td>
-                <td class="py-3 px-4 text-center font-mono text-slate-800">{{ deg.totalQuota }} Kursi</td>
-                <td class="py-3 px-4 text-center">
+                <td class="py-3 px-4 font-bold text-slate-900 whitespace-nowrap">{{ deg.name }}</td>
+                <td class="py-3 px-4 text-slate-600 whitespace-nowrap">{{ deg.studyDuration }}</td>
+                <td class="py-3 px-4 font-medium text-slate-700 whitespace-nowrap">{{ deg.degreeTitle }}</td>
+                <td class="py-3 px-4 text-center font-mono font-bold text-slate-800 whitespace-nowrap">{{ deg.prodiCount }} Prodi</td>
+                <td class="py-3 px-4 text-center font-mono text-slate-800 whitespace-nowrap">{{ deg.totalQuota }} Kursi</td>
+                <td class="py-3 px-4 text-center whitespace-nowrap">
                   <span
-                    class="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                    class="text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap inline-block"
                     :class="deg.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'"
                   >
                     {{ deg.isActive ? 'Buka Pendaftaran' : 'Persiapan' }}
@@ -156,38 +156,38 @@
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs min-w-[750px]">
-            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-sora font-semibold">
+          <table class="w-full text-left text-xs min-w-[780px]">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-sora font-semibold whitespace-nowrap">
               <tr>
-                <th class="py-3 px-4">No</th>
-                <th class="py-3 px-4">Kode</th>
-                <th class="py-3 px-4">Nama Fakultas</th>
-                <th class="py-3 px-4">Pimpinan (Dekan)</th>
-                <th class="py-3 px-4">Lokasi Gedung</th>
-                <th class="py-3 px-4 text-center">Akreditasi</th>
-                <th class="py-3 px-4 text-center">Jumlah Prodi</th>
-                <th class="py-3 px-4 text-center">Status</th>
+                <th class="py-3 px-4 whitespace-nowrap">No</th>
+                <th class="py-3 px-4 whitespace-nowrap">Kode</th>
+                <th class="py-3 px-4 whitespace-nowrap min-w-[180px]">Nama Fakultas</th>
+                <th class="py-3 px-4 whitespace-nowrap min-w-[180px]">Pimpinan (Dekan)</th>
+                <th class="py-3 px-4 whitespace-nowrap min-w-[170px]">Lokasi Gedung</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap min-w-[120px]">Akreditasi</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap min-w-[100px]">Jumlah Prodi</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap min-w-[90px]">Status</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 font-sans">
               <tr v-for="(fac, idx) in facultiesList" :key="fac.code" class="hover:bg-slate-50/70 transition-colors">
-                <td class="py-3 px-4 font-mono text-slate-400">{{ idx + 1 }}</td>
-                <td class="py-3 px-4">
-                  <span class="font-mono font-bold text-xs px-2.5 py-1 bg-slate-100 text-slate-900 rounded">
+                <td class="py-3 px-4 font-mono text-slate-400 whitespace-nowrap">{{ idx + 1 }}</td>
+                <td class="py-3 px-4 whitespace-nowrap">
+                  <span class="font-mono font-bold text-xs px-2.5 py-1 bg-slate-100 text-slate-900 rounded whitespace-nowrap inline-block">
                     {{ fac.code }}
                   </span>
                 </td>
-                <td class="py-3 px-4 font-bold text-slate-900">{{ fac.name }}</td>
-                <td class="py-3 px-4 text-slate-700 font-medium">{{ fac.dean }}</td>
-                <td class="py-3 px-4 text-slate-500">{{ fac.building }}</td>
-                <td class="py-3 px-4 text-center">
-                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-[#1E3A8A] border border-blue-200/60">
+                <td class="py-3 px-4 font-bold text-slate-900 whitespace-nowrap">{{ fac.name }}</td>
+                <td class="py-3 px-4 text-slate-700 font-medium whitespace-nowrap">{{ fac.dean }}</td>
+                <td class="py-3 px-4 text-slate-500 whitespace-nowrap">{{ fac.building }}</td>
+                <td class="py-3 px-4 text-center whitespace-nowrap">
+                  <span class="inline-block px-2.5 py-1 rounded text-xs font-semibold whitespace-nowrap bg-blue-50 text-[#1E3A8A] border border-blue-200/60 shadow-2xs">
                     {{ fac.accreditation }}
                   </span>
                 </td>
-                <td class="py-3 px-4 text-center font-mono font-bold text-slate-800">{{ fac.prodiCount }} Prodi</td>
-                <td class="py-3 px-4 text-center">
-                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                <td class="py-3 px-4 text-center font-mono font-bold text-slate-800 whitespace-nowrap">{{ fac.prodiCount }} Prodi</td>
+                <td class="py-3 px-4 text-center whitespace-nowrap">
+                  <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 whitespace-nowrap inline-block">
                     Aktif
                   </span>
                 </td>
@@ -274,8 +274,8 @@
                 <th class="py-3 px-4 whitespace-nowrap min-w-[100px]">Kode NIM</th>
                 <th class="py-3 px-4 whitespace-nowrap min-w-[200px]">Nama Program Studi</th>
                 <th class="py-3 px-4 whitespace-nowrap min-w-[150px]">Fakultas</th>
-                <th class="py-3 px-4 whitespace-nowrap min-w-[80px]">Jenjang</th>
-                <th class="py-3 px-4 whitespace-nowrap min-w-[90px]">Akreditasi</th>
+                <th class="py-3 px-4 whitespace-nowrap min-w-[80px] text-center">Jenjang</th>
+                <th class="py-3 px-4 whitespace-nowrap min-w-[120px] text-center">Akreditasi</th>
                 <th class="py-3 px-4 whitespace-nowrap min-w-[150px]">Biaya UKT</th>
                 <th class="py-3 px-4 text-center whitespace-nowrap min-w-[110px]">Status PMB</th>
                 <th class="py-3 px-4 text-right whitespace-nowrap min-w-[140px]">Aksi</th>
@@ -304,13 +304,13 @@
                 <td class="py-3 px-4 text-slate-600 font-normal whitespace-nowrap">
                   {{ sp.faculty_name }}
                 </td>
-                <td class="py-3 px-4 whitespace-nowrap">
-                  <span class="text-xs text-slate-700 font-medium">
+                <td class="py-3 px-4 whitespace-nowrap text-center">
+                  <span class="text-xs text-slate-700 font-semibold px-2 py-0.5 rounded bg-slate-100 inline-block whitespace-nowrap">
                     {{ sp.degree }}
                   </span>
                 </td>
-                <td class="py-3 px-4 whitespace-nowrap">
-                  <span class="text-xs text-slate-700 font-medium">
+                <td class="py-3 px-4 whitespace-nowrap text-center">
+                  <span class="inline-block px-2.5 py-1 rounded text-xs font-semibold whitespace-nowrap bg-blue-50 text-[#1E3A8A] border border-blue-200/60 shadow-2xs">
                     {{ sp.accreditation }}
                   </span>
                 </td>
@@ -319,8 +319,8 @@
                 </td>
                 <td class="py-3 px-4 text-center whitespace-nowrap">
                   <span
-                    class="text-xs font-medium whitespace-nowrap"
-                    :class="sp.is_active ? 'text-emerald-700' : 'text-slate-500'"
+                    class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap inline-block"
+                    :class="sp.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'"
                   >
                     {{ sp.is_active ? 'Aktif' : 'Nonaktif' }}
                   </span>
@@ -446,15 +446,15 @@
     <Teleport to="body">
       <div
         v-if="showAddModal"
-        class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm overflow-y-auto modal-sharp"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm modal-sharp"
         @click.self="showAddModal = false"
       >
         <div class="relative w-full max-w-xl max-h-[92vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden my-auto transform-gpu">
           <!-- Top Accent Bar -->
-          <div class="h-1.5 w-full bg-gradient-to-r from-[#1E3A8A] via-blue-600 to-indigo-500 flex-shrink-0"></div>
+          <div class="h-1 w-full bg-[#1E3A8A] flex-shrink-0"></div>
 
         <!-- Modal Header -->
-        <div class="p-5 sm:p-6 pb-4 flex items-start justify-between gap-4 border-b border-slate-100">
+        <div class="p-5 sm:p-6 pb-4 flex items-start justify-between gap-4 border-b border-slate-100 flex-shrink-0">
           <div class="flex items-center gap-3.5">
             <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center justify-center text-[#1E3A8A] flex-shrink-0 shadow-2xs">
               <Building2 class="w-5 h-5 text-[#1E3A8A]" />
@@ -479,7 +479,7 @@
           </button>
         </div>
 
-        <form @submit.prevent="submitAddProgram" class="p-5 sm:p-6 space-y-4 max-h-[calc(85vh-130px)] overflow-y-auto text-xs font-sans">
+        <form @submit.prevent="submitAddProgram" class="p-5 sm:p-6 space-y-4 flex-1 overflow-y-auto text-xs font-sans">
           <!-- Nama Program Studi -->
           <div class="space-y-1.5">
             <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
@@ -533,7 +533,7 @@
           </div>
 
           <!-- Live NIM Preview Card -->
-          <div class="p-3 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-white border border-blue-200/80 rounded-xl flex items-center justify-between gap-3 shadow-2xs">
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3 shadow-2xs">
             <div>
               <div class="text-[10px] uppercase font-bold text-blue-700 tracking-wider font-sora">
                 Simulasi Format Standar NIM BTH
@@ -621,7 +621,7 @@
           </div>
 
           <!-- Modal Footer Actions -->
-          <div class="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-end gap-2.5">
+          <div class="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-end gap-2.5 flex-shrink-0">
             <button
               type="button"
               @click="showAddModal = false"

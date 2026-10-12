@@ -27,7 +27,7 @@
       >
         <div class="flex items-center justify-between text-xs font-medium text-slate-500 font-sans">
           <span>Total Pendaftar</span>
-          <span class="text-[11px] text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity font-semibold">Buka &rarr;</span>
+          <span class="text-[11px] text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity font-semibold">Buka</span>
         </div>
         <div class="mt-2">
           <div class="font-sora font-extrabold text-2xl sm:text-3xl text-slate-900 group-hover:text-[#1E3A8A] transition-colors">
@@ -47,7 +47,7 @@
       >
         <div class="flex items-center justify-between text-xs font-medium text-slate-500 font-sans">
           <span>Antrean Verifikasi Berkas</span>
-          <span class="text-[11px] text-amber-700 opacity-0 group-hover:opacity-100 transition-opacity font-semibold">Validasi &rarr;</span>
+          <span class="text-[11px] text-amber-700 opacity-0 group-hover:opacity-100 transition-opacity font-semibold">Validasi</span>
         </div>
         <div class="mt-2">
           <div class="font-sora font-extrabold text-2xl sm:text-3xl text-slate-900 group-hover:text-amber-600 transition-colors">
@@ -67,7 +67,7 @@
       >
         <div class="flex items-center justify-between text-xs font-medium text-slate-500 font-sans">
           <span>Penerimaan Pembayaran</span>
-          <span class="text-[11px] text-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity font-semibold">Keuangan &rarr;</span>
+          <span class="text-[11px] text-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity font-semibold">Keuangan</span>
         </div>
         <div class="mt-2">
           <div class="font-sora font-extrabold text-xl sm:text-2xl text-slate-900 group-hover:text-emerald-700 transition-colors">
@@ -87,7 +87,7 @@
       >
         <div class="flex items-center justify-between text-xs font-medium text-slate-500 font-sans">
           <span>Dinyatakan Lulus Seleksi</span>
-          <span class="text-[11px] text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity font-semibold">Seleksi &rarr;</span>
+          <span class="text-[11px] text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity font-semibold">Seleksi</span>
         </div>
         <div class="mt-2">
           <div class="font-sora font-extrabold text-2xl sm:text-3xl text-slate-900 group-hover:text-[#1E3A8A] transition-colors">

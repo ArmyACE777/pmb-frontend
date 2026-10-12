@@ -1,20 +1,20 @@
 <template>
   <AuthLayout
-    headline="Masuk ke Akun"
-    subheadline="Silakan masukkan email dan kata sandi terdaftar Anda."
+    headline="Masuk ke Portal PMB"
+    subheadline="Satu pintu akses untuk Calon Mahasiswa, Mitra Guru BK, dan Administrator PMB."
   >
-    <div class="w-full">
+    <div class="w-full space-y-4">
       <form @submit.prevent="handleLogin" class="space-y-3">
-        <!-- Email Input -->
+        <!-- Input Identitas Akun (Satu Pintu: Email / Kode BK / Username) -->
         <div>
           <label for="email" class="block font-sans font-medium text-slate-700 text-xs mb-1">
-            Alamat Email
+            Email atau Username
           </label>
           <input
             id="email"
             v-model="email"
-            type="email"
-            placeholder="nama@email.com"
+            type="text"
+            placeholder="Contoh: pendaftar@email.com, SMKCONTOH01, atau admin"
             required
             class="w-full px-3.5 py-2 h-10 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-xs sm:text-sm text-slate-900 transition-all font-sans placeholder:text-slate-400"
           />
@@ -30,7 +30,7 @@
               id="password"
               v-model="password"
               :type="showPassword ? 'text' : 'password'"
-              placeholder="Masukkan kata sandi"
+              placeholder="Masukkan kata sandi akun Anda"
               required
               class="w-full px-3.5 pr-10 py-2 h-10 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-xs sm:text-sm text-slate-900 transition-all font-sans placeholder:text-slate-400"
             />
@@ -79,46 +79,17 @@
             :disabled="isLoading || isGoogleLoading"
             class="w-full py-3 sm:py-3.5 px-4 min-h-[46px] sm:min-h-[48px] bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-sm rounded-xl shadow-xs hover:shadow-sm active:scale-[0.99] transition-all flex justify-center items-center gap-2.5 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer"
           >
-            <span v-if="!isLoading">Masuk</span>
+            <span v-if="!isLoading">Masuk ke Portal</span>
             <span v-else class="flex items-center gap-2">
               <Loader2 class="w-4 h-4 animate-spin text-white" />
-              <span>Memverifikasi...</span>
+              <span>Memverifikasi Akses...</span>
             </span>
           </button>
         </div>
 
-        <!-- Divider Atau -->
-        <div class="relative my-3 sm:my-3.5 flex items-center justify-center">
-          <div class="w-full border-t border-slate-200/90"></div>
-          <span class="absolute bg-white px-3 text-xs font-sans text-slate-400">
-            atau
-          </span>
-        </div>
-
-        <!-- Google Login Button -->
-        <div>
-          <button
-            type="button"
-            @click="handleGoogleLogin"
-            :disabled="isGoogleLoading || isLoading"
-            class="w-full py-3 sm:py-3.5 px-4 min-h-[46px] sm:min-h-[48px] bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-sora font-semibold text-sm rounded-xl shadow-xs hover:shadow-sm active:scale-[0.99] transition-all flex justify-center items-center gap-3 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            <img
-              src="/images/icons/google.svg"
-              alt="Logo Google"
-              class="w-5 h-5 object-contain flex-shrink-0"
-            />
-            <span v-if="!isGoogleLoading">Masuk dengan Google</span>
-            <span v-else class="flex items-center gap-2 text-slate-500">
-              <Loader2 class="w-4 h-4 animate-spin text-slate-500" />
-              <span>Menghubungkan...</span>
-            </span>
-          </button>
-        </div>
-
-        <!-- Tautan Registrasi Akun Baru -->
+        <!-- Tautan Registrasi Akun Calon Mahasiswa Baru -->
         <div class="pt-2.5 border-t border-slate-100 text-center text-xs text-slate-500 font-sans">
-          <span>Belum memiliki akun?</span>
+          <span>Calon mahasiswa baru belum memiliki akun?</span>
           <RouterLink
             to="/register"
             class="font-semibold text-[#1E3A8A] hover:text-[#2563EB] hover:underline ml-1 font-sora"
@@ -136,12 +107,14 @@ import { ref, onMounted } from 'vue';
 import { useRouter, useRoute, RouterLink } from 'vue-router';
 import { Loader2 } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
+import { useReferralStore } from '@/stores/referral';
 import { useToast } from '@/composables/useToast';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const referralStore = useReferralStore();
 const toast = useToast();
 
 const email = ref('');
@@ -149,7 +122,6 @@ const password = ref('');
 const rememberMe = ref(false);
 const showPassword = ref(false);
 const isLoading = ref(false);
-const isGoogleLoading = ref(false);
 
 onMounted(() => {
   if (route.query.registered === 'true') {
@@ -164,18 +136,56 @@ onMounted(() => {
   if (route.query.logout === 'true') {
     toast.info('Anda telah keluar dari akun.');
   }
+  if (route.query.unauthorized === 'admin') {
+    toast.error('Akses ditolak: Anda tidak memiliki izin untuk membuka Meja Kerja Administrator.');
+  }
+  if (route.query.unauthorized === 'bk') {
+    toast.error('Akses ditolak: Halaman khusus mitra Guru BK.');
+  }
 });
 
 const handleLogin = async () => {
   isLoading.value = true;
+  const inputIdent = String(email.value).trim();
+  const inputPass = String(password.value).trim();
+
   try {
-    await authStore.login(email.value, password.value);
+    // 1. Cek terlebih dahulu apakah kredensial cocok dengan akun Mitra Guru BK
+    const knownBkPartner = referralStore.findPartnerByIdentifier(inputIdent);
+    if (knownBkPartner) {
+      const bkResult = referralStore.loginBk(inputIdent, inputPass);
+      if (bkResult.success) {
+        authStore.setBkUser(bkResult.partner);
+        toast.success(bkResult.message);
+        router.push('/bk');
+        return;
+      } else {
+        toast.error(bkResult.message);
+        return;
+      }
+    }
+
+    // 2. Autentikasi ke backend API (Admin PMB / Calon Mahasiswa)
+    await authStore.login(inputIdent, inputPass);
+
+    const userEmail = authStore.currentUser?.email || inputIdent;
+    const needsOnboarding = localStorage.getItem(`bth_needs_onboarding_${userEmail}`) === 'true';
+    const hasJoinedWa = localStorage.getItem(`bth_wa_group_joined_${userEmail}`) === 'true';
+
     const redirectUrl = route.query.redirect;
     if (redirectUrl) {
       router.push(redirectUrl);
     } else if (authStore.isAdmin) {
+      toast.success(`Selamat datang, ${authStore.currentUser?.full_name || 'Administrator'}! Masuk ke Meja Kerja PMB.`);
       router.push('/admin');
+    } else if (authStore.isBkPartner) {
+      toast.success(`Selamat datang di Dashboard Mitra Guru BK.`);
+      router.push('/bk');
+    } else if (needsOnboarding && !hasJoinedWa) {
+      toast.info('Selamat datang di Portal PMB! Silakan selesaikan orientasi WhatsApp pendaftar baru.');
+      router.push('/onboarding-wa');
     } else {
+      toast.success('Selamat datang di Portal PMB Universitas BTH!');
       router.push('/dashboard');
     }
   } catch (err) {
@@ -199,17 +209,9 @@ const handleLogin = async () => {
       toast.error('Akun Anda dinonaktifkan oleh administrator. Silakan hubungi sekretariat PMB.');
       return;
     }
-    toast.error(data?.message || 'Email atau kata sandi tidak sesuai.');
+    toast.error(data?.message || 'Email, Kode Referal, atau kata sandi tidak sesuai.');
   } finally {
     isLoading.value = false;
   }
-};
-
-const handleGoogleLogin = () => {
-  isGoogleLoading.value = true;
-  setTimeout(() => {
-    isGoogleLoading.value = false;
-    toast.info('Layanan masuk Google SSO sedang disinkronkan dengan domain kampus.');
-  }, 300);
 };
 </script>

@@ -4,16 +4,11 @@
     <div class="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-xs">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
         <div>
-          <div class="flex items-center gap-2">
-            <h2 class="font-sora font-extrabold text-slate-900 text-lg sm:text-xl">
-              Kode Referal & Kemitraan Guru BK
-            </h2>
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#1E3A8A] border border-blue-200/80">
-              Program Kemitraan PMB 2026
-            </span>
-          </div>
+          <h2 class="font-sora font-extrabold text-slate-900 text-lg sm:text-xl">
+            Kode Referal & Akun Kemitraan Guru BK
+          </h2>
           <p class="text-xs text-slate-500 mt-1 font-sans">
-            Pengelolaan kode referal sekolah mitra, monitoring siswa pengguna kode, verifikasi kolektif guru BK, dan rekapitulasi setoran komisi.
+            Pengelolaan akun mitra sekolah, kode referal, dan akumulasi hak komisi kemitraan.
           </p>
         </div>
 
@@ -33,59 +28,69 @@
             class="px-4 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
           >
             <Plus class="w-4 h-4 text-white" />
-            <span>Buat Kode Referal</span>
+            <span>Buat Akun & Kode Baru</span>
           </button>
         </div>
       </div>
 
-      <!-- KPI Summary Cards -->
+      <!-- KPI Summary Cards (Unified Single Desk) -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4">
         <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200/80">
           <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sora">Total Mitra Terdaftar</div>
-          <div class="font-sora font-extrabold text-xl text-slate-900 mt-0.5">
+          <div class="font-sora font-extrabold text-xl text-slate-900 mt-1">
             {{ referralList.length }}
           </div>
-          <div class="text-[11px] text-slate-500 mt-0.5">Guru BK & Sekolah</div>
+          <div class="text-[11px] text-slate-500 mt-0.5">
+            {{ activeCodesCount }} akun aktif
+          </div>
         </div>
 
         <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200/80">
           <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sora">Siswa Pendaftar Referal</div>
-          <div class="font-sora font-extrabold text-xl text-[#1E3A8A] mt-0.5">
+          <div class="font-sora font-extrabold text-xl text-[#1E3A8A] mt-1">
             {{ totalReferredStudents }}
           </div>
-          <div class="text-[11px] text-slate-500 mt-0.5">Calon Mahasiswa</div>
+          <div class="text-[11px] text-slate-500 mt-0.5">
+            calon mahasiswa terdaftar
+          </div>
         </div>
 
         <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200/80">
           <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sora">Pembayaran Terverifikasi</div>
-          <div class="font-sora font-extrabold text-xl text-emerald-700 mt-0.5">
+          <div class="font-sora font-extrabold text-xl text-emerald-700 mt-1">
             {{ totalVerifiedPayments }}
           </div>
-          <div class="text-[11px] text-emerald-600 font-medium mt-0.5">Bypass Pembayaran</div>
+          <div class="text-[11px] text-slate-500 mt-0.5 font-mono">
+            Rp {{ (totalSettledAmount).toLocaleString('id-ID') }}
+          </div>
         </div>
 
         <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200/80">
-          <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sora">Total Setoran Diterima</div>
-          <div class="font-sora font-extrabold text-sm sm:text-base text-slate-800 mt-1 font-mono">
-            Rp {{ (totalSettledAmount).toLocaleString('id-ID') }}
+          <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sora">Total Hak Komisi Mitra</div>
+          <div class="font-sora font-extrabold text-base text-emerald-700 mt-1.5 font-mono">
+            Rp {{ (totalEarnedCommissions).toLocaleString('id-ID') }}
           </div>
-          <div class="text-[10px] text-slate-500 mt-0.5">Disetor ke Kas PMB</div>
+          <div class="text-[11px] text-slate-500 mt-0.5">
+            akumulasi insentif mitra
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Filter & Tabel Kode Referal -->
+    <!-- ========================================================================= -->
+    <!-- MEJA UTAMA: DAFTAR MITRA SEKOLAH & PENGATURAN KOMISI                      -->
+    <!-- ========================================================================= -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
       <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div class="flex items-center gap-2 w-full sm:w-auto">
-          <span class="text-xs font-semibold text-slate-700 whitespace-nowrap">Filter Status:</span>
+          <span class="text-xs font-semibold text-slate-600 whitespace-nowrap">Status:</span>
           <select
             v-model="statusFilter"
             class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 outline-none focus:border-[#1E3A8A]"
           >
-            <option value="ALL">Semua Kode ({{ referralList.length }})</option>
-            <option value="ACTIVE">Aktif ({{ activeCodesCount }})</option>
-            <option value="PENDING">Menunggu Aktivasi</option>
+            <option value="ALL">Semua Mitra ({{ referralList.length }})</option>
+            <option value="ACTIVE">Akun Aktif ({{ activeCodesCount }})</option>
+            <option value="INACTIVE">Akun Nonaktif</option>
           </select>
         </div>
 
@@ -93,95 +98,107 @@
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Cari kode referal / nama guru BK / sekolah..."
+            placeholder="Cari kode referal / guru BK / sekolah..."
             class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:border-[#1E3A8A] text-slate-800"
           />
         </div>
       </div>
 
-      <!-- Tabel Data Kode Referal -->
+      <!-- Tabel Data Kode Referal & Akun Mitra (Streamlined 5 Kolom) -->
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs min-w-[1000px]">
+        <table class="w-full text-left text-xs min-w-[720px]">
           <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-sora font-semibold whitespace-nowrap">
             <tr>
-              <th class="py-3 px-4 min-w-[40px]">No</th>
-              <th class="py-3 px-4 min-w-[140px]">Kode Referal</th>
-              <th class="py-3 px-4 min-w-[200px]">Penanggung Jawab (Mitra)</th>
-              <th class="py-3 px-4 min-w-[180px]">Institusi / Sekolah</th>
-              <th class="py-3 px-4 min-w-[130px]">Skema Komisi</th>
-              <th class="py-3 px-4 min-w-[100px] text-center">Siswa Terdaftar</th>
-              <th class="py-3 px-4 min-w-[120px] text-center">Terverifikasi</th>
-              <th class="py-3 px-4 min-w-[130px] font-mono">Total Setoran</th>
-              <th class="py-3 px-4 min-w-[90px] text-center">Status</th>
-              <th class="py-3 px-4 min-w-[110px] text-right">Aksi</th>
+              <th class="py-3 px-4 w-[30%]">Mitra & Sekolah Asal</th>
+              <th class="py-3 px-4 w-[16%]">Kode Referal</th>
+              <th class="py-3 px-4 w-[18%]">Skema Komisi</th>
+              <th class="py-3 px-4 w-[18%]">Performa & Hak Komisi</th>
+              <th class="py-3 px-4 w-[18%] text-right">Aksi Kelola</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 font-sans">
             <tr
-              v-for="(r, idx) in filteredReferrals"
+              v-for="r in filteredReferrals"
               :key="r.id"
               class="hover:bg-slate-50/70 transition-colors"
             >
-              <td class="py-3.5 px-4 font-mono text-slate-400">{{ idx + 1 }}</td>
+              <!-- 1. Mitra & Sekolah Asal -->
+              <td class="py-3.5 px-4">
+                <div class="font-semibold text-slate-900 text-xs">{{ r.schoolName || '-' }}</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">
+                  {{ r.picName }} <span v-if="r.schoolCity">• {{ r.schoolCity }}</span>
+                </div>
+                <div class="text-[11px] text-slate-400 font-mono mt-0.5">
+                  {{ r.picPhone }}
+                </div>
+              </td>
+
+              <!-- 2. Kode Referal -->
               <td class="py-3.5 px-4">
                 <div class="flex items-center gap-1.5">
-                  <span class="font-mono font-bold text-slate-900 text-xs px-2.5 py-1 bg-blue-50 border border-blue-200/70 rounded">
+                  <span class="font-mono font-bold text-slate-900 text-xs px-2.5 py-1 bg-blue-50 border border-blue-200/80 rounded">
                     {{ r.code }}
                   </span>
                   <button
                     type="button"
                     @click="copyCode(r.code)"
-                    class="p-1 text-slate-400 hover:text-[#1E3A8A] rounded transition-colors"
+                    class="p-1 text-slate-400 hover:text-[#1E3A8A] rounded transition-colors cursor-pointer"
                     title="Salin Kode Referal"
                   >
                     <Copy class="w-3.5 h-3.5" />
                   </button>
                 </div>
               </td>
-              <td class="py-3.5 px-4">
-                <div class="font-semibold text-slate-900 text-xs">{{ r.picName }}</div>
-                <div class="text-[11px] text-slate-500 font-mono mt-0.5">{{ r.picPhone }}</div>
+
+              <!-- 3. Skema Komisi -->
+              <td class="py-3.5 px-4 whitespace-nowrap">
+                <div class="font-semibold text-slate-800 text-xs">
+                  {{ r.commissionType === 'percentage' || r.commissionType === 'persen' ? `${r.commissionValue || 10}% / siswa` : `Rp ${(Number(r.commissionValue) || 50000).toLocaleString('id-ID')} / siswa` }}
+                </div>
               </td>
-              <td class="py-3.5 px-4">
-                <div class="text-slate-800 font-medium">{{ r.schoolName }}</div>
-                <div class="text-[10px] text-slate-400 mt-0.5">{{ r.schoolCity }}</div>
+
+              <!-- 4. Performa Siswa & Hak Komisi -->
+              <td class="py-3.5 px-4 whitespace-nowrap">
+                <div class="flex items-center gap-1.5">
+                  <span class="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60 text-xs">
+                    {{ (r.students && r.students.length > 0) ? r.students.filter(s => s.status_approve === 'SUCCESS').length : (r.verifiedCount || 0) }} Lunas
+                  </span>
+                  <span class="text-slate-400 text-[11px]">/</span>
+                  <span class="font-mono text-slate-600 text-xs font-semibold">
+                    {{ (r.students && r.students.length > 0) ? r.students.length : (r.registeredCount || 0) }} Siswa
+                  </span>
+                </div>
+                <div class="text-[11px] font-mono text-slate-500 mt-1">
+                  Komisi: <strong class="text-emerald-700">Rp {{ getPartnerEarnedCommission(r).toLocaleString('id-ID') }}</strong>
+                </div>
               </td>
-              <td class="py-3.5 px-4">
-                <span class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700">
-                  {{ r.commissionType === 'percentage' ? `${r.commissionValue}% per siswa` : `Rp ${r.commissionValue.toLocaleString('id-ID')} / siswa` }}
-                </span>
-              </td>
-              <td class="py-3.5 px-4 text-center font-mono font-bold text-slate-800">
-                {{ r.registeredCount }}
-              </td>
-              <td class="py-3.5 px-4 text-center">
-                <span class="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
-                  {{ r.verifiedCount }}
-                </span>
-              </td>
-              <td class="py-3.5 px-4 font-mono font-semibold text-slate-800">
-                Rp {{ (r.settledAmount).toLocaleString('id-ID') }}
-              </td>
-              <td class="py-3.5 px-4 text-center">
-                <span
-                  class="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                  :class="r.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'"
-                >
-                  {{ r.status === 'active' ? 'Aktif' : 'Pending' }}
-                </span>
-              </td>
-              <td class="py-3.5 px-4 text-right">
-                <button
-                  type="button"
-                  @click="viewDetail(r)"
-                  class="px-2.5 py-1 text-xs font-semibold rounded bg-[#1E3A8A] hover:bg-[#172554] text-white transition-colors cursor-pointer"
-                >
-                  Detail
-                </button>
+
+              <!-- 5. Aksi Kelola -->
+              <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                <div class="flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    @click="openCommissionModal(r)"
+                    class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors cursor-pointer flex items-center gap-1"
+                    title="Atur Skema & Nilai Komisi"
+                  >
+                    <Coins class="w-3.5 h-3.5" />
+                    <span>Komisi</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    @click="openAccountModal(r)"
+                    class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#1E3A8A] hover:bg-[#172554] text-white transition-colors cursor-pointer"
+                    title="Kelola Kredensial & Akun Login Guru BK"
+                  >
+                    Akun
+                  </button>
+                </div>
               </td>
             </tr>
             <tr v-if="filteredReferrals.length === 0">
-              <td colspan="10" class="py-8 text-center text-slate-400">
+              <td colspan="5" class="py-8 text-center text-slate-400">
                 Tidak ada kode referal yang cocok dengan filter pencarian.
               </td>
             </tr>
@@ -190,34 +207,37 @@
       </div>
     </div>
 
-    <!-- Modal Buat Kode Referal Baru -->
+    <!-- ========================================================================= -->
+    <!-- MODAL 1: BUAT AKUN GURU BK & KODE REFERAL BARU                            -->
+    <!-- ========================================================================= -->
     <Teleport to="body">
       <div
         v-if="showModal"
-        class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm overflow-y-auto modal-sharp"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm"
         @click.self="showModal = false"
       >
-        <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto">
-          <div class="h-1.5 w-full bg-gradient-to-r from-[#1E3A8A] via-blue-600 to-indigo-500"></div>
+        <div class="relative w-full max-w-lg max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto">
+          <div class="h-1 w-full bg-[#1E3A8A] flex-shrink-0"></div>
 
-          <div class="p-5 sm:p-6 pb-4 flex items-center justify-between border-b border-slate-100">
+          <div class="p-5 sm:p-6 pb-4 flex items-center justify-between border-b border-slate-100 flex-shrink-0">
             <div>
               <h3 class="font-sora font-bold text-slate-900 text-base">
                 Buat Akun Guru BK & Kode Referal Baru
               </h3>
               <p class="text-xs text-slate-500 mt-0.5">Program Sosialisasi PMB Universitas BTH</p>
             </div>
-            <button @click="showModal = false" class="text-slate-400 hover:text-slate-700 p-1">
+            <button @click="showModal = false" class="text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
               <X class="w-5 h-5" />
             </button>
           </div>
 
-          <form @submit.prevent="saveReferral" class="p-5 sm:p-6 space-y-4 text-xs font-sans">
+          <form @submit.prevent="saveReferral" class="p-5 sm:p-6 space-y-4 text-xs font-sans flex-1 overflow-y-auto">
             <div>
               <label class="block font-semibold text-slate-800 mb-1">Kode Referal Unik *</label>
               <input
                 v-model="form.code"
                 required
+                @input="handleCodeInput"
                 placeholder="Contoh: SMKCONTOH01, SMAN1TSM, BK-FARMASI"
                 class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A] uppercase font-mono"
               />
@@ -265,6 +285,44 @@
               </div>
             </div>
 
+            <!-- Kredensial Login Akun Guru BK -->
+            <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+              <div class="font-semibold text-slate-800 text-xs flex items-center gap-1.5">
+                <ShieldCheck class="w-4 h-4 text-[#1E3A8A]" />
+                <span>Kredensial Login Portal Guru BK (/login)</span>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-medium text-slate-600 mb-1">Username Login</label>
+                  <input
+                    v-model="form.username"
+                    required
+                    placeholder="Contoh: nurjanah.bk"
+                    class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A] font-mono text-xs"
+                  />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-medium text-slate-600 mb-1">Kata Sandi Awal</label>
+                  <input
+                    v-model="form.password"
+                    required
+                    placeholder="Minimal 6 karakter"
+                    class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A] font-mono text-xs"
+                  />
+                </div>
+              </div>
+              <div>
+                <label class="block text-[11px] font-medium text-slate-600 mb-1">Email Sekolah / Kontak</label>
+                <input
+                  v-model="form.email"
+                  type="email"
+                  required
+                  placeholder="bk@sekolah.sch.id"
+                  class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A] text-xs"
+                />
+              </div>
+            </div>
+
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block font-semibold text-slate-800 mb-1">Skema Komisi Mitra *</label>
@@ -272,7 +330,7 @@
                   v-model="form.commissionType"
                   class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A] bg-white"
                 >
-                  <option value="fixed">Nominal Tetap (Rp)</option>
+                  <option value="nominal">Nominal Tetap (Rp)</option>
                   <option value="percentage">Persentase (%)</option>
                 </select>
               </div>
@@ -289,11 +347,7 @@
               </div>
             </div>
 
-            <div class="p-3 bg-blue-50 border border-blue-200/80 rounded-lg text-slate-600 text-[11px] leading-relaxed">
-              Siswa yang memasukkan kode referal ini akan diverifikasi pembayarannya oleh guru BK terkait, lalu setoran formulir dikirimkan ke Biro Keuangan PMB.
-            </div>
-
-            <div class="pt-3 border-t border-slate-100 flex justify-end gap-2.5">
+            <div class="pt-3 border-t border-slate-100 flex justify-end gap-2.5 flex-shrink-0">
               <button
                 type="button"
                 @click="showModal = false"
@@ -305,7 +359,325 @@
                 type="submit"
                 class="px-5 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold rounded-lg shadow-xs cursor-pointer"
               >
-                Simpan & Terbitkan Kode
+                Simpan & Terbitkan Akun
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 2: KELOLA AKUN LOGIN GURU BK (RESET SANDI & TOGGLE STATUS)         -->
+    <!-- ========================================================================= -->
+    <Teleport to="body">
+      <div
+        v-if="selectedPartner"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm"
+        @click.self="selectedPartner = null"
+      >
+        <div class="relative w-full max-w-xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto">
+          <div class="h-1 w-full bg-[#1E3A8A] flex-shrink-0"></div>
+
+          <div class="p-5 sm:p-6 pb-4 flex items-center justify-between border-b border-slate-100 flex-shrink-0">
+            <div>
+              <div class="text-[11px] font-bold text-blue-700 uppercase tracking-wider font-sora">
+                Pengaturan Akun Mitra Guru BK
+              </div>
+              <h3 class="font-sora font-bold text-slate-900 text-base sm:text-lg mt-0.5">
+                {{ selectedPartner.picName }}
+              </h3>
+              <p class="text-xs text-slate-500">{{ selectedPartner.schoolName }} • {{ selectedPartner.schoolCity }}</p>
+            </div>
+            <button @click="selectedPartner = null" class="text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
+              <X class="w-5 h-5" />
+            </button>
+          </div>
+
+          <div class="p-5 sm:p-6 space-y-4 text-xs font-sans flex-1 overflow-y-auto">
+            <!-- Ringkasan Status & Performa -->
+            <div class="grid grid-cols-3 gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200/90 text-center">
+              <div>
+                <div class="text-[10px] text-slate-400 font-medium">Kode Referal</div>
+                <div class="font-mono font-bold text-sm text-[#1E3A8A] mt-0.5">{{ selectedPartner.code }}</div>
+              </div>
+              <div>
+                <div class="text-[10px] text-slate-400 font-medium">Siswa Terdaftar</div>
+                <div class="font-mono font-bold text-sm text-slate-800 mt-0.5">{{ selectedPartner.registeredCount || 0 }} Siswa</div>
+              </div>
+              <div>
+                <div class="text-[10px] text-slate-400 font-medium">Status Akun</div>
+                <div class="mt-0.5">
+                  <span
+                    class="px-2 py-0.5 rounded-full text-[10px] font-bold inline-block"
+                    :class="selectedPartner.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'"
+                  >
+                    {{ selectedPartner.status === 'active' ? 'Aktif' : 'Dinonaktifkan' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Edit Kredensial -->
+            <div class="space-y-3 pt-2">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Username Login</label>
+                  <input
+                    v-model="editForm.username"
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A] font-mono"
+                  />
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Email Sekolah</label>
+                  <input
+                    v-model="editForm.email"
+                    type="email"
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="font-semibold text-slate-700">Kata Sandi Akun</label>
+                  <button
+                    type="button"
+                    @click="resetToDefaultPassword"
+                    class="text-[11px] font-medium text-blue-700 hover:underline cursor-pointer"
+                  >
+                    Reset ke "password123"
+                  </button>
+                </div>
+                <input
+                  v-model="editForm.password"
+                  class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A] font-mono"
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1">No. WhatsApp / HP</label>
+                  <input
+                    v-model="editForm.picPhone"
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A] font-mono"
+                  />
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Aksi Status</label>
+                  <button
+                    type="button"
+                    @click="toggleActiveStatusModal"
+                    class="w-full py-2 px-3 rounded-lg border font-semibold text-xs transition-colors cursor-pointer text-center"
+                    :class="selectedPartner.status === 'active'
+                      ? 'border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700'
+                      : 'border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700'"
+                  >
+                    {{ selectedPartner.status === 'active' ? 'Nonaktifkan Akun' : 'Aktifkan Akun' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Daftar Siswa Terdaftar Pengguna Kode Ini -->
+            <div class="pt-2 border-t border-slate-200 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-semibold text-slate-800 text-xs flex items-center gap-1.5">
+                  <Users class="w-4 h-4 text-[#1E3A8A]" />
+                  <span>Daftar Siswa Pengguna Kode ({{ (selectedPartner.students || []).length }} Siswa)</span>
+                </span>
+                <span class="text-[10px] text-emerald-700 font-medium bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  {{ (selectedPartner.students || []).filter(s => s.status_approve === 'SUCCESS').length }} Terverifikasi
+                </span>
+              </div>
+
+              <div class="rounded-lg border border-slate-200 bg-slate-50/50 overflow-x-auto">
+                <table v-if="(selectedPartner.students || []).length > 0" class="w-full text-[11px] text-left">
+                  <thead class="bg-slate-100 text-slate-600 font-semibold sticky top-0 border-b border-slate-200">
+                    <tr>
+                      <th class="py-2 px-3">Nama</th>
+                      <th class="py-2 px-3">Email</th>
+                      <th class="py-2 px-3 text-right">Nominal</th>
+                      <th class="py-2 px-3 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-200 font-sans">
+                    <tr v-for="s in selectedPartner.students" :key="s.id" class="hover:bg-white">
+                      <td class="py-2 px-3 font-medium text-slate-900">{{ s.name }}</td>
+                      <td class="py-2 px-3 text-slate-500 font-mono text-[10px]">{{ s.email }}</td>
+                      <td class="py-2 px-3 text-right text-slate-800 font-mono">Rp {{ Number(s.nominal || 300000).toLocaleString('id-ID') }}</td>
+                      <td class="py-2 px-3 text-center">
+                        <span
+                          class="px-2 py-0.5 rounded text-[10px] font-bold"
+                          :class="s.status_approve === 'SUCCESS' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'"
+                        >
+                          {{ s.status_approve || 'Pending' }}
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div v-else class="p-4 text-center text-slate-400 text-xs">
+                  Belum ada calon mahasiswa yang mendaftar menggunakan kode ini.
+                </div>
+              </div>
+            </div>
+
+
+            <!-- Tombol Aksi Cepat: Salin Kredensial & Buka Dashboard -->
+            <div class="p-3 bg-blue-50/60 border border-blue-200 rounded-xl flex items-center justify-between gap-3 pt-3">
+              <div class="text-[11px] text-slate-600">
+                Kirim informasi login langsung ke Guru BK via pesan WhatsApp.
+              </div>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <button
+                  type="button"
+                  @click="copyPartnerCredentials"
+                  class="px-3 py-1.5 bg-white border border-blue-300 hover:bg-blue-50 text-[#1E3A8A] font-semibold text-xs rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <Copy class="w-3.5 h-3.5" />
+                  <span>Salin Info Login</span>
+                </button>
+                <button
+                  type="button"
+                  @click="openPartnerDashboard"
+                  class="px-3 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <ExternalLink class="w-3.5 h-3.5" />
+                  <span>Buka Dashboard</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 sm:px-6 sm:py-3.5 bg-slate-50 border-t border-slate-200/80 flex items-center justify-end gap-2.5 flex-shrink-0">
+            <button
+              type="button"
+              @click="selectedPartner = null"
+              class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-white cursor-pointer font-medium"
+            >
+              Tutup
+            </button>
+            <button
+              type="button"
+              @click="saveAccountChanges"
+              class="px-5 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold rounded-lg shadow-xs cursor-pointer"
+            >
+              Simpan Perubahan
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- MODAL 3: PENGATURAN KOMISI JALUR BK (PERSEN / NOMINAL)                    -->
+      <!-- ========================================================================= -->
+      <div
+        v-if="selectedCommissionPartner"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm"
+        @click.self="selectedCommissionPartner = null"
+      >
+        <div class="relative w-full max-w-lg max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto">
+          <div class="h-1 w-full bg-[#1E3A8A] flex-shrink-0"></div>
+
+          <div class="p-5 sm:p-6 pb-4 flex items-center justify-between border-b border-slate-100 flex-shrink-0">
+            <div>
+              <div class="text-[10px] font-bold text-[#1E3A8A] uppercase tracking-wider font-sora">
+                Pengaturan Komisi Jalur BK
+              </div>
+              <h3 class="font-sora font-bold text-slate-900 text-base sm:text-lg mt-0.5">
+                {{ selectedCommissionPartner.schoolName || selectedCommissionPartner.picName }}
+              </h3>
+              <p class="text-xs text-slate-500">
+                Kode Referal: <strong class="font-mono text-slate-800">{{ selectedCommissionPartner.code }}</strong> • PIC: {{ selectedCommissionPartner.picName }}
+              </p>
+            </div>
+            <button @click="selectedCommissionPartner = null" class="text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
+              <X class="w-5 h-5" />
+            </button>
+          </div>
+
+          <form @submit.prevent="saveCommissionSettings" class="p-5 sm:p-6 space-y-4 text-xs font-sans flex-1 overflow-y-auto">
+            <div>
+              <label class="block font-semibold text-slate-800 mb-1.5">Skema / Tipe Komisi *</label>
+              <div class="grid grid-cols-2 gap-2.5">
+                <label
+                  class="p-3 border rounded-xl flex items-center gap-2 cursor-pointer transition"
+                  :class="commissionForm.commissionType === 'nominal' ? 'border-[#1E3A8A] bg-blue-50/50 font-bold text-[#1E3A8A]' : 'border-slate-200 bg-white text-slate-700'"
+                >
+                  <input
+                    type="radio"
+                    value="nominal"
+                    v-model="commissionForm.commissionType"
+                    class="text-[#1E3A8A] focus:ring-[#1E3A8A]"
+                  />
+                  <span>Nominal Tetap (Rp)</span>
+                </label>
+
+                <label
+                  class="p-3 border rounded-xl flex items-center gap-2 cursor-pointer transition"
+                  :class="commissionForm.commissionType === 'percentage' ? 'border-[#1E3A8A] bg-blue-50/50 font-bold text-[#1E3A8A]' : 'border-slate-200 bg-white text-slate-700'"
+                >
+                  <input
+                    type="radio"
+                    value="percentage"
+                    v-model="commissionForm.commissionType"
+                    class="text-[#1E3A8A] focus:ring-[#1E3A8A]"
+                  />
+                  <span>Persentase (%)</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-800 mb-1">
+                {{ commissionForm.commissionType === 'nominal' ? 'Nominal Komisi per Pendaftar (Rp) *' : 'Persentase Komisi dari Biaya (%) *' }}
+              </label>
+              <div class="relative">
+                <span v-if="commissionForm.commissionType === 'nominal'" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-mono font-bold">Rp</span>
+                <input
+                  v-model.number="commissionForm.commissionValue"
+                  type="number"
+                  min="0"
+                  :max="commissionForm.commissionType === 'percentage' ? 100 : 300000"
+                  required
+                  :placeholder="commissionForm.commissionType === 'nominal' ? 'Contoh: 50000' : 'Contoh: 10'"
+                  class="w-full py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A] font-mono text-sm font-bold text-slate-900 bg-white"
+                  :class="commissionForm.commissionType === 'nominal' ? 'pl-10 pr-3.5' : 'pl-3.5 pr-8'"
+                />
+                <span v-if="commissionForm.commissionType === 'percentage'" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-mono font-bold">%</span>
+              </div>
+            </div>
+
+            <!-- Live Calculation Simulation -->
+            <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+              <div class="text-[11px] font-bold text-slate-700 font-sora">
+                Simulasi Perhitungan Komisi (Biaya Formulir Standar: Rp 300.000)
+              </div>
+              <div class="p-2.5 bg-white rounded-lg border border-slate-200 flex items-center justify-between">
+                <div>
+                  <div class="text-[10px] text-slate-500 font-medium">Hak Insentif Guru BK</div>
+                  <div class="text-[10px] text-slate-400 mt-0.5">diberikan per siswa terdaftar yang lunas</div>
+                </div>
+                <div class="font-mono font-bold text-sm text-emerald-700">
+                  Rp {{ simulatedCommissionAmount.toLocaleString('id-ID') }}
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex justify-end gap-2.5 flex-shrink-0">
+              <button
+                type="button"
+                @click="selectedCommissionPartner = null"
+                class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 cursor-pointer font-medium"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <span>Simpan Pengaturan Komisi</span>
               </button>
             </div>
           </form>
@@ -316,17 +688,28 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { Plus, X, Download, Copy } from 'lucide-vue-next';
+import { ref, computed, reactive } from 'vue';
+import { useRouter } from 'vue-router';
+import { Plus, X, Download, Copy, ExternalLink, Users, Coins } from 'lucide-vue-next';
 import { useToast } from '@/composables/useToast';
+import { useAuthStore } from '@/stores/auth';
 import { useReferralStore } from '@/stores/referral';
 
+const router = useRouter();
 const toast = useToast();
+const authStore = useAuthStore();
 const referralStore = useReferralStore();
 
 const statusFilter = ref('ALL');
 const searchQuery = ref('');
 const showModal = ref(false);
+const selectedPartner = ref(null);
+
+const selectedCommissionPartner = ref(null);
+const commissionForm = reactive({
+  commissionType: 'nominal',
+  commissionValue: 50000,
+});
 
 const referralList = computed(() => referralStore.referralList);
 
@@ -336,20 +719,43 @@ const form = ref({
   picPhone: '',
   schoolName: '',
   schoolCity: '',
-  commissionType: 'fixed',
+  username: '',
+  email: '',
+  password: 'password123',
+  commissionType: 'nominal',
   commissionValue: 50000,
 });
 
+const editForm = reactive({
+  username: '',
+  email: '',
+  password: '',
+  picPhone: '',
+});
+
 const totalReferredStudents = computed(() => {
-  return referralList.value.reduce((acc, r) => acc + (r.registeredCount || 0), 0);
+  return referralList.value.reduce((acc, r) => {
+    const count = Array.isArray(r.students) && r.students.length > 0 ? r.students.length : (r.registeredCount || 0);
+    return acc + count;
+  }, 0);
 });
 
 const totalVerifiedPayments = computed(() => {
-  return referralList.value.reduce((acc, r) => acc + (r.verifiedCount || 0), 0);
+  return referralList.value.reduce((acc, r) => {
+    const verified = Array.isArray(r.students) && r.students.length > 0
+      ? r.students.filter((s) => s.status_approve === 'SUCCESS').length
+      : (r.verifiedCount || 0);
+    return acc + verified;
+  }, 0);
 });
 
 const totalSettledAmount = computed(() => {
-  return referralList.value.reduce((acc, r) => acc + (r.settledAmount || 0), 0);
+  return referralList.value.reduce((acc, r) => {
+    const settled = Array.isArray(r.students) && r.students.length > 0
+      ? r.students.filter((s) => s.status_approve === 'SUCCESS').reduce((sum, s) => sum + (Number(s.nominal) || 300000), 0)
+      : (r.settledAmount || 0);
+    return acc + settled;
+  }, 0);
 });
 
 const activeCodesCount = computed(() => {
@@ -359,14 +765,16 @@ const activeCodesCount = computed(() => {
 const filteredReferrals = computed(() => {
   return referralList.value.filter((r) => {
     if (statusFilter.value === 'ACTIVE' && r.status !== 'active') return false;
-    if (statusFilter.value === 'PENDING' && r.status === 'active') return false;
+    if (statusFilter.value === 'INACTIVE' && r.status === 'active') return false;
+    if (statusFilter.value === 'PENDING_SETTLEMENT' && !hasPendingSettlement(r)) return false;
 
     if (searchQuery.value.trim()) {
       const q = searchQuery.value.toLowerCase();
       const matchCode = r.code.toLowerCase().includes(q);
-      const matchPic = r.picName.toLowerCase().includes(q);
-      const matchSchool = r.schoolName.toLowerCase().includes(q);
-      if (!matchCode && !matchPic && !matchSchool) return false;
+      const matchPic = (r.picName || '').toLowerCase().includes(q);
+      const matchSchool = (r.schoolName || r.institution || '').toLowerCase().includes(q);
+      const matchUser = (r.username || '').toLowerCase().includes(q);
+      if (!matchCode && !matchPic && !matchSchool && !matchUser) return false;
     }
 
     return true;
@@ -382,6 +790,18 @@ const copyCode = async (code) => {
   }
 };
 
+const handleCodeInput = () => {
+  if (form.value.code) {
+    const slug = form.value.code.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!form.value.username) {
+      form.value.username = `bk_${slug}`;
+    }
+    if (!form.value.email) {
+      form.value.email = `${slug}@sekolah.sch.id`;
+    }
+  }
+};
+
 const openAddModal = () => {
   form.value = {
     code: '',
@@ -389,36 +809,198 @@ const openAddModal = () => {
     picPhone: '',
     schoolName: '',
     schoolCity: '',
-    commissionType: 'fixed',
+    username: '',
+    email: '',
+    password: 'password123',
+    commissionType: 'nominal',
     commissionValue: 50000,
   };
   showModal.value = true;
 };
 
 const saveReferral = () => {
+  const code = form.value.code.toUpperCase();
   referralStore.addReferral({
-    id: `REF-${Date.now()}`,
-    code: form.value.code.toUpperCase(),
+    code,
     picName: form.value.picName,
     picPhone: form.value.picPhone,
     schoolName: form.value.schoolName,
     schoolCity: form.value.schoolCity,
+    username: form.value.username || `bk_${code.toLowerCase()}`,
+    email: form.value.email || `${code.toLowerCase()}@sekolah.sch.id`,
+    password: form.value.password || 'password123',
     commissionType: form.value.commissionType,
     commissionValue: form.value.commissionValue,
-    registeredCount: 0,
-    verifiedCount: 0,
-    settledAmount: 0,
-    status: 'active',
   });
-  toast.success(`Kode referal ${form.value.code.toUpperCase()} berhasil dibuat untuk ${form.value.picName}.`);
+  toast.success(`Akun Guru BK dan kode referal ${code} berhasil dibuat.`);
   showModal.value = false;
 };
 
-const viewDetail = (referral) => {
-  toast.info(`Menampilkan rincian performa kode referal ${referral.code} (${referral.schoolName}).`);
+const openAccountModal = (partner) => {
+  selectedPartner.value = partner;
+  editForm.username = partner.username || `bk_${partner.code.toLowerCase()}`;
+  editForm.email = partner.email || `${partner.code.toLowerCase()}@sekolah.sch.id`;
+  editForm.password = partner.password || 'password123';
+  editForm.picPhone = partner.picPhone || '';
+};
+
+const resetToDefaultPassword = () => {
+  editForm.password = 'password123';
+  toast.info('Kata sandi diset ke default "password123". Klik Simpan untuk menerapkan.');
+};
+
+const toggleStatus = (partner) => {
+  const res = referralStore.togglePartnerStatus(partner.id);
+  if (res.success) {
+    toast.success(res.message);
+  }
+};
+
+const toggleActiveStatusModal = () => {
+  if (!selectedPartner.value) return;
+  const res = referralStore.togglePartnerStatus(selectedPartner.value.id);
+  if (res.success) {
+    selectedPartner.value.status = res.status;
+    toast.success(res.message);
+  }
+};
+
+const saveAccountChanges = () => {
+  if (!selectedPartner.value) return;
+  referralStore.updateReferral(selectedPartner.value.id, {
+    username: editForm.username,
+    email: editForm.email,
+    password: editForm.password,
+    picPhone: editForm.picPhone,
+  });
+  toast.success('Pembaruan data akun Guru BK berhasil disimpan.');
+  selectedPartner.value = null;
+};
+
+const copyPartnerCredentials = async () => {
+  if (!selectedPartner.value) return;
+  const p = selectedPartner.value;
+  const text = `*AKSES PORTAL GURU BK - UNIVERSITAS BAKTI TUNAS HUSADA*
+Nama Mitra: ${p.picName}
+Sekolah: ${p.schoolName}
+Kode Referal Siswa: ${p.code}
+Username Login: ${editForm.username}
+Kata Sandi: ${editForm.password}
+Tautan Login: ${window.location.origin}/login
+
+Gunakan akun di atas untuk login dan memantau siswa serta insentif kemitraan PMB BTH.`;
+
+  try {
+    await navigator.clipboard.writeText(text);
+    toast.success('Kredensial login berhasil disalin. Siap dikirimkan ke Guru BK.');
+  } catch {
+    toast.info('Gagal menyalin teks otomatis.');
+  }
+};
+
+const openPartnerDashboard = () => {
+  if (!selectedPartner.value) return;
+  referralStore.setSessionPartner(selectedPartner.value);
+  authStore.setBkUser(selectedPartner.value);
+  toast.success(`Membuka Dashboard Guru BK sebagai ${selectedPartner.value.picName}...`);
+  router.push('/bk');
 };
 
 const exportReferralReport = () => {
-  toast.success('Laporan rekapitulasi kode referal & komisi guru BK berhasil diunduh (Excel).');
+  const headers = [
+    'No',
+    'Kode Referal',
+    'Guru BK / PIC',
+    'No. WhatsApp',
+    'Institusi / Sekolah',
+    'Kota',
+    'Skema Komisi',
+    'Nilai Komisi',
+    'Total Siswa Pendaftar',
+    'Siswa Lunas',
+    'Hak Komisi Mitra (Rp)',
+    'Status Akun',
+  ];
+  const rows = referralList.value.map((r, i) => {
+    const studentCount = (r.students && r.students.length > 0) ? r.students.length : (r.registeredCount || 0);
+    const verifiedCount = (r.students && r.students.length > 0) ? r.students.filter(s => s.status_approve === 'SUCCESS').length : (r.verifiedCount || 0);
+    const earnedComm = getPartnerEarnedCommission(r);
+    const commType = r.commissionType === 'percentage' || r.commissionType === 'persen' ? 'Persentase' : 'Nominal Tetap';
+    const commVal = r.commissionType === 'percentage' || r.commissionType === 'persen' ? `${r.commissionValue}%` : `Rp ${Number(r.commissionValue || 50000).toLocaleString('id-ID')}`;
+    return [
+      i + 1,
+      r.code,
+      `"${r.picName || '-'}"`,
+      `"${r.picPhone || '-'}"`,
+      `"${r.schoolName || r.institution || '-'}"`,
+      `"${r.schoolCity || '-'}"`,
+      commType,
+      `"${commVal}"`,
+      studentCount,
+      verifiedCount,
+      earnedComm,
+      r.status === 'active' ? 'Aktif' : 'Nonaktif',
+    ].join(',');
+  });
+
+  const csvContent = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `laporan_referral_pmb_bth_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  toast.success('Laporan rekapitulasi kode referal & komisi Guru BK berhasil diunduh (CSV).');
+};
+
+// =========================================================================
+// PERHITUNGAN HAK KOMISI & PENGATURAN KOMISI
+// =========================================================================
+const FORM_FEE = 300000;
+
+const simulatedCommissionAmount = computed(() => {
+  if (commissionForm.commissionType === 'percentage') {
+    return Math.round(((Number(commissionForm.commissionValue) || 0) / 100) * FORM_FEE);
+  }
+  return Number(commissionForm.commissionValue) || 0;
+});
+
+const getPartnerEarnedCommission = (r) => {
+  const verifiedCount =
+    Array.isArray(r.students) && r.students.length > 0
+      ? r.students.filter((s) => s.status_approve === 'SUCCESS').length
+      : (r.verifiedCount || 0);
+  const val = Number(r.commissionValue) || 50000;
+  if (r.commissionType === 'percentage' || r.commissionType === 'persen') {
+    return Math.round(verifiedCount * ((val / 100) * FORM_FEE));
+  }
+  return verifiedCount * val;
+};
+
+const totalEarnedCommissions = computed(() => {
+  return referralList.value.reduce((acc, r) => acc + getPartnerEarnedCommission(r), 0);
+});
+
+const openCommissionModal = (partner) => {
+  selectedCommissionPartner.value = partner;
+  commissionForm.commissionType = partner.commissionType || 'nominal';
+  commissionForm.commissionValue = partner.commissionValue !== undefined ? partner.commissionValue : 50000;
+};
+
+const saveCommissionSettings = () => {
+  if (!selectedCommissionPartner.value) return;
+  const ok = referralStore.updateCommission(selectedCommissionPartner.value.code, {
+    commissionType: commissionForm.commissionType,
+    commissionValue: commissionForm.commissionValue,
+  });
+  if (ok) {
+    toast.success(`Pengaturan komisi untuk ${selectedCommissionPartner.value.schoolName || selectedCommissionPartner.value.code} berhasil diperbarui.`);
+  } else {
+    toast.error('Gagal memperbarui pengaturan komisi.');
+  }
+  selectedCommissionPartner.value = null;
 };
 </script>

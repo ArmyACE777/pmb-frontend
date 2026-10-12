@@ -61,20 +61,8 @@
               <span v-else class="text-xs text-slate-400 font-sans">4x6</span>
             </div>
             <div>
-              <div class="font-sora font-semibold text-xs sm:text-sm text-slate-900 flex items-center gap-2">
-                <span>Foto Profil Mahasiswa</span>
-                <span
-                  v-if="applicantStore.candidatePhoto"
-                  class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200"
-                >
-                  Terhubung dari Berkas
-                </span>
-                <span
-                  v-else
-                  class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200"
-                >
-                  Belum Diunggah
-                </span>
+              <div class="font-sora font-semibold text-xs sm:text-sm text-slate-900">
+                Foto Profil Mahasiswa
               </div>
               <p class="text-[11px] text-slate-500 mt-0.5">
                 {{ applicantStore.candidatePhoto ? 'Pasfoto Anda telah terpasang pada profil akun dan kartu ujian.' : 'Unggah pasfoto formal pakaian berkerah ukuran 4x6 pada menu Berkas Persyaratan.' }}
@@ -88,49 +76,60 @@
             class="text-xs font-semibold text-[#1E3A8A] hover:underline flex items-center gap-1 self-start sm:self-center cursor-pointer"
           >
             <span>{{ applicantStore.candidatePhoto ? 'Ganti Pasfoto' : 'Unggah Pasfoto' }}</span>
-            <span>&rarr;</span>
           </button>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+          <!-- Kode Pendaftar -->
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Nama Lengkap Sesuai KTP</label>
+            <label class="block font-medium text-slate-700 mb-1">Kode Pendaftar</label>
+            <input
+              :value="form.registrationNumber || applicantStore.state.candidate?.registrationNumber || 'BTH-2026-REG-XXXXX'"
+              type="text"
+              readonly
+              class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-300 rounded-xl outline-none text-slate-700 font-mono font-bold cursor-not-allowed"
+            />
+          </div>
+
+          <!-- Nama Lengkap -->
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Nama Lengkap (Sesuai KTP/Ijazah)</label>
             <input
               v-model="form.fullName"
               type="text"
               required
+              placeholder="Contoh: Muhammad Izza Pratama"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             />
           </div>
+
+          <!-- Jenis Kelamin -->
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Nomor Induk Kependudukan (NIK)</label>
-            <input
-              v-model="form.nik"
-              type="text"
-              maxlength="16"
+            <label class="block font-medium text-slate-700 mb-1">Jenis Kelamin</label>
+            <select
+              v-model="form.gender"
               required
-              class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-mono"
-            />
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
+            >
+              <option value="" disabled>-- Pilih Jenis Kelamin --</option>
+              <option value="Laki-laki">Laki-laki (L)</option>
+              <option value="Perempuan">Perempuan (P)</option>
+            </select>
           </div>
-          <div>
-            <label class="block font-medium text-slate-700 mb-1">NISN (Nomor Induk Siswa Nasional)</label>
-            <input
-              v-model="form.nisn"
-              type="text"
-              maxlength="10"
-              required
-              class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-mono"
-            />
-          </div>
+
+          <!-- Tempat Lahir -->
           <div>
             <label class="block font-medium text-slate-700 mb-1">Tempat Lahir</label>
             <input
               v-model="form.birthPlace"
               type="text"
               required
+              placeholder="Contoh: Tasikmalaya"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             />
           </div>
+
+          <!-- Tanggal Lahir -->
           <div>
             <label class="block font-medium text-slate-700 mb-1">Tanggal Lahir</label>
             <input
@@ -140,33 +139,150 @@
               class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             />
           </div>
+
+          <!-- Jenis Program -->
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Jenis Kelamin</label>
+            <label class="block font-medium text-slate-700 mb-1">Jenis Program Perkuliahan</label>
             <select
-              v-model="form.gender"
+              v-model="form.programType"
+              required
               class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             >
-              <option value="" disabled>-- Pilih Jenis Kelamin --</option>
-              <option value="Perempuan">Perempuan</option>
-              <option value="Laki-laki">Laki-laki</option>
+              <option value="IPA">IPA (Sains & Farmasi)</option>
+              <option value="IPS">IPS (Sosial & Humaniora)</option>
+              <option value="Reguler">Reguler Pagi</option>
+              <option value="Karyawan">Kelas Karyawan / Sore</option>
+            </select>
+          </div>
+
+          <!-- Agama -->
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Agama</label>
+            <select
+              v-model="form.religion"
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
+            >
+              <option value="">-- Pilih Agama --</option>
+              <option value="Islam">Islam</option>
+              <option value="Kristen">Kristen Protestan</option>
+              <option value="Katolik">Katolik</option>
+              <option value="Hindu">Hindu</option>
+              <option value="Budha">Budha</option>
+              <option value="Konghucu">Konghucu</option>
+              <option value="Lain-lain">Lain-lain</option>
+            </select>
+          </div>
+
+          <!-- NIK -->
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Nomor Induk Kependudukan (NIK)</label>
+            <input
+              v-model="form.nik"
+              type="text"
+              maxlength="16"
+              placeholder="16 Digit NIK KTP"
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-mono"
+            />
+          </div>
+
+          <!-- No. KK -->
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Nomor Kartu Keluarga (No. KK)</label>
+            <input
+              v-model="form.familyCardNumber"
+              type="text"
+              maxlength="16"
+              placeholder="16 Digit Nomor KK"
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-mono"
+            />
+          </div>
+
+          <!-- NISN -->
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">NISN (Nomor Induk Siswa Nasional)</label>
+            <input
+              v-model="form.nisn"
+              type="text"
+              maxlength="10"
+              placeholder="10 Digit NISN"
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-mono"
+            />
+          </div>
+
+          <!-- Kewarganegaraan -->
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Kewarganegaraan</label>
+            <select
+              v-model="form.citizenship"
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
+            >
+              <option value="IDN">Indonesia (IDN)</option>
+              <option value="MYS">Malaysia (MYS)</option>
+              <option value="SGP">Singapura (SGP)</option>
+              <option value="OTH">Warga Negara Asing (WNA)</option>
+            </select>
+          </div>
+
+          <!-- Ukuran Jas Almamater -->
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Ukuran Jas Almamater</label>
+            <select
+              v-model="form.almamaterSize"
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans font-semibold"
+            >
+              <option value="S">S (Small)</option>
+              <option value="M">M (Medium)</option>
+              <option value="L">L (Large)</option>
+              <option value="XL">XL (Extra Large)</option>
+              <option value="XXL">XXL (Double XL)</option>
+              <option value="XXXL">XXXL (Triple XL)</option>
             </select>
           </div>
         </div>
       </div>
 
-      <!-- 2. Alamat & Kontak -->
+      <!-- 2. Alamat Domisili & Kontak -->
       <div id="section-alamat" class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-100 shadow-sm scroll-mt-24">
-        <div class="text-xs font-sora font-bold text-[#1E3A8A] uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
-          2. Alamat Domisili & Kontak
+        <div class="text-xs font-sora font-bold text-[#1E3A8A] uppercase tracking-wider mb-4 pb-2 border-b border-slate-100 flex items-center justify-between">
+          <span>2. Alamat Domisili & Kontak</span>
+          <span class="text-[10px] text-slate-400 font-normal">Sesuai KTP / Tempat Tinggal Sekarang</span>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
-          <div class="sm:col-span-2">
-            <label class="block font-medium text-slate-700 mb-1">Alamat Lengkap</label>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+          <div class="sm:col-span-2 lg:col-span-4">
+            <label class="block font-medium text-slate-700 mb-1">Alamat Lengkap (Jalan, No. Rumah, Blok)</label>
             <input
               v-model="form.address"
               type="text"
               required
+              placeholder="Contoh: Jl. Cilolohan No. 36, Kahuripan"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
+            />
+          </div>
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">RT / RW</label>
+            <div class="flex items-center gap-2">
+              <input
+                v-model="form.rt"
+                type="text"
+                placeholder="RT"
+                class="w-1/2 px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-[#1E3A8A]"
+              />
+              <span class="text-slate-400">/</span>
+              <input
+                v-model="form.rw"
+                type="text"
+                placeholder="RW"
+                class="w-1/2 px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-[#1E3A8A]"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Desa / Kelurahan</label>
+            <input
+              v-model="form.subDistrict"
+              type="text"
+              placeholder="Contoh: Kahuripan"
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] rounded-xl outline-none text-slate-800 font-sans"
             />
           </div>
           <div>
@@ -175,6 +291,7 @@
               v-model="form.city"
               type="text"
               required
+              placeholder="Contoh: Kota Tasikmalaya"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             />
           </div>
@@ -184,7 +301,17 @@
               v-model="form.province"
               type="text"
               required
+              placeholder="Contoh: Jawa Barat"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
+            />
+          </div>
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Kodepos</label>
+            <input
+              v-model="form.postalCode"
+              type="text"
+              placeholder="46115"
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] rounded-xl outline-none text-slate-800 font-mono"
             />
           </div>
           <div>
@@ -193,15 +320,17 @@
               v-model="form.phone"
               type="tel"
               required
+              placeholder="081234567890"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-mono"
             />
           </div>
-          <div>
-            <label class="block font-medium text-slate-700 mb-1">Alamat Email</label>
+          <div class="sm:col-span-2">
+            <label class="block font-medium text-slate-700 mb-1">Alamat Email Aktif</label>
             <input
               v-model="form.email"
               type="email"
               required
+              placeholder="email.aktif@gmail.com"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             />
           </div>
@@ -210,93 +339,252 @@
 
       <!-- 3. Riwayat Asal Sekolah -->
       <div id="section-pendidikan" class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-100 shadow-sm scroll-mt-24">
-        <div class="text-xs font-sora font-bold text-[#1E3A8A] uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
-          3. Riwayat Asal Sekolah
+        <div class="text-xs font-sora font-bold text-[#1E3A8A] uppercase tracking-wider mb-4 pb-2 border-b border-slate-100 flex items-center justify-between">
+          <span>3. Riwayat Pendidikan Asal Sekolah</span>
+          <span class="text-[10px] text-slate-400 font-normal">Data Sekolah Terakhir Pendaftar</span>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
           <div class="sm:col-span-2">
-            <label class="block font-medium text-slate-700 mb-1">Nama Asal Sekolah (SMA/SMK/MA)</label>
+            <label class="block font-medium text-slate-700 mb-1">Nama Asal Sekolah (SMA/SMK/MA/Sederajat)</label>
             <input
               v-model="form.schoolName"
               type="text"
               required
+              placeholder="Contoh: SMA Negeri 1 Tasikmalaya / SMK Bhakti Kencana"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             />
           </div>
+
+          <!-- Pendidikan Terakhir -->
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Jurusan Sekolah</label>
+            <label class="block font-medium text-slate-700 mb-1">Pendidikan Terakhir</label>
+            <select
+              v-model="form.lastEducation"
+              required
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] rounded-xl outline-none text-slate-800 font-sans"
+            >
+              <option value="SMA">SMA - SMA/SMK/MA Sederajat</option>
+              <option value="D1">D1 - Diploma 1</option>
+              <option value="D2">D2 - Diploma 2</option>
+              <option value="D3">D3 - Diploma 3</option>
+              <option value="D4">D4 - Diploma 4</option>
+              <option value="S1">S1 - Sarjana</option>
+            </select>
+          </div>
+
+          <!-- ID Jenis Institusi -->
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Jenis Institusi Sekolah Asal</label>
+            <select
+              v-model="form.institutionType"
+              required
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] rounded-xl outline-none text-slate-800 font-sans"
+            >
+              <option value="7">Sekolah Menengah Atas / Kejuruan (SMA/SMK)</option>
+              <option value="6">Sekolah Tinggi</option>
+              <option value="8">Politeknik</option>
+              <option value="5">Akademi</option>
+              <option value="9">Institut</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Jurusan Asal Sekolah</label>
             <input
               v-model="form.schoolMajor"
               type="text"
               required
+              placeholder="Contoh: MIPA / Farmasi Klinis / Rekayasa Perangkat Lunak"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             />
           </div>
+
           <div>
             <label class="block font-medium text-slate-700 mb-1">Tahun Lulus</label>
             <input
               v-model="form.graduationYear"
               type="text"
               required
+              placeholder="2025"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
+            />
+          </div>
+
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">NPSN Sekolah Asal</label>
+            <input
+              v-model="form.npsn"
+              type="text"
+              placeholder="8 Digit NPSN"
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] rounded-xl outline-none text-slate-800 font-mono"
+            />
+          </div>
+
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Nilai Rata-rata UAN / Rapor</label>
+            <input
+              v-model="form.unScore"
+              type="text"
+              placeholder="Contoh: 87.50"
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] rounded-xl outline-none text-slate-800 font-mono"
             />
           </div>
         </div>
       </div>
 
-      <!-- 4. Data Orang Tua / Wali -->
-      <div id="section-keluarga" class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-100 shadow-sm scroll-mt-24">
-        <div class="text-xs font-sora font-bold text-[#1E3A8A] uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
-          4. Data Orang Tua / Wali
+      <!-- 4. Data Orang Tua / Wali & Informasi Tambahan -->
+      <div id="section-keluarga" class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-100 shadow-sm scroll-mt-24 space-y-5">
+        <div class="text-xs font-sora font-bold text-[#1E3A8A] uppercase tracking-wider pb-2 border-b border-slate-100 flex items-center justify-between">
+          <span>4. Data Orang Tua & Informasi Tambahan</span>
+          <span class="text-[10px] text-slate-400 font-normal">Ayah, Ibu, Pesantren & KIP Kuliah</span>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
-          <div>
-            <label class="block font-medium text-slate-700 mb-1">Nama Ayah Kandung</label>
-            <input
-              v-model="form.fatherName"
-              type="text"
-              required
-              class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
-            />
+
+        <!-- Sub: Data Ayah -->
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+          <div class="text-xs font-bold text-slate-800 font-sora">A. Data Ayah Kandung</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Nama Ayah</label>
+              <input
+                v-model="form.fatherName"
+                type="text"
+                required
+                class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-[#1E3A8A]"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Pekerjaan Ayah</label>
+              <input
+                v-model="form.fatherJob"
+                type="text"
+                required
+                placeholder="PNS / Wiraswasta / Karyawan"
+                class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-[#1E3A8A]"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Pendidikan Ayah</label>
+              <select
+                v-model="form.fatherEducation"
+                class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-[#1E3A8A]"
+              >
+                <option value="SD">SD</option>
+                <option value="SMP">SMP</option>
+                <option value="SMA">SMA/SMK</option>
+                <option value="D3">D3</option>
+                <option value="S1">S1</option>
+                <option value="S2">S2</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Status Hidup Ayah</label>
+              <select
+                v-model="form.fatherLifeStatus"
+                class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-[#1E3A8A]"
+              >
+                <option value="1">1 - Masih Hidup</option>
+                <option value="2">2 - Meninggal Dunia</option>
+              </select>
+            </div>
           </div>
-          <div>
-            <label class="block font-medium text-slate-700 mb-1">Pekerjaan Ayah</label>
-            <input
-              v-model="form.fatherJob"
-              type="text"
-              required
-              class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
-            />
+        </div>
+
+        <!-- Sub: Data Ibu -->
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+          <div class="text-xs font-bold text-slate-800 font-sora">B. Data Ibu Kandung</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Nama Ibu Kandung</label>
+              <input
+                v-model="form.motherName"
+                type="text"
+                required
+                class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-[#1E3A8A]"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Pekerjaan Ibu</label>
+              <input
+                v-model="form.motherJob"
+                type="text"
+                required
+                placeholder="Ibu Rumah Tangga / PNS / Guru"
+                class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-[#1E3A8A]"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Pendidikan Ibu</label>
+              <select
+                v-model="form.motherEducation"
+                class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-[#1E3A8A]"
+              >
+                <option value="SD">SD</option>
+                <option value="SMP">SMP</option>
+                <option value="SMA">SMA/SMK</option>
+                <option value="D3">D3</option>
+                <option value="S1">S1</option>
+                <option value="S2">S2</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Status Hidup Ibu</label>
+              <select
+                v-model="form.motherLifeStatus"
+                class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-[#1E3A8A]"
+              >
+                <option value="1">1 - Masih Hidup</option>
+                <option value="2">2 - Meninggal Dunia</option>
+              </select>
+            </div>
           </div>
+        </div>
+
+        <!-- Sub: Informasi Tambahan (Pesantren, KIP Kuliah, Kontak Darurat) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Nama Ibu Kandung</label>
-            <input
-              v-model="form.motherName"
-              type="text"
-              required
-              class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
-            />
-          </div>
-          <div id="section-penghasilan" class="scroll-mt-24">
             <label class="block font-medium text-slate-700 mb-1">Penghasilan Orang Tua / Bulan</label>
             <select
               v-model="form.parentIncome"
-              class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] rounded-xl outline-none text-slate-800 font-sans"
             >
               <option value="" disabled>-- Pilih Rentang Penghasilan --</option>
-              <option value="< Rp 2.500.000">&lt; Rp 2.500.000</option>
+              <option value="< Rp 2.500.000">&lt; Rp 2.500.000 (Kurang dari 2,5 jt)</option>
               <option value="Rp 2.500.000 - Rp 5.000.000">Rp 2.500.000 - Rp 5.000.000</option>
               <option value="Rp 5.000.000 - Rp 10.000.000">Rp 5.000.000 - Rp 10.000.000</option>
-              <option value="> Rp 10.000.000">&gt; Rp 10.000.000</option>
+              <option value="> Rp 10.000.000">&gt; Rp 10.000.000 (Lebih dari 10 jt)</option>
             </select>
           </div>
-          <div class="sm:col-span-2">
+
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Pernah Nyantri di Pesantren?</label>
+            <select
+              v-model="form.isPesantren"
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] rounded-xl outline-none text-slate-800 font-sans"
+            >
+              <option value="0">Tidak</option>
+              <option value="1">Ya (Alumni Pondok Pesantren)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Pengusul KIP Kuliah?</label>
+            <select
+              v-model="form.isKipKuliah"
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] rounded-xl outline-none text-slate-800 font-sans"
+            >
+              <option value="0">Tidak (Reguler)</option>
+              <option value="1">Ya (Memiliki Kartu KIP Kuliah)</option>
+            </select>
+          </div>
+
+          <div>
             <label class="block font-medium text-slate-700 mb-1">Kontak Darurat Keluarga</label>
             <input
               v-model="form.emergencyContact"
               type="text"
               required
-              class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
+              placeholder="08xxxxxxxxxx (Nama & Hubungan)"
+              class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] rounded-xl outline-none text-slate-800 font-sans"
             />
           </div>
         </div>

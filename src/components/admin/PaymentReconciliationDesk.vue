@@ -92,7 +92,7 @@
               <h3 class="font-sora font-semibold text-xs sm:text-sm text-slate-900 leading-tight">
                 Integrasi Gateway Duitku
               </h3>
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
                 Sandbox Terhubung
               </span>
               <span class="text-xs text-slate-400 font-mono hidden sm:inline">
@@ -267,9 +267,8 @@
               </div>
             </div>
 
-            <!-- Status Tag -->
             <span
-              class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium"
+              class="inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-medium whitespace-nowrap"
               :class="trx.status === 'paid'
                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                 : trx.status === 'pending_confirmation'
@@ -455,49 +454,46 @@
           <table class="w-full text-left text-xs text-slate-700 min-w-[900px]">
             <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-sora uppercase text-[10px] tracking-wider whitespace-nowrap">
               <tr>
-                <th class="py-3 px-4 font-bold whitespace-nowrap min-w-[180px]">No. Registrasi & Nama</th>
-                <th class="py-3 px-4 font-bold whitespace-nowrap min-w-[200px]">Alasan Pengunduran</th>
-                <th class="py-3 px-4 font-bold whitespace-nowrap min-w-[140px]">Dana Masuk</th>
-                <th class="py-3 px-4 font-bold whitespace-nowrap min-w-[150px]">Nominal Disetujui</th>
-                <th class="py-3 px-4 font-bold whitespace-nowrap min-w-[130px]">Status</th>
-                <th class="py-3 px-4 font-bold text-right whitespace-nowrap min-w-[120px]">Tindakan</th>
+                <th class="py-3 px-4 font-bold whitespace-nowrap min-w-[200px]">No. Registrasi & Nama</th>
+                <th class="py-3 px-4 font-bold whitespace-nowrap min-w-[240px]">Alasan Pengunduran</th>
+                <th class="py-3 px-4 font-bold whitespace-nowrap min-w-[160px]">Kategori</th>
+                <th class="py-3 px-4 font-bold whitespace-nowrap min-w-[140px]">Status Permohonan</th>
+                <th class="py-3 px-4 font-bold text-right whitespace-nowrap min-w-[140px]">Tindakan</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 font-sans">
               <tr v-for="item in refundList" :key="item.id" class="hover:bg-slate-50 transition-colors">
-                <td class="py-3.5 px-4 min-w-[180px]">
+                <td class="py-3.5 px-4 min-w-[200px]">
                   <div class="font-sora font-bold text-slate-900 whitespace-nowrap">{{ item.candidateName }}</div>
                   <div class="text-[11px] font-mono text-slate-500 whitespace-nowrap">{{ item.regNo }} • {{ item.prodi }}</div>
                 </td>
-                <td class="py-3.5 px-4 min-w-[200px]">
-                  <div class="font-medium text-slate-800 whitespace-nowrap">{{ item.category }}</div>
-                  <div class="text-[11px] text-slate-500 line-clamp-2 mt-0.5">{{ item.reason }}</div>
+                <td class="py-3.5 px-4 min-w-[240px]">
+                  <div class="text-xs text-slate-700 line-clamp-2 leading-relaxed">{{ item.reason }}</div>
                 </td>
-                <td class="py-3.5 px-4 font-mono font-medium text-slate-800 whitespace-nowrap min-w-[140px]">
-                  Rp {{ item.paidAmount.toLocaleString('id-ID') }}
-                </td>
-                <td class="py-3.5 px-4 font-mono font-semibold text-slate-900 whitespace-nowrap min-w-[150px]">
-                  {{ item.approvedAmount ? `Rp ${item.approvedAmount.toLocaleString('id-ID')}` : '-' }}
+                <td class="py-3.5 px-4 min-w-[160px] whitespace-nowrap">
+                  <span class="px-2.5 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap inline-block">
+                    {{ item.category }}
+                  </span>
                 </td>
                 <td class="py-3.5 px-4 whitespace-nowrap">
                   <span
-                    class="text-xs font-medium inline-block px-2 py-0.5 rounded border whitespace-nowrap"
+                    class="text-xs font-medium inline-block px-2.5 py-0.5 rounded border whitespace-nowrap"
                     :class="item.status === 'approved'
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                       : item.status === 'rejected'
                       ? 'bg-rose-50 text-rose-700 border-rose-200'
                       : 'bg-amber-50 text-amber-800 border-amber-200'"
                   >
-                    {{ item.status === 'approved' ? 'Disetujui & Ditransfer' : item.status === 'rejected' ? 'Ditolak' : 'Menunggu Review' }}
+                    {{ item.status === 'approved' ? 'Telah Dikonfirmasi' : item.status === 'rejected' ? 'Ditolak' : 'Menunggu Konfirmasi' }}
                   </span>
                 </td>
                 <td class="py-3.5 px-4 text-right whitespace-nowrap">
                   <button
                     v-if="item.status === 'pending'"
                     @click="openRefundModal(item)"
-                    class="px-3 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-medium text-xs rounded-lg transition-colors cursor-pointer whitespace-nowrap"
+                    class="px-3.5 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-medium text-xs rounded-lg transition-colors cursor-pointer whitespace-nowrap shadow-2xs"
                   >
-                    Proses Refund
+                    Konfirmasi Refund
                   </button>
                   <span v-else class="text-xs text-slate-400 whitespace-nowrap">
                     {{ item.processedAt || 'Selesai' }}
@@ -505,7 +501,7 @@
                 </td>
               </tr>
               <tr v-if="refundList.length === 0">
-                <td colspan="6" class="py-10 text-center text-slate-400 text-xs">
+                <td colspan="5" class="py-10 text-center text-slate-400 text-xs">
                   Tidak ada permohonan pengembalian dana saat ini.
                 </td>
               </tr>
@@ -611,23 +607,21 @@
     <Teleport to="body">
       <div
         v-if="selectedRefundItem"
-        class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm overflow-y-auto"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm"
         @click.self="selectedRefundItem = null"
       >
         <div class="relative w-full max-w-xl max-h-[92vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden my-auto transform-gpu">
           <!-- Top Accent Bar -->
-          <div class="h-1.5 w-full bg-gradient-to-r from-[#1E3A8A] via-blue-600 to-indigo-500 flex-shrink-0"></div>
+          <div class="h-1 w-full bg-[#1E3A8A] flex-shrink-0"></div>
 
-          <!-- Modal Header (Tanpa Simbol/Icon Sesuai Permintaan) -->
+          <!-- Modal Header -->
           <div class="p-5 sm:px-6 sm:py-4 flex items-center justify-between gap-4 border-b border-slate-100 flex-shrink-0">
             <div>
-              <div class="text-[11px] font-bold text-blue-700 uppercase tracking-wider font-sora flex items-center gap-1.5">
-                <span>Operasional Keuangan PMB</span>
-                <span class="text-slate-400 font-normal">/</span>
-                <span class="text-slate-500 font-normal">SK Rektor</span>
+              <div class="text-[11px] font-bold text-blue-700 uppercase tracking-wider font-sora">
+                Biro Administrasi Keuangan PMB
               </div>
               <h3 class="font-sora font-bold text-slate-900 text-base sm:text-lg mt-0.5">
-                Proses Pengembalian Dana (Refund)
+                Konfirmasi Pengembalian Dana (Refund)
               </h3>
             </div>
             <button
@@ -640,11 +634,11 @@
           </div>
 
           <div class="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 text-xs font-sans">
-            <!-- Applicant & Initial Payment Card -->
-            <div class="bg-gradient-to-br from-slate-50 via-blue-50/20 to-white border border-slate-200/90 rounded-xl p-4 space-y-3 shadow-2xs">
+            <!-- Applicant Info Card (Tanpa Nominal) -->
+            <div class="bg-slate-50 border border-slate-200/90 rounded-xl p-4 space-y-3">
               <div class="flex items-center justify-between gap-3 pb-2.5 border-b border-slate-200/70">
                 <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="w-8 h-8 rounded-full bg-[#1E3A8A] text-white font-bold text-xs flex items-center justify-center shadow-xs flex-shrink-0">
+                  <div class="w-8 h-8 rounded-full bg-[#1E3A8A] text-white font-bold text-xs flex items-center justify-center flex-shrink-0">
                     {{ selectedRefundItem.candidateName ? selectedRefundItem.candidateName.slice(0, 2).toUpperCase() : 'PM' }}
                   </div>
                   <div class="min-w-0">
@@ -652,190 +646,60 @@
                       {{ selectedRefundItem.candidateName }}
                     </div>
                     <div class="text-[11px] text-slate-500 font-mono">
-                      {{ selectedRefundItem.regNo }}
+                      {{ selectedRefundItem.regNo }} • {{ selectedRefundItem.prodi }}
                     </div>
                   </div>
                 </div>
                 <div class="flex-shrink-0">
                   <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
-                    Menunggu Review Keuangan
+                    Menunggu Konfirmasi
                   </span>
                 </div>
               </div>
 
-              <!-- Dana Awal & Alasan -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-0.5">
-                <div class="bg-white p-3 rounded-lg border border-slate-200/80 shadow-2xs">
-                  <div class="text-[11px] font-medium text-slate-500">Total Dana Awal Registrasi</div>
-                  <div class="text-base font-bold font-mono text-[#1E3A8A] mt-0.5">
-                    Rp {{ (selectedRefundItem.paidAmount || 0).toLocaleString('id-ID') }}
-                  </div>
-                </div>
-                <div class="bg-white p-3 rounded-lg border border-slate-200/80 shadow-2xs">
-                  <div class="text-[11px] font-medium text-slate-500">Program Studi Terpilih</div>
-                  <div class="text-xs font-semibold text-slate-800 mt-1 truncate" :title="selectedRefundItem.prodi">
-                    {{ selectedRefundItem.prodi || 'Program Studi PMB BTH' }}
-                  </div>
-                </div>
-              </div>
-
-              <!-- Alasan Pengunduran -->
-              <div class="bg-white/90 p-3 rounded-lg border border-slate-200/80 flex items-start gap-2.5 shadow-2xs">
-                <Quote class="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div class="text-xs text-slate-700 italic leading-relaxed">
+              <!-- Alasan Pengunduran Diri -->
+              <div class="space-y-1">
+                <div class="text-[11px] font-semibold text-slate-600">Alasan Pengunduran Diri:</div>
+                <div class="p-3 bg-white rounded-lg border border-slate-200 text-xs text-slate-700 italic leading-relaxed">
                   "{{ selectedRefundItem.reason }}"
                 </div>
               </div>
             </div>
 
-            <!-- Skema Preset Potongan Kebijakan -->
+            <!-- Pesan Konfirmasi Refund (Hanya Pesan Saja) -->
             <div class="space-y-1.5">
-              <div class="flex items-center justify-between">
-                <label class="block font-semibold text-slate-800">
-                  Skema Kebijakan Pemotongan
-                </label>
-                <span class="text-[11px] text-slate-500">Pilih salah satu kebijakan</span>
-              </div>
-              <div class="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  @click="applyRefundPreset(10)"
-                  class="px-2.5 py-2.5 rounded-xl border text-center transition-all cursor-pointer font-medium text-xs flex flex-col items-center justify-center gap-0.5"
-                  :class="activeDeductionPreset === '10'
-                    ? 'border-[#1E3A8A] bg-blue-50/90 text-[#1E3A8A] font-bold shadow-2xs ring-1 ring-[#1E3A8A]'
-                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
-                >
-                  <span>Potong 10%</span>
-                  <span class="text-[10px] opacity-80">(SK Rektor)</span>
-                </button>
-                <button
-                  type="button"
-                  @click="applyRefundPreset(15)"
-                  class="px-2.5 py-2.5 rounded-xl border text-center transition-all cursor-pointer font-medium text-xs flex flex-col items-center justify-center gap-0.5"
-                  :class="activeDeductionPreset === '15'
-                    ? 'border-[#1E3A8A] bg-blue-50/90 text-[#1E3A8A] font-bold shadow-2xs ring-1 ring-[#1E3A8A]'
-                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
-                >
-                  <span>Potong 15%</span>
-                  <span class="text-[10px] opacity-80">(SK Panitia)</span>
-                </button>
-                <button
-                  type="button"
-                  @click="applyRefundPreset(0)"
-                  class="px-2.5 py-2.5 rounded-xl border text-center transition-all cursor-pointer font-medium text-xs flex flex-col items-center justify-center gap-0.5"
-                  :class="activeDeductionPreset === '0'
-                    ? 'border-[#1E3A8A] bg-blue-50/90 text-[#1E3A8A] font-bold shadow-2xs ring-1 ring-[#1E3A8A]'
-                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
-                >
-                  <span>Full 100%</span>
-                  <span class="text-[10px] opacity-80">(Tanpa Potongan)</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Nominal Input with Rupiah Prefix -->
-            <div class="space-y-1.5">
-              <label class="block font-semibold text-slate-800">
-                Nominal yang Disetujui & Dikembalikan (Rp) <span class="text-rose-500">*</span>
-              </label>
-              <div class="flex rounded-xl shadow-2xs overflow-hidden border border-slate-300 focus-within:border-[#1E3A8A] focus-within:ring-2 focus-within:ring-blue-100 transition-all">
-                <span class="px-3.5 bg-slate-100 border-r border-slate-300 text-slate-700 font-bold text-xs flex items-center">
-                  Rp
-                </span>
-                <input
-                  v-model.number="refundForm.approvedAmount"
-                  type="number"
-                  min="0"
-                  :max="selectedRefundItem.paidAmount"
-                  class="w-full px-3.5 py-2.5 bg-white text-sm font-mono font-bold text-[#1E3A8A] outline-none"
-                  placeholder="4275000"
-                />
-              </div>
-              
-              <!-- Live Calculation Breakdown Card -->
-              <div class="p-3 bg-slate-50/80 border border-slate-200 rounded-xl space-y-1.5 text-[11px]">
-                <div class="flex justify-between text-slate-600">
-                  <span>Total Dana Awal Masuk:</span>
-                  <span class="font-mono font-semibold text-slate-800">
-                    Rp {{ (selectedRefundItem.paidAmount || 0).toLocaleString('id-ID') }}
-                  </span>
-                </div>
-                <div class="flex justify-between text-rose-600">
-                  <span>Potongan Biaya Administrasi:</span>
-                  <span class="font-mono font-semibold">
-                    - Rp {{ calculatedDeduction.toLocaleString('id-ID') }}
-                  </span>
-                </div>
-                <div class="pt-1.5 border-t border-slate-200/80 flex justify-between items-center text-xs font-bold">
-                  <span class="text-slate-900">Total Bersih yang Ditransfer:</span>
-                  <span class="font-mono text-sm text-[#1E3A8A]">
-                    Rp {{ (refundForm.approvedAmount || 0).toLocaleString('id-ID') }}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Nomor Bukti Mutasi Transfer -->
-            <div class="space-y-1.5">
-              <div class="flex items-center justify-between">
-                <label class="block font-semibold text-slate-800">
-                  Nomor Referensi Mutasi / Bukti Transfer <span class="text-rose-500">*</span>
-                </label>
-                <button
-                  type="button"
-                  @click="refundForm.proofRef = `MUTASI-BTH-${Date.now().toString().slice(-6)}`"
-                  class="text-[11px] text-blue-700 hover:text-blue-900 font-medium cursor-pointer"
-                >
-                  + Generate Otomatis
-                </button>
-              </div>
-              <input
-                v-model="refundForm.proofRef"
-                type="text"
-                placeholder="Contoh: MUTASI-BTH-587108"
-                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs font-mono font-semibold text-slate-800 outline-none shadow-2xs transition-all"
-              />
-            </div>
-
-            <!-- Catatan Bagian Keuangan -->
-            <div class="space-y-1.5">
-              <label class="block font-semibold text-slate-800">
-                Catatan Pembukuan Bagian Keuangan
+              <label class="block font-semibold text-slate-800 text-xs">
+                Pesan Konfirmasi Refund untuk Calon Mahasiswa <span class="text-rose-500">*</span>
               </label>
               <textarea
                 v-model="refundForm.notes"
-                rows="2"
-                placeholder="Catatan persetujuan atau rincian SK pemotongan administrasi..."
-                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-800 outline-none shadow-2xs transition-all"
+                rows="4"
+                placeholder="Tuliskan pesan konfirmasi pengembalian dana (misal: Pengembalian dana pendaftaran Anda telah disetujui dan diproses oleh Biro Keuangan ke rekening asal)..."
+                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-800 outline-none shadow-2xs transition-all leading-relaxed"
               ></textarea>
+              <p class="text-[11px] text-slate-500">
+                Pesan ini akan dikirimkan dan langsung ditampilkan pada status pendaftaran calon mahasiswa.
+              </p>
             </div>
           </div>
 
-          <!-- Modal Footer Actions (Tetap Selalu Tampak di Bawah) -->
-          <div class="p-4 sm:px-6 sm:py-3.5 bg-slate-50 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-end gap-2.5 flex-shrink-0">
+          <!-- Modal Footer Actions -->
+          <div class="p-4 sm:px-6 sm:py-3.5 bg-slate-50 border-t border-slate-200/80 flex items-center justify-end gap-2.5 flex-shrink-0">
             <button
               type="button"
               @click="selectedRefundItem = null"
-              class="w-full sm:w-auto px-4 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-xl transition-colors cursor-pointer text-center"
+              class="px-4 py-2 border border-slate-300 hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-xl transition-colors cursor-pointer text-center"
             >
               Batal
             </button>
             <button
               type="button"
-              @click="submitRefundDecision('rejected')"
-              class="w-full sm:w-auto px-4 py-2.5 border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs rounded-xl transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
-            >
-              <XCircle class="w-4 h-4" />
-              <span>Tolak Refund</span>
-            </button>
-            <button
-              type="button"
               @click="submitRefundDecision('approved')"
-              :disabled="!refundForm.approvedAmount || !refundForm.proofRef"
-              class="w-full sm:w-auto px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              :disabled="!refundForm.notes || !refundForm.notes.trim()"
+              class="px-5 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
             >
               <CheckCircle2 class="w-4 h-4" />
-              <span>Setujui & Tandai Ditransfer</span>
+              <span>Kirim Konfirmasi Refund</span>
             </button>
           </div>
         </div>
@@ -875,36 +739,9 @@ const activeFinanceTab = ref('reconciliation');
 
 // Data Refund & Installments
 const selectedRefundItem = ref(null);
-const activeDeductionPreset = ref('10');
 const refundForm = reactive({
-  approvedAmount: 0,
-  proofRef: '',
   notes: '',
 });
-
-// Perhitungan potongan otomatis
-const calculatedDeduction = computed(() => {
-  if (!selectedRefundItem.value) return 0;
-  const original = selectedRefundItem.value.paidAmount || 0;
-  const approved = refundForm.approvedAmount || 0;
-  return Math.max(0, original - approved);
-});
-
-const applyRefundPreset = (percent) => {
-  activeDeductionPreset.value = String(percent);
-  if (!selectedRefundItem.value) return;
-  const original = selectedRefundItem.value.paidAmount || 0;
-  if (percent === 0) {
-    refundForm.approvedAmount = original;
-    refundForm.notes = 'Disetujui pengembalian dana 100% penuh tanpa potongan administrasi.';
-  } else if (percent === 10) {
-    refundForm.approvedAmount = Math.round(original * 0.9);
-    refundForm.notes = 'Disetujui sesuai ketentuan pemotongan administrasi 10% panitia PMB BTH (SK Rektor).';
-  } else if (percent === 15) {
-    refundForm.approvedAmount = Math.round(original * 0.85);
-    refundForm.notes = 'Disetujui sesuai ketentuan pemotongan administrasi 15% panitia PMB BTH.';
-  }
-};
 
 // Data refund (CR-007) & cicilan UKT (CR-010) terhubung ke adminStore (dinamis & tersimpan permanen)
 const refundList = computed(() => adminStore.refundReviews);
@@ -925,27 +762,23 @@ const pendingInstallmentCount = computed(() => {
 
 const openRefundModal = (item) => {
   selectedRefundItem.value = item;
-  activeDeductionPreset.value = '10';
-  refundForm.approvedAmount = Math.round(item.paidAmount * 0.9); // default 90% (potongan adm 10%)
-  refundForm.proofRef = `MUTASI-BTH-${Date.now().toString().slice(-6)}`;
-  refundForm.notes = 'Disetujui sesuai ketentuan pemotongan administrasi 10% panitia PMB BTH (SK Rektor).';
+  refundForm.notes = item.notes || 'Pengembalian dana pendaftaran Anda telah disetujui dan diproses oleh Biro Administrasi Keuangan PMB ke rekening asal.';
 };
 
 const submitRefundDecision = async (status) => {
   if (!selectedRefundItem.value) return;
   const target = selectedRefundItem.value;
-  const approvedAmt = status === 'approved' ? refundForm.approvedAmount : 0;
   
   await adminStore.updateRefundReview(
     target.id,
     status,
-    approvedAmt,
-    refundForm.proofRef,
+    0,
+    '',
     refundForm.notes
   );
 
   if (status === 'approved') {
-    toast.success(`Pengembalian dana sebesar Rp ${approvedAmt.toLocaleString('id-ID')} untuk ${target.candidateName} berhasil disetujui.`);
+    toast.success(`Konfirmasi pengembalian dana untuk ${target.candidateName} berhasil dikirim.`);
   } else {
     toast.info(`Permohonan pengembalian dana untuk ${target.candidateName} telah ditolak.`);
   }

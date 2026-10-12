@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 36" fill="none">
+  <!-- SEVIMA Official Logo -->
+  <g transform="translate(4, 4)">
+    <path fill="#0080FF" d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c2.5 0 4.8-.9 6.6-2.5l-3.2-3.2c-1 .8-2.2 1.3-3.4 1.3-3.1 0-5.6-2.5-5.6-5.6s2.5-5.6 5.6-5.6c1.2 0 2.4.5 3.4 1.3l3.2-3.2C16.8 2.9 14.5 2 12 2z"/>
+    <path fill="#00D2B4" d="M18 12c0-3.3-2.7-6-6-6v4.4c.9 0 1.6.7 1.6 1.6s-.7 1.6-1.6 1.6V20c3.3 0 6-2.7 6-6z"/>
+    <text x="28" y="20" fill="#003366" font-family="'Arial', 'Helvetica', sans-serif" font-weight="900" font-size="16" letter-spacing="0.5">SEVIMA</text>
+  </g>
+</svg>

@@ -91,6 +91,17 @@
           </p>
         </div>
 
+        <!-- Peringatan Refund Pengunduran Diri Jika Sudah Dibayar -->
+        <div v-if="applicantStore.isWithdrawn" class="p-3.5 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3 text-xs text-amber-900 text-left">
+          <AlertCircle class="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
+          <div class="space-y-0.5">
+            <div class="font-semibold">Pengajuan Refund Sedang Ditinjau Bagian Keuangan</div>
+            <p class="text-[11px] text-amber-800 leading-relaxed font-sans">
+              Status pendaftaran Anda telah berstatus mengundurkan diri. Bukti pembayaran ini telah diteruskan ke Bagian Keuangan (BAUK) Universitas BTH untuk proses pengembalian dana (refund).
+            </p>
+          </div>
+        </div>
+
         <!-- Rincian Data Transaksi Resmi -->
         <div class="bg-slate-50 rounded-lg p-4 sm:p-5 border border-slate-200 space-y-3 text-xs font-sans">
           <div class="flex justify-between items-center py-1 border-b border-slate-200">
@@ -115,7 +126,33 @@
 
           <div class="flex justify-between items-center py-1 border-b border-slate-200">
             <span class="text-slate-500">Uraian Transaksi:</span>
-            <span class="font-medium text-slate-800">{{ selectedInvoiceType === 'tuition' ? 'Uang Kuliah Tunggal (UKT) Semester 1' : isFreeRegistration ? 'Pembebasan Biaya Formulir PMB (Jalur Beasiswa/Afirmasi)' : 'Biaya Formulir Pendaftaran PMB' }}</span>
+            <span class="font-medium text-slate-800">
+              {{ selectedInvoiceType === 'tuition' ? 'Uang Kuliah Tunggal (UKT) Semester 1' : applicantStore.state?.referral?.isApplied ? `Pembebasan Biaya Formulir (Mitra ${applicantStore.state.referral.schoolName})` : isFreeRegistration ? 'Pembebasan Biaya Formulir PMB (Jalur Beasiswa/Afirmasi)' : 'Biaya Formulir Pendaftaran PMB' }}
+            </span>
+          </div>
+
+          <!-- Info Terhubung Guru BK di Kuitansi/Lunas -->
+          <div
+            v-if="applicantStore.state?.referral?.isApplied && selectedInvoiceType === 'registration'"
+            class="p-3 bg-emerald-50 rounded-lg border border-emerald-200 space-y-1.5 text-xs text-emerald-950"
+          >
+            <div class="flex items-center justify-between font-semibold">
+              <span class="flex items-center gap-1.5">
+                <CheckCircle2 class="w-4 h-4 text-emerald-600" />
+                <span>Terhubung Kemitraan Guru BK:</span>
+              </span>
+              <span class="font-mono bg-emerald-200/80 text-emerald-900 px-2 py-0.5 rounded text-[11px] font-bold">
+                {{ applicantStore.state.referral.code }}
+              </span>
+            </div>
+            <div class="flex justify-between text-[11px] text-emerald-900">
+              <span class="text-emerald-700">Sekolah Mitra:</span>
+              <strong>{{ applicantStore.state.referral.schoolName }}</strong>
+            </div>
+            <div class="flex justify-between text-[11px] text-emerald-900">
+              <span class="text-emerald-700">Guru BK / PIC:</span>
+              <strong>{{ applicantStore.state.referral.picName }}</strong>
+            </div>
           </div>
 
           <div class="flex justify-between items-center py-1 border-b border-slate-200">
@@ -157,6 +194,48 @@
             class="w-full sm:w-1/2 py-2.5 px-4 rounded bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-semibold font-sora transition-colors cursor-pointer text-center"
           >
             Kembali ke Pengumuman
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- KONDISI KHUSUS: PENGUNDURAN DIRI (TAGIHAN DINONAKTIFKAN / DIBATALKAN)       -->
+    <!-- ========================================================================= -->
+    <div v-else-if="applicantStore.isWithdrawn" class="max-w-2xl mx-auto space-y-6 animate-fadeIn">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-6 sm:p-8 space-y-5 text-center">
+        <div class="w-12 h-12 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center mx-auto">
+          <AlertCircle class="w-6 h-6 text-slate-500" />
+        </div>
+        <div class="space-y-1">
+          <h3 class="font-sora font-bold text-slate-900 text-base sm:text-lg">
+            Tagihan Pembayaran Dibatalkan (Void)
+          </h3>
+          <p class="text-xs text-slate-500 font-sans max-w-md mx-auto leading-relaxed">
+            Status pendaftaran Anda telah resmi mengundurkan diri. Seluruh tagihan aktif dan instruksi pembayaran telah dinonaktifkan secara otomatis.
+          </p>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 max-w-md mx-auto text-left space-y-2 font-sans">
+          <div class="flex justify-between items-center py-1 border-b border-slate-200">
+            <span class="text-slate-500">Nomor Registrasi:</span>
+            <span class="font-mono font-semibold text-slate-800">{{ candidateRegNo }}</span>
+          </div>
+          <div class="flex justify-between items-center py-1 border-b border-slate-200">
+            <span class="text-slate-500">Jalur Pendaftaran:</span>
+            <span class="font-medium text-slate-800">{{ applicantStore.state?.admission?.track || 'Jalur Reguler' }}</span>
+          </div>
+          <div class="flex justify-between items-center py-1">
+            <span class="text-slate-500">Status Finansial:</span>
+            <span class="font-semibold text-slate-700">Tidak Ada Tagihan Aktif</span>
+          </div>
+        </div>
+        <div class="pt-2">
+          <button
+            type="button"
+            @click="emit('switch-tab', 'admission')"
+            class="px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white rounded-lg text-xs font-semibold font-sora transition-colors cursor-pointer"
+          >
+            Lihat Status Pengunduran Diri & Refund
           </button>
         </div>
       </div>
@@ -271,36 +350,206 @@
               </div>
             </div>
 
-            <!-- Tombol Aksi Pembayaran Reguler & Cek Status -->
-            <div class="pt-2 space-y-2.5">
-              <button
-                type="button"
-                @click="initiateDuitkuPayment"
-                :disabled="isInitiatingDuitku"
-                class="w-full py-3 px-4 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold rounded-xl text-xs sm:text-sm transition-colors cursor-pointer disabled:opacity-50 text-center"
-              >
-                {{ isInitiatingDuitku ? 'Menyiapkan Pembayaran...' : 'Bayar Tagihan' }}
-              </button>
+            <!-- IN-PAGE PAYMENT GATEWAY NATIVE (TANPA POPUP DUITKU) -->
+            <div class="pt-3 border-t border-slate-100 space-y-3 font-sans">
+              <div>
+                <label class="block font-semibold text-slate-800 text-xs">Pilih Kanal Pembayaran Online:</label>
+              </div>
 
-              <button
-                type="button"
-                @click="checkPaymentStatus"
-                :disabled="isCheckingStatus"
-                class="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-sora font-medium rounded-xl text-xs transition-colors cursor-pointer disabled:opacity-50 text-center"
-              >
-                {{ isCheckingStatus ? 'Memeriksa ke Sistem Bank...' : 'Cek Status Pembayaran' }}
-              </button>
-            </div>
+              <!-- Kategori Tabs: Virtual Account Bank vs QRIS -->
+              <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs">
+                <button
+                  type="button"
+                  @click="paymentCategoryTab = 'va'"
+                  class="flex-1 py-1.5 rounded-lg font-semibold text-center transition-all cursor-pointer"
+                  :class="paymentCategoryTab === 'va' ? 'bg-white text-[#1E3A8A] shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                >
+                  Virtual Account Bank
+                </button>
+                <button
+                  type="button"
+                  @click="paymentCategoryTab = 'qris'"
+                  class="flex-1 py-1.5 rounded-lg font-semibold text-center transition-all cursor-pointer"
+                  :class="paymentCategoryTab === 'qris' ? 'bg-white text-[#1E3A8A] shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                >
+                  QRIS (Semua Bank / E-Wallet)
+                </button>
+              </div>
 
-            <!-- Opsi Batalkan Pendaftaran (Hanya Tampil Sebelum Bayar Pendaftaran) -->
-            <div v-if="selectedInvoiceType === 'registration' && applicantStore.canCancelAdmission" class="pt-3 border-t border-slate-100 text-center">
-              <button
-                type="button"
-                @click="showCancelConfirmModal = true"
-                class="text-[11px] text-rose-600 hover:text-rose-800 hover:underline font-sans cursor-pointer transition-colors"
-              >
-                Ingin mengganti program studi? Batalkan pendaftaran ini
-              </button>
+              <!-- Pilihan Bank VA jika Tab VA aktif -->
+              <div v-if="paymentCategoryTab === 'va'" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                <button
+                  v-for="bank in vaBankList"
+                  :key="bank.code"
+                  type="button"
+                  @click="selectPaymentBank(bank)"
+                  class="p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between"
+                  :class="activeVaBank.code === bank.code
+                    ? 'border-[#1E3A8A] bg-blue-50/70 ring-1 ring-[#1E3A8A]'
+                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'"
+                >
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="h-6 flex items-center bg-white px-2 py-0.5 rounded border border-slate-100 shadow-2xs">
+                      <img :src="bank.logo" :alt="bank.name" class="h-4 max-w-[70px] object-contain" />
+                    </div>
+                  </div>
+                  <div>
+                    <span class="font-bold text-xs text-slate-900 block leading-tight">{{ bank.name }}</span>
+                    <span class="text-[10px] text-slate-500 mt-1 block truncate">{{ bank.hint }}</span>
+                  </div>
+                </button>
+              </div>
+
+              <!-- Card Detail Pembayaran (Clean & Modern Banking UI) -->
+              <div class="mt-3 p-4 sm:p-5 rounded-2xl border border-slate-200/90 bg-slate-50/70 space-y-4 shadow-2xs">
+                <!-- Header Bank & Status Tag -->
+                <div class="flex items-center justify-between pb-3 border-b border-slate-200/70">
+                  <div class="flex items-center gap-3">
+                    <div class="h-10 px-2.5 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-2xs flex-shrink-0">
+                      <img
+                        v-if="paymentCategoryTab === 'qris'"
+                        src="/assets/icons/banks/qris.png"
+                        alt="QRIS"
+                        class="h-6 w-auto object-contain"
+                      />
+                      <img
+                        v-else
+                        :src="activeVaBank.logo"
+                        :alt="activeVaBank.name"
+                        class="h-6 w-auto max-w-[85px] object-contain"
+                      />
+                    </div>
+                    <div>
+                      <div class="font-bold text-xs sm:text-sm text-slate-900">
+                        {{ paymentCategoryTab === 'qris' ? 'QRIS Pembayaran PMB' : (activeVaBank.name.includes('Virtual Account') ? activeVaBank.name : `${activeVaBank.name} Virtual Account`) }}
+                      </div>
+                    </div>
+                  </div>
+                  <span class="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200/80">
+                    Menunggu Pembayaran
+                  </span>
+                </div>
+
+                <!-- Tampilan Nomor VA -->
+                <div v-if="paymentCategoryTab === 'va'" class="space-y-1.5">
+                  <span class="block text-[11px] font-medium text-slate-500">
+                    Nomor Virtual Account Pembayaran
+                  </span>
+                  <div class="flex items-center justify-between gap-3 bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+                    <span class="font-mono font-bold text-base sm:text-lg tracking-wider text-slate-900 select-all">
+                      {{ displayedVaNumber }}
+                    </span>
+                    <button
+                      type="button"
+                      @click="copyToClipboard(displayedVaNumber, 'Nomor Virtual Account')"
+                      class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200/80 active:scale-95 text-slate-700 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0"
+                    >
+                      <Copy class="w-3.5 h-3.5 text-slate-500" />
+                      <span>{{ copiedType === 'Nomor Virtual Account' ? 'Tersalin!' : 'Salin Nomor' }}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Tampilan QRIS Resmi & Realistis Standar Bank Indonesia / ASPI -->
+                <div v-else class="py-2 flex flex-col items-center">
+                  <div class="w-full max-w-[280px] bg-white rounded-2xl border border-slate-200 shadow-2xs p-4 flex flex-col items-center text-center">
+                    <!-- Header Standar QRIS: Merchant & NMID -->
+                    <div class="w-full pb-3 mb-3 border-b border-slate-100 flex flex-col items-center">
+                      <img src="/assets/icons/banks/qris.png" alt="QRIS Standar Pembayaran Nasional" class="h-7 w-auto object-contain mb-1.5" />
+                      <span class="font-sora font-bold text-xs tracking-wide text-slate-900 uppercase">
+                        Universitas Bakti Tunas Husada
+                      </span>
+                      <span class="text-[10px] text-slate-500 font-mono mt-0.5">
+                        NMID: ID1024319482103 • A01
+                      </span>
+                    </div>
+
+                    <!-- Kotak QR Code Realistis -->
+                    <div class="p-2.5 bg-white rounded-xl border border-slate-200/90 shadow-2xs flex items-center justify-center">
+                      <img
+                        :src="qrisDataUrl || '/assets/icons/banks/qris-code.svg'"
+                        alt="QRIS Universitas Bakti Tunas Husada"
+                        class="w-48 h-48 sm:w-52 sm:h-52 object-contain select-none"
+                      />
+                    </div>
+
+                    <!-- Aksi Unduh QR Code & Keterangan -->
+                    <div class="mt-3 w-full flex flex-col items-center gap-2">
+                      <span class="text-[11px] text-slate-500 font-medium leading-tight">
+                        Pindai kode QR melalui aplikasi m-Banking atau e-Wallet
+                      </span>
+                      <button
+                        type="button"
+                        @click="downloadQrisCode"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                      >
+                        <Download class="w-3.5 h-3.5 text-slate-500" />
+                        <span>Unduh Kode QR</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Total Jumlah Bayar (Tanpa Salin Jumlah) -->
+                <div class="flex items-center justify-between pt-3 border-t border-slate-200/70 text-xs">
+                  <span class="text-slate-600 font-medium text-xs">Total Jumlah Bayar:</span>
+                  <span class="font-sora font-extrabold text-base sm:text-lg text-slate-900">
+                    Rp {{ currentInvoiceAmount.toLocaleString('id-ID') }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Panduan Cara Bayar (Accordion) -->
+              <div class="border border-slate-200 rounded-xl overflow-hidden text-xs">
+                <button
+                  type="button"
+                  @click="showInstructions = !showInstructions"
+                  class="w-full p-3 bg-slate-50 hover:bg-slate-100 flex items-center justify-between font-semibold text-slate-800 transition-colors cursor-pointer"
+                >
+                  <span class="flex items-center gap-2">
+                    <img v-if="paymentCategoryTab === 'va'" :src="activeVaBank.logo" :alt="activeVaBank.name" class="h-4 max-w-[60px] object-contain" />
+                    <img v-else src="/assets/icons/banks/qris.png" alt="QRIS" class="h-3.5 w-auto object-contain" />
+                    <span>Petunjuk Pembayaran ({{ paymentCategoryTab === 'va' ? activeVaBank.shortName : 'QRIS' }})</span>
+                  </span>
+                  <ChevronDown class="w-4 h-4 text-slate-500 transition-transform" :class="{ 'rotate-180': showInstructions }" />
+                </button>
+                <div v-show="showInstructions" class="p-3.5 space-y-2 bg-white text-slate-600 leading-relaxed font-sans border-t border-slate-100">
+                  <ol class="list-decimal list-inside space-y-1.5 text-[11px]">
+                    <li v-if="paymentCategoryTab === 'va'">Buka aplikasi {{ activeVaBank.appHint || activeVaBank.name }}.</li>
+                    <li v-else>Buka aplikasi perbankan atau dompet digital (m-Banking / E-Wallet).</li>
+                    <li v-if="paymentCategoryTab === 'va'">Pilih menu <strong>Bayar / Pembayaran &gt; Virtual Account</strong>.</li>
+                    <li v-else>Pilih fitur <strong>Scan / Bayar QRIS</strong>.</li>
+                    <li v-if="paymentCategoryTab === 'va'">Masukkan nomor Virtual Account: <strong class="font-mono text-slate-900">{{ displayedVaNumber }}</strong>.</li>
+                    <li v-else>Arahkan kamera ke kode QRIS di atas.</li>
+                    <li>Pastikan nama penerima tertera <strong>Universitas Bakti Tunas Husada (PMB BTH)</strong> dengan data tagihan atas nama calon mahasiswa <strong>{{ candidateFullName }}</strong>.</li>
+                    <li>Periksa kesesuaian total pembayaran sebesar <strong>Rp {{ currentInvoiceAmount.toLocaleString('id-ID') }}</strong>, lalu selesaikan transaksi.</li>
+                  </ol>
+                </div>
+              </div>
+
+              <!-- Tombol Cek Status & Simulasi Bayar Berhasil (In-page) -->
+              <div class="pt-2 space-y-2.5">
+                <button
+                  type="button"
+                  @click="checkPaymentStatus"
+                  :disabled="isCheckingStatus"
+                  class="w-full py-2.5 px-4 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold rounded-xl text-xs sm:text-sm transition-colors cursor-pointer disabled:opacity-50 text-center flex items-center justify-center gap-2 shadow-2xs"
+                >
+                  <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isCheckingStatus }" />
+                  <span>{{ isCheckingStatus ? 'Memeriksa ke Sistem Bank...' : 'Cek Status Pembayaran Sekarang' }}</span>
+                </button>
+              </div>
+
+              <!-- Opsi Batalkan Pendaftaran (Hanya Tampil Sebelum Bayar Pendaftaran) -->
+              <div v-if="selectedInvoiceType === 'registration' && applicantStore.canCancelAdmission" class="pt-2 border-t border-slate-100 text-center">
+                <button
+                  type="button"
+                  @click="showCancelConfirmModal = true"
+                  class="text-[11px] text-rose-600 hover:text-rose-800 hover:underline font-sans cursor-pointer transition-colors"
+                >
+                  Ingin mengganti program studi? Batalkan pendaftaran ini
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -312,16 +561,73 @@
             v-if="selectedInvoiceType === 'registration'"
             class="bg-white rounded-xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4"
           >
-            <div class="border-b border-slate-100 pb-3">
-              <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
-                Kode Referal
-              </h3>
-              <p class="text-xs text-slate-500 mt-0.5 font-sans leading-relaxed">
-                Masukkan kode referal dari Guru BK atau sekolah mitra untuk pembebasan biaya pendaftaran.
-              </p>
+            <div class="border-b border-slate-100 pb-3 flex items-start justify-between">
+              <div>
+                <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">
+                  Kode Referal Kemitraan BK
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5 font-sans leading-relaxed">
+                  Gunakan kode referal dari Guru BK mitra untuk pembebasan biaya formulir pendaftaran.
+                </p>
+              </div>
+              <span
+                v-if="applicantStore.state?.referral?.isApplied"
+                class="px-2.5 py-1 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800 uppercase tracking-wide flex-shrink-0"
+              >
+                Aktif
+              </span>
             </div>
 
-            <div class="space-y-3 font-sans">
+            <!-- JIKA SUDAH BERHASIL DITERAPKAN (TERHUBUNG KE GURU BK) -->
+            <div
+              v-if="applicantStore.state?.referral?.isApplied"
+              class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 space-y-3 font-sans shadow-2xs"
+            >
+              <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+                <div class="flex items-center gap-2">
+                  <CheckCircle2 class="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <span class="font-bold text-xs text-slate-900 font-sora">Akun Terhubung dengan Mitra Guru BK</span>
+                </div>
+                <span class="px-2 py-0.5 text-[10px] font-semibold rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  Terverifikasi
+                </span>
+              </div>
+
+              <div class="bg-white rounded-lg p-3 border border-slate-200 space-y-2 text-xs">
+                <div class="flex justify-between items-center">
+                  <span class="text-slate-500">Kode Referal:</span>
+                  <span class="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 text-xs">
+                    {{ applicantStore.state.referral.code }}
+                  </span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-slate-500">Asal Sekolah:</span>
+                  <strong class="text-slate-800">{{ applicantStore.state.referral.schoolName }}</strong>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-slate-500">Guru BK / PIC:</span>
+                  <strong class="text-slate-800">{{ applicantStore.state.referral.picName }}</strong>
+                </div>
+                <div class="flex justify-between items-center pt-1 border-t border-slate-100">
+                  <span class="text-slate-500">Status Biaya Formulir:</span>
+                  <span class="font-bold text-emerald-700">Rp 0 (Bebas Biaya / Lunas)</span>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-1">
+                <span class="text-[11px] text-slate-500">Data telah tersambung ke Portal Guru BK</span>
+                <button
+                  type="button"
+                  @click="handleRemoveReferral"
+                  class="text-[11px] text-slate-500 hover:text-rose-600 hover:underline font-medium cursor-pointer"
+                >
+                  Ganti / Batalkan Kode
+                </button>
+              </div>
+            </div>
+
+            <!-- JIKA BELUM DITERAPKAN (FORM INPUT KODE) -->
+            <div v-else class="space-y-3 font-sans">
               <div class="space-y-1.5">
                 <label class="block text-xs font-medium text-slate-700">
                   Kode Referal BK / Sekolah Mitra
@@ -330,52 +636,107 @@
                   <input
                     v-model="referralInputCode"
                     type="text"
-                    placeholder="Contoh: SMKCONTOH01"
+                    placeholder="Contoh: BKPOLOS2026 / MARHASBISA"
                     class="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-mono font-medium text-slate-900 outline-none focus:bg-white focus:border-[#1E3A8A] uppercase transition-colors"
-                    :disabled="isApplyingReferral"
-                    @keyup.enter="handleApplyReferral"
+                    :disabled="isApplyingReferral || referralCooldown > 0"
+                    @keyup.enter="handleCheckReferral"
                   />
                   <button
                     type="button"
-                    @click="handleApplyReferral"
-                    :disabled="!referralInputCode.trim() || isApplyingReferral"
-                    class="px-4 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-medium rounded-lg transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap text-center"
+                    @click="handleCheckReferral"
+                    :disabled="!referralInputCode.trim() || isApplyingReferral || referralCooldown > 0"
+                    class="px-4 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-medium rounded-lg transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap text-center shadow-2xs"
                   >
-                    {{ isApplyingReferral ? 'Memeriksa...' : 'Periksa Kode' }}
+                    {{ referralCooldown > 0 ? `Tunggu (${referralCooldown}s)` : (isApplyingReferral ? 'Memvalidasi...' : 'Verifikasi Kode') }}
                   </button>
                 </div>
+                <p v-if="referralCooldown > 0" class="text-[11px] text-rose-600 font-medium">
+                  Input dibatasi sementara karena 3x salah memasukkan kode. Mohon hubungi Guru BK Anda untuk mendapatkan kode resmi.
+                </p>
+                <p v-else class="text-[11px] text-slate-500">
+                  Masukkan kode resmi yang akurat sesuai yang diterbitkan oleh Guru BK sekolah mitra Anda.
+                </p>
               </div>
 
-              <!-- Hasil Verifikasi Kode Referal -->
+              <!-- Hasil Verifikasi & Konfirmasi Akurat -->
               <div
                 v-if="referralValidationResult"
-                class="p-3.5 rounded-lg text-xs space-y-2 border"
-                :class="referralValidationResult.valid ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' : 'bg-rose-50/80 border-rose-200 text-rose-800'"
+                class="p-4 rounded-xl text-xs space-y-3 border transition-all animate-fadeIn"
+                :class="referralValidationResult.valid ? 'bg-white border-slate-200 text-slate-800 shadow-2xs' : 'bg-rose-50 border-rose-200 text-rose-900'"
               >
-                <div class="flex items-center justify-between">
-                  <span class="font-bold">{{ referralValidationResult.valid ? `Kode Terdaftar: ${referralValidationResult.code}` : 'Kode Tidak Terdaftar' }}</span>
-                  <span v-if="referralValidationResult.valid" class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-semibold">
-                    Bebas Biaya
-                  </span>
+                <!-- Jika Kode Akurat & Valid: Tampilkan Rincian Mitra Sebelum Diterapkan -->
+                <div v-if="referralValidationResult.valid" class="space-y-2.5">
+                  <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                      <CheckCircle2 class="w-4 h-4 text-emerald-600" />
+                      <span class="font-bold text-slate-900 font-sora">Kode Terdaftar di Sistem Mitra BK</span>
+                    </div>
+                    <span class="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded font-semibold">
+                      Valid
+                    </span>
+                  </div>
+
+                  <div class="bg-slate-50 rounded-lg p-3 border border-slate-200/80 space-y-1.5 text-xs">
+                    <div class="flex justify-between items-center">
+                      <span class="text-slate-500">Kode Resmi:</span>
+                      <strong class="font-mono text-slate-900 bg-white border border-slate-200 px-2 py-0.5 rounded">{{ referralValidationResult.code }}</strong>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-slate-500">Mitra Sekolah:</span>
+                      <strong class="text-slate-800">{{ referralValidationResult.partner.schoolName }}</strong>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-slate-500">Guru BK / PIC:</span>
+                      <strong class="text-slate-800">{{ referralValidationResult.partner.picName }}</strong>
+                    </div>
+                    <div class="flex justify-between items-center pt-1 border-t border-slate-200">
+                      <span class="text-slate-500">Keringanan Biaya:</span>
+                      <span class="font-bold text-emerald-700">Rp 0 (Bebas Biaya Formulir)</span>
+                    </div>
+                  </div>
+
+                  <p class="text-[11px] text-slate-600 leading-relaxed">
+                    Dengan mengonfirmasi, data pendaftaran Anda akan langsung terhubung ke dashboard Guru BK <strong>{{ referralValidationResult.partner.picName }}</strong>.
+                  </p>
+
+                  <div class="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      @click="confirmApplyReferral"
+                      class="flex-1 py-2 px-3 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 shadow-2xs"
+                    >
+                      <CheckCircle2 class="w-3.5 h-3.5" />
+                      <span>Konfirmasi & Terapkan Kode</span>
+                    </button>
+                    <button
+                      type="button"
+                      @click="cancelReferralCheck"
+                      class="py-2 px-3 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium text-xs rounded-lg transition-colors cursor-pointer"
+                    >
+                      Batal
+                    </button>
+                  </div>
                 </div>
-                <p class="text-[11px] leading-relaxed text-slate-600">
-                  {{ referralValidationResult.message }}
-                </p>
-                <div v-if="referralValidationResult.valid" class="pt-1">
-                  <button
-                    type="button"
-                    @click="confirmBypassWithReferral"
-                    class="w-full py-2.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer text-center"
-                  >
-                    Konfirmasi & Lanjutkan ke Seleksi CBT
-                  </button>
+
+                <!-- Jika Kode Tidak Akurat / Salah -->
+                <div v-else class="space-y-1.5">
+                  <div class="flex items-center gap-1.5 font-bold text-rose-800">
+                    <AlertCircle class="w-4 h-4 text-rose-600 flex-shrink-0" />
+                    <span>Kode Tidak Valid / Tidak Akurat</span>
+                  </div>
+                  <p class="text-[11px] text-rose-700 leading-relaxed">
+                    {{ referralValidationResult.message }}
+                  </p>
+                  <p class="text-[10px] text-slate-500 italic pt-1">
+                    Sistem hanya menerima kode resmi yang terdaftar di portal Guru BK. Pastikan tidak ada kesalahan ketik huruf atau angka.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Informasi Layanan Pembayaran -->
-          <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5 text-xs text-slate-600 space-y-2.5 font-sans">
+          <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5 text-xs text-slate-600 space-y-3 font-sans">
             <div class="font-semibold text-slate-800">
               Ketentuan Pembayaran
             </div>
@@ -384,6 +745,12 @@
               <li>Tersedia metode pembayaran QRIS, Virtual Account bank, dan dompet digital.</li>
               <li>Kuitansi resmi dapat diakses segera setelah tagihan lunas.</li>
             </ul>
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+              <span class="text-[11px] text-slate-500">Kanal Transaksi Resmi:</span>
+              <div class="flex items-center gap-1.5">
+                <img src="/assets/icons/banks/duitku.svg" alt="Duitku" class="h-4 w-auto object-contain" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -613,6 +980,8 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { Copy, RefreshCw, ChevronDown, Download, AlertCircle, CheckCircle2 } from 'lucide-vue-next';
+import QRCode from 'qrcode';
 import { useApplicantStore } from '@/stores/applicant';
 import { useAuthStore } from '@/stores/auth';
 import { useReferralStore } from '@/stores/referral';
@@ -625,45 +994,182 @@ const authStore = useAuthStore();
 const referralStore = useReferralStore();
 const toast = useToast();
 
+// State In-Page Payment Gateway Native
+const paymentCategoryTab = ref('va'); // 'va' | 'qris'
+const showInstructions = ref(true);
+const copiedType = ref(null);
+
+const vaBankList = ref([
+  {
+    code: 'bsi',
+    name: 'Bank Syariah Indonesia (BSI)',
+    shortName: 'BSI',
+    isDefault: true,
+    hint: 'Bebas Biaya Admin • Bank Utama BTH',
+    logo: '/assets/icons/banks/bsi.svg',
+    appHint: 'BSI Mobile atau ATM BSI / Bersama',
+  },
+  {
+    code: 'bca',
+    name: 'BCA Virtual Account',
+    shortName: 'BCA',
+    hint: 'Transfer Otomatis 24 Jam',
+    logo: '/assets/icons/banks/bca.svg',
+    appHint: 'BCA Mobile, myBCA, KlikBCA, atau ATM BCA',
+  },
+  {
+    code: 'mandiri',
+    name: 'Mandiri Virtual Account',
+    shortName: 'Mandiri',
+    hint: 'Livin by Mandiri & ATM',
+    logo: '/assets/icons/banks/mandiri.svg',
+    appHint: "Livin' by Mandiri atau ATM Bank Mandiri",
+  },
+  {
+    code: 'bri',
+    name: 'BRI Virtual Account (BRIVA)',
+    shortName: 'BRI',
+    hint: 'BRImo & Seluruh Agen BRILink',
+    logo: '/assets/icons/banks/bri.svg',
+    appHint: 'BRImo, ATM BRI, atau Agen BRILink',
+  },
+  {
+    code: 'bni',
+    name: 'BNI Virtual Account',
+    shortName: 'BNI',
+    hint: 'BNI Mobile & ATM',
+    logo: '/assets/icons/banks/bni.svg',
+    appHint: 'BNI Mobile Banking atau ATM BNI',
+  },
+  {
+    code: 'cimb',
+    name: 'CIMB Niaga Virtual Account',
+    shortName: 'CIMB',
+    hint: 'OCTO Mobile & CIMB Clicks',
+    logo: '/assets/icons/banks/cimb.svg',
+    appHint: 'OCTO Mobile atau ATM CIMB Niaga',
+  },
+]);
+
+const activeVaBank = ref(vaBankList.value[0]);
+
 const referralInputCode = ref('');
 const isApplyingReferral = ref(false);
 const referralValidationResult = ref(null);
+const failedReferralAttempts = ref(0);
+const referralCooldown = ref(0);
+let cooldownTimer = null;
 
-const handleApplyReferral = () => {
-  if (!referralInputCode.value.trim()) return;
-  isApplyingReferral.value = true;
+const startCooldown = (seconds = 30) => {
+  referralCooldown.value = seconds;
+  if (cooldownTimer) clearInterval(cooldownTimer);
+  cooldownTimer = setInterval(() => {
+    referralCooldown.value--;
+    if (referralCooldown.value <= 0) {
+      clearInterval(cooldownTimer);
+      cooldownTimer = null;
+      failedReferralAttempts.value = 0;
+    }
+  }, 1000);
+};
+
+onUnmounted(() => {
+  if (cooldownTimer) clearInterval(cooldownTimer);
+});
+
+// Verifikasi kode akurat ke database kemitraan Guru BK (tanpa validasi asal sekolah)
+const handleCheckReferral = () => {
+  if (referralCooldown.value > 0) {
+    toast.warning(`Input sedang dibatasi. Mohon tunggu ${referralCooldown.value} detik.`);
+    return;
+  }
   const clean = referralInputCode.value.trim().toUpperCase();
+  if (!clean) {
+    toast.info('Silakan masukkan kode referal terlebih dahulu.');
+    return;
+  }
+
+  isApplyingReferral.value = true;
+  // Cari kode yang akurat di store referal BK
   const found = referralStore.findReferralByCode(clean);
+
   if (found) {
+    failedReferralAttempts.value = 0;
     referralValidationResult.value = {
       valid: true,
       code: found.code,
-      message: `Mitra terhubung: ${found.picName} – ${found.schoolName}. Biaya formulir dialihkan melalui skema kemitraan sekolah mitra.`,
+      partner: found,
+      message: `Kode resmi ${found.code} terverifikasi. Mitra: ${found.picName} – ${found.schoolName}.`,
     };
+    toast.success(`Kode ${found.code} akurat dan terverifikasi di sistem BK! Silakan konfirmasi untuk menerapkan.`);
   } else {
-    referralValidationResult.value = {
-      valid: false,
-      message: 'Kode referal tidak ditemukan atau masa berlaku telah berakhir. Silakan periksa kembali kode Anda.',
-    };
+    failedReferralAttempts.value++;
+    const remaining = 3 - failedReferralAttempts.value;
+    if (failedReferralAttempts.value >= 3) {
+      startCooldown(30);
+      referralValidationResult.value = {
+        valid: false,
+        message: 'Kode referal salah 3 kali berturut-turut. Penginputan dikunci sementara selama 30 detik untuk mencegah pengisian asal. Hubungi Guru BK sekolah Anda untuk mendapatkan kode resmi yang akurat.',
+      };
+      toast.error('Batas kesalahan tercapai. Input dikunci selama 30 detik.');
+    } else {
+      referralValidationResult.value = {
+        valid: false,
+        message: `Kode "${clean}" tidak ditemukan di database resmi mitra Guru BK. Mohon pastikan kode yang Anda masukkan akurat sesuai yang diterbitkan oleh Guru BK (Sisa percobaan: ${remaining} kali).`,
+      };
+      toast.error(`Kode referal "${clean}" tidak akurat / tidak terdaftar.`);
+    }
   }
   isApplyingReferral.value = false;
 };
 
-const confirmBypassWithReferral = () => {
-  if (!referralValidationResult.value?.valid) return;
-  const res = applicantStore.applyReferralCode(referralValidationResult.value.code);
+// Batalkan hasil cek
+const cancelReferralCheck = () => {
+  referralValidationResult.value = null;
+  referralInputCode.value = '';
+};
+
+// Konfirmasi & Terapkan Kode Resmi ke Akun Siswa dan Dashboard Guru BK
+const confirmApplyReferral = () => {
+  if (!referralValidationResult.value?.valid || !referralValidationResult.value?.partner) return;
+  const partner = referralValidationResult.value.partner;
+  const res = applicantStore.applyReferralCode(partner.code);
   if (res.success) {
     const regInv = backendInvoices.value.find((i) => i.fee_type === 'registration');
     if (regInv) {
       regInv.status = 'paid';
     }
-    toast.success('Kode referal berhasil dikonfirmasi. Pembayaran pendaftaran lunas.');
+    toast.success(`Kode referal ${partner.code} resmi diterapkan! Akun Anda terhubung ke ${partner.picName} (${partner.schoolName}). Biaya formulir lunas.`);
     referralValidationResult.value = null;
     referralInputCode.value = '';
-    // Langsung menuju ke tahap tes/seleksi CBT
-    emit('switch-tab', 'exam');
   } else {
     toast.error(res.message || 'Gagal menerapkan kode referal.');
+  }
+};
+
+const confirmBypassWithReferral = () => {
+  if (applicantStore.state?.referral?.isApplied) {
+    const regInv = backendInvoices.value.find((i) => i.fee_type === 'registration');
+    if (regInv) {
+      regInv.status = 'paid';
+    }
+    toast.success('Mengarahkan ke Seleksi CBT...');
+    emit('switch-tab', 'exam');
+    return;
+  }
+  if (!referralValidationResult.value?.valid) return;
+  confirmApplyReferral();
+  if (applicantStore.state?.referral?.isApplied) {
+    emit('switch-tab', 'exam');
+  }
+};
+
+const handleRemoveReferral = () => {
+  const res = applicantStore.removeReferralCode();
+  if (res.success) {
+    toast.info('Kode referal telah dibatalkan.');
+    referralInputCode.value = '';
+    referralValidationResult.value = null;
   }
 };
 
@@ -672,6 +1178,30 @@ const openInstallmentModal = ref(false);
 const showReceiptModal = ref(false);
 const showDuitkuModal = ref(false);
 const isSimulatingPaid = ref(false);
+
+// Mode Payment Gateway: Dummy (mock/dev) vs Real Duitku API
+const isDummyMode = ref(true); // Default true saat development / dummy PMB
+const paymentConfig = ref(null);
+let dummyAutoConfirmTimer = null;
+
+const loadPaymentConfig = async () => {
+  try {
+    const res = await financeApi.getPaymentConfig().catch(() => null);
+    if (res?.data) {
+      paymentConfig.value = res.data;
+      // Jika backend secara resmi dikonfigurasi dengan provider Duitku riil dan tidak mengizinkan simulasi dev:
+      if (res.data.provider === 'duitku' && res.data.can_simulate === false) {
+        isDummyMode.value = false;
+      } else {
+        isDummyMode.value = true;
+      }
+    } else {
+      isDummyMode.value = true;
+    }
+  } catch {
+    isDummyMode.value = true;
+  }
+};
 
 const selectedInvoiceType = ref('registration'); // 'registration' | 'tuition'
 const selectedVaBank = ref('bsi');
@@ -692,27 +1222,120 @@ const backendInvoices = ref([]);
 
 const duitkuMerchantCode = ref('DS35926');
 const duitkuReference = ref('DS35926267H2BNJ38I0QCCLI');
-const iframeLoading = ref(true);
+
+const selectPaymentBank = (bank) => {
+  activeVaBank.value = bank;
+  selectedVaBank.value = bank.code;
+  selectVaBank(bank.code);
+};
+
+const copyToClipboard = async (text, label) => {
+  const str = String(text);
+  try {
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(str);
+    }
+  } catch {
+    // fallback
+  }
+  copiedType.value = label;
+  toast.success(`${label} berhasil disalin.`);
+  setTimeout(() => {
+    if (copiedType.value === label) {
+      copiedType.value = null;
+    }
+  }, 2500);
+};
+
+const qrisDataUrl = ref('');
+
+function crc16(str) {
+  let crc = 0xFFFF;
+  for (let c = 0; c < str.length; c++) {
+    crc ^= str.charCodeAt(c) << 8;
+    for (let i = 0; i < 8; i++) {
+      if (crc & 0x8000) {
+        crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+      } else {
+        crc = (crc << 1) & 0xFFFF;
+      }
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+
+function buildQrisPayload(amount, regNo) {
+  const amt = amount || 250000;
+  const reg = regNo || 'BTH-2026-REG-9211';
+  const amtStr = String(amt);
+  const tag54 = `54${String(amtStr.length).padStart(2, '0')}${amtStr}`;
+  const billInfo = `01${String(reg.length).padStart(2, '0')}${reg}`;
+  const tag62 = `62${String(billInfo.length).padStart(2, '0')}${billInfo}`;
+  
+  const mpan = '0016ID.CO.DUITKU.WWW01189360091100223344550215000000000000000';
+  const tag26 = `26${String(mpan.length).padStart(2, '0')}${mpan}`;
+  
+  const merchantName = 'UNIVERSITAS BAKTI TUNAS H';
+  const tag59 = `59${String(merchantName.length).padStart(2, '0')}${merchantName}`;
+  
+  const city = 'TASIKMALAYA';
+  const tag60 = `60${String(city.length).padStart(2, '0')}${city}`;
+  
+  const postal = '46115';
+  const tag61 = `61${String(postal.length).padStart(2, '0')}${postal}`;
+
+  const raw = `000201010212${tag26}520482205303360${tag54}5802ID${tag59}${tag60}${tag61}${tag62}6304`;
+  const checksum = crc16(raw);
+  return raw + checksum;
+}
+
+const updateQrisCode = async () => {
+  const payload = buildQrisPayload(currentInvoiceAmount.value, candidateRegNo.value);
+  try {
+    qrisDataUrl.value = await QRCode.toDataURL(payload, {
+      margin: 1,
+      width: 400,
+      color: {
+        dark: '#0f172a',
+        light: '#ffffff',
+      },
+      errorCorrectionLevel: 'M',
+    });
+  } catch (err) {
+    console.error('QR code generation notice:', err);
+  }
+};
+
+const downloadQrisCode = () => {
+  const link = document.createElement('a');
+  link.href = qrisDataUrl.value || '/assets/icons/banks/qris-code.svg';
+  link.download = `QRIS-PMB-BTH-${candidateRegNo.value || 'INVOICE'}.png`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  toast.success('Kode QRIS berhasil diunduh ke perangkat Anda.');
+};
+
 const duitkuSelectedCategory = ref('qris'); // 'qris' | 'va' | 'ewallet'
 const selectedDuitkuMethod = ref(null);
 
 const duitkuMethodsList = ref([
-  { code: 'NQ', name: 'QRIS', category: 'qris', fee: 0, image: 'https://images.duitku.com/hotlink-ok/NQ.PNG', badge: 'Semua m-Banking & E-Wallet' },
-  { code: 'SP', name: 'ShopeePay QRIS', category: 'qris', fee: 0, image: 'https://images.duitku.com/hotlink-ok/SHOPEEPAY.PNG', badge: 'Scan QRIS' },
-  { code: 'BV', name: 'BSI Virtual Account', category: 'va', fee: 0, image: 'https://images.duitku.com/hotlink-ok/BSI.PNG', badge: 'Bank Utama BTH' },
-  { code: 'BC', name: 'BCA Virtual Account', category: 'va', fee: 0, image: 'https://images.duitku.com/hotlink-ok/BCA.SVG', badge: 'Bank Central Asia' },
-  { code: 'M2', name: 'Mandiri Virtual Account', category: 'va', fee: 0, image: 'https://images.duitku.com/hotlink-ok/MV.PNG', badge: 'Bank Mandiri' },
-  { code: 'BR', name: 'BRI Virtual Account', category: 'va', fee: 0, image: 'https://images.duitku.com/hotlink-ok/BR.PNG', badge: 'Bank Rakyat Indonesia' },
-  { code: 'I1', name: 'BNI Virtual Account', category: 'va', fee: 0, image: 'https://images.duitku.com/hotlink-ok/I1.PNG', badge: 'Bank Negara Indonesia' },
-  { code: 'B1', name: 'CIMB Niaga Virtual Account', category: 'va', fee: 0, image: 'https://images.duitku.com/hotlink-ok/B1.PNG', badge: 'Bank CIMB Niaga' },
+  { code: 'NQ', name: 'QRIS', category: 'qris', fee: 0, image: '/assets/icons/banks/qris.svg', badge: 'Semua m-Banking & E-Wallet' },
+  { code: 'SP', name: 'ShopeePay QRIS', category: 'qris', fee: 0, image: '/assets/icons/banks/shopeepay.svg', badge: 'Scan QRIS' },
+  { code: 'BV', name: 'BSI Virtual Account', category: 'va', fee: 0, image: '/assets/icons/banks/bsi.svg', badge: 'Bank Utama BTH' },
+  { code: 'BC', name: 'BCA Virtual Account', category: 'va', fee: 0, image: '/assets/icons/banks/bca.svg', badge: 'Bank Central Asia' },
+  { code: 'M2', name: 'Mandiri Virtual Account', category: 'va', fee: 0, image: '/assets/icons/banks/mandiri.svg', badge: 'Bank Mandiri' },
+  { code: 'BR', name: 'BRI Virtual Account', category: 'va', fee: 0, image: '/assets/icons/banks/bri.svg', badge: 'Bank Rakyat Indonesia' },
+  { code: 'I1', name: 'BNI Virtual Account', category: 'va', fee: 0, image: '/assets/icons/banks/bni.svg', badge: 'Bank Negara Indonesia' },
+  { code: 'B1', name: 'CIMB Niaga Virtual Account', category: 'va', fee: 0, image: '/assets/icons/banks/cimb.svg', badge: 'Bank CIMB Niaga' },
   { code: 'BT', name: 'Permata Virtual Account', category: 'va', fee: 0, image: 'https://images.duitku.com/hotlink-ok/PERMATA.PNG', badge: 'Bank Permata' },
   { code: 'VA', name: 'Maybank Virtual Account', category: 'va', fee: 0, image: 'https://images.duitku.com/hotlink-ok/VA.PNG', badge: 'Bank Maybank' },
   { code: 'A1', name: 'ATM Bersama / Prima', category: 'va', fee: 0, image: 'https://images.duitku.com/hotlink-ok/A1.PNG', badge: 'Transfer Antar Bank' },
   { code: 'NC', name: 'Bank Neo Commerce', category: 'va', fee: 0, image: 'https://images.duitku.com/hotlink-ok/NC.PNG', badge: 'Bank Neo Commerce' },
-  { code: 'DA', name: 'DANA', category: 'ewallet', fee: 0, image: 'https://images.duitku.com/hotlink-ok/DA.PNG', badge: 'Dompet Digital' },
-  { code: 'OV', name: 'OVO', category: 'ewallet', fee: 0, image: 'https://images.duitku.com/hotlink-ok/OV.PNG', badge: 'Dompet Digital' },
-  { code: 'SA', name: 'ShopeePay', category: 'ewallet', fee: 0, image: 'https://images.duitku.com/hotlink-ok/SHOPEEPAY.PNG', badge: 'Dompet Digital' },
-  { code: 'LA', name: 'LinkAja', category: 'ewallet', fee: 0, image: 'https://images.duitku.com/hotlink-ok/LINKAJA.PNG', badge: 'Dompet Digital' },
+  { code: 'DA', name: 'DANA', category: 'ewallet', fee: 0, image: '/assets/icons/banks/dana.svg', badge: 'Dompet Digital' },
+  { code: 'OV', name: 'OVO', category: 'ewallet', fee: 0, image: '/assets/icons/banks/ovo.svg', badge: 'Dompet Digital' },
+  { code: 'SA', name: 'ShopeePay', category: 'ewallet', fee: 0, image: '/assets/icons/banks/shopeepay.svg', badge: 'Dompet Digital' },
+  { code: 'LA', name: 'LinkAja', category: 'ewallet', fee: 0, image: '/assets/icons/banks/linkaja.svg', badge: 'Dompet Digital' },
   { code: 'JP', name: 'Jenius Pay', category: 'ewallet', fee: 0, image: 'https://images.duitku.com/hotlink-ok/JP.PNG', badge: 'BTPN Jenius' },
   { code: 'IR', name: 'Indomaret', category: 'retail', fee: 0, image: 'https://images.duitku.com/hotlink-ok/IR.PNG', badge: 'Gerai Kasir' },
   { code: 'FT', name: 'Alfamart / POS / Pegadaian', category: 'retail', fee: 0, image: 'https://images.duitku.com/hotlink-ok/RETAIL.PNG', badge: 'Gerai Kasir' },
@@ -784,7 +1407,10 @@ const currentInvoiceNumber = computed(() => {
 });
 
 const currentInvoiceAmount = computed(() => {
-  if (currentInvoice.value?.amount) return currentInvoice.value.amount;
+  if (applicantStore.state?.referral?.isApplied && selectedInvoiceType.value === 'registration') {
+    return 0;
+  }
+  if (currentInvoice.value?.amount !== undefined) return currentInvoice.value.amount;
   if (selectedInvoiceType.value === 'tuition') {
     return uktPayment.value?.amount || 5000000;
   }
@@ -792,11 +1418,11 @@ const currentInvoiceAmount = computed(() => {
 });
 
 const isRegPaid = computed(() => {
-  if (!applicantStore.state.admission?.prodi1) return false;
   // 1. Jalur Bebas Biaya (Rp 0) atau Kode Referal Kemitraan Sekolah otomatis lunas
   if (applicantStore.isFreeTrack || applicantStore.state?.referral?.isApplied) {
     return true;
   }
+  if (!applicantStore.state.admission?.prodi1) return false;
   // 2. Cek backend invoice jika ada
   const inv = backendInvoices.value.find((i) => i.fee_type === 'registration');
   if (inv) {
@@ -878,7 +1504,7 @@ const currentDateFormatted = computed(() => {
   });
 });
 
-const currentActiveVaNumber = computed(() => {
+const displayedVaNumber = computed(() => {
   if (backendVaNumber.value) {
     return backendVaNumber.value;
   }
@@ -890,15 +1516,24 @@ const currentActiveVaNumber = computed(() => {
 
   const regSuffix = candidateRegDigits.value;
   const prefix = selectedInvoiceType.value === 'tuition' ? '02' : '01';
-  if (selectedVaBank.value === 'bsi') {
+  const code = activeVaBank.value?.code || selectedVaBank.value;
+  if (code === 'bsi') {
     return `988 2026 ${prefix} ${regSuffix}`;
-  } else if (selectedVaBank.value === 'mandiri') {
-    return `88908 2026 ${regSuffix}`;
-  } else if (selectedVaBank.value === 'bca') {
-    return `39088 2026 ${regSuffix}`;
+  } else if (code === 'mandiri') {
+    return `88908 2026 ${prefix} ${regSuffix}`;
+  } else if (code === 'bca') {
+    return `39088 2026 ${prefix} ${regSuffix}`;
+  } else if (code === 'bri') {
+    return `12808 2026 ${prefix} ${regSuffix}`;
+  } else if (code === 'bni') {
+    return `98818 2026 ${prefix} ${regSuffix}`;
+  } else if (code === 'cimb') {
+    return `28808 2026 ${prefix} ${regSuffix}`;
   }
-  return `98808 2026 ${regSuffix}`;
+  return `98808 2026 ${prefix} ${regSuffix}`;
 });
+
+const currentActiveVaNumber = displayedVaNumber;
 
 const activeDueDateFormatted = computed(() => {
   if (currentInvoice.value?.due_date) {
@@ -1062,6 +1697,7 @@ const initiateDuitkuPayment = async () => {
 
 const handleDuitkuSuccess = async (result) => {
   stopAutoPolling();
+  stopDummyAutoConfirmTimer();
 
   const methodName = 'Pembayaran Online (Duitku)';
 
@@ -1079,15 +1715,6 @@ const handleDuitkuSuccess = async (result) => {
   toast.success('Pembayaran berhasil diverifikasi lunas.');
   if (selectedInvoiceType.value === 'registration') {
     emit('switch-tab', 'exam');
-  }
-};
-
-const simulateDuitkuSuccess = async () => {
-  isSimulatingPaid.value = true;
-  try {
-    await handleDuitkuSuccess({ status: 'success', reference: duitkuReference.value });
-  } finally {
-    isSimulatingPaid.value = false;
   }
 };
 
@@ -1128,12 +1755,28 @@ const loadDuitkuMethods = async () => {
         else if (cat === 'ewallet') badge = 'Dompet Digital';
         else if (cat === 'retail') badge = 'Gerai Kasir';
 
+        const localBrandLogos = {
+          NQ: '/assets/icons/banks/qris.svg',
+          SP: '/assets/icons/banks/shopeepay.svg',
+          BV: '/assets/icons/banks/bsi.svg',
+          BC: '/assets/icons/banks/bca.svg',
+          M2: '/assets/icons/banks/mandiri.svg',
+          MV: '/assets/icons/banks/mandiri.svg',
+          BR: '/assets/icons/banks/bri.svg',
+          I1: '/assets/icons/banks/bni.svg',
+          B1: '/assets/icons/banks/cimb.svg',
+          DA: '/assets/icons/banks/dana.svg',
+          OV: '/assets/icons/banks/ovo.svg',
+          SA: '/assets/icons/banks/shopeepay.svg',
+          LA: '/assets/icons/banks/linkaja.svg',
+        };
+
         return {
           code,
           name,
           category: cat,
           fee: item.totalFee || 0,
-          image: item.paymentImage || item.image || `https://images.duitku.com/hotlink-ok/${code}.PNG`,
+          image: localBrandLogos[code] || item.paymentImage || item.image || `https://images.duitku.com/hotlink-ok/${code}.PNG`,
           badge,
         };
       });
@@ -1223,9 +1866,83 @@ const fetchInvoices = async () => {
 
 let pollInterval = null;
 
+const stopDummyAutoConfirmTimer = () => {
+  if (dummyAutoConfirmTimer) {
+    clearTimeout(dummyAutoConfirmTimer);
+    dummyAutoConfirmTimer = null;
+  }
+};
+
+const startDummyAutoConfirmTimer = () => {
+  stopDummyAutoConfirmTimer();
+  // Khusus mode dummy jika tagihan saat ini belum lunas
+  if (!isDummyMode.value || isCurrentInvoicePaid.value) return;
+
+  // Sesuai requirement: setelah 5 detik otomatis khusus untuk dummy pembayaran telah dikonfirmasi
+  dummyAutoConfirmTimer = setTimeout(async () => {
+    if (!isCurrentInvoicePaid.value && isDummyMode.value) {
+      await executeConfirmPaid('Otomatis Sistem (Simulasi Dummy 5 Detik)');
+    }
+  }, 5000);
+};
+
+const executeConfirmPaid = async (sourceLabel = 'Simulasi Duitku Dummy') => {
+  stopDummyAutoConfirmTimer();
+  stopAutoPolling();
+
+  const methodName = paymentCategoryTab.value === 'va'
+    ? `Virtual Account ${activeVaBank.value?.shortName || 'BSI'}`
+    : 'QRIS Duitku';
+
+  // 1. Catat lunas di store calon mahasiswa
+  if (selectedInvoiceType.value === 'registration') {
+    applicantStore.payRegFee(methodName);
+  } else {
+    applicantStore.payUktFee(methodName);
+  }
+
+  // 2. Tandai tagihan lokal di backendInvoices
+  const invType = selectedInvoiceType.value === 'registration' ? 'registration' : 'tuition';
+  const targetInv = backendInvoices.value.find(
+    (i) => i.fee_type === invType || (invType === 'tuition' && i.fee_type === 'ukt')
+  );
+  if (targetInv) {
+    targetInv.status = 'paid';
+  }
+
+  // 3. Sinkronkan dengan backend development bila terhubung
+  try {
+    if (!activePaymentId.value && currentInvoice.value?.id) {
+      const pRes = await financeApi.payInvoice(currentInvoice.value.id, {
+        method: paymentCategoryTab.value === 'va' ? 'virtual_account' : 'online_gateway',
+        channel: paymentCategoryTab.value === 'va' ? selectedVaBank.value : 'qris',
+      }).catch(() => null);
+      if (pRes?.data?.data?.id) {
+        activePaymentId.value = pRes.data.data.id;
+      }
+    }
+
+    if (activePaymentId.value) {
+      await financeApi.simulatePaymentPaid(activePaymentId.value).catch(() => null);
+    }
+    await fetchInvoices();
+  } catch (err) {
+    console.warn('executeConfirmPaid sync notice:', err?.message);
+  }
+
+  showDuitkuModal.value = false;
+  toast.success('Pembayaran telah terverifikasi lunas.');
+};
+
 const startAutoPolling = () => {
   stopAutoPolling();
-  // Polling otomatis setiap 4.5 detik untuk mendeteksi konfirmasi webhook perbankan
+  // Jika dalam mode dummy, jalankan timer 5 detik auto-confirm
+  if (isDummyMode.value) {
+    startDummyAutoConfirmTimer();
+    return;
+  }
+
+  // Jika dalam mode Duitku real: polling otomatis setiap 4.5 detik untuk mendeteksi konfirmasi webhook perbankan
   pollInterval = setInterval(async () => {
     if (isCurrentInvoicePaid.value) {
       stopAutoPolling();
@@ -1251,6 +1968,23 @@ const handleWindowFocus = async () => {
 const checkPaymentStatus = async (isSilent = false) => {
   if (!isSilent) isCheckingStatus.value = true;
   try {
+    // =========================================================================
+    // KONDISI 1: JIKA MASIH DALAM DUMMY MODE (DEVELOPMENT / MOCK)
+    // Tombol cek status langsung otomatis terkonfirmasi karena masih dummy
+    // =========================================================================
+    if (isDummyMode.value) {
+      if (!isSilent) {
+        // Sedikit jeda visual halus (400ms) agar interaksi tombol terasa responsif & alami
+        await new Promise((resolve) => setTimeout(resolve, 400));
+      }
+      await executeConfirmPaid('Pemeriksaan Status Cepat Dummy');
+      return;
+    }
+
+    // =========================================================================
+    // KONDISI 2: JIKA SUDAH DIIMPLEMENTASIKAN DENGAN DUITKU REAL
+    // Secara otomatis mengikuti API resmi Duitku yang ada
+    // =========================================================================
     let isConfirmedPaid = false;
     let isAwaiting = false;
 
@@ -1273,16 +2007,20 @@ const checkPaymentStatus = async (isSilent = false) => {
 
     if (isCurrentInvoicePaid.value || isConfirmedPaid) {
       stopAutoPolling();
+      stopDummyAutoConfirmTimer();
       showDuitkuModal.value = false;
+      const methodName = paymentCategoryTab.value === 'va'
+        ? `Virtual Account ${activeVaBank.value?.shortName || 'BSI'}`
+        : 'QRIS Duitku';
       if (selectedInvoiceType.value === 'registration') {
-        applicantStore.payRegFee('Transfer Virtual Account');
+        applicantStore.payRegFee(methodName);
       } else {
-        applicantStore.payUktFee('Transfer Virtual Account');
+        applicantStore.payUktFee(methodName);
       }
       toast.success('Pembayaran telah terverifikasi secara otomatis oleh sistem perbankan.');
     } else if (isCurrentInvoicePending.value || isAwaiting) {
       if (!isSilent) {
-        toast.info('Bukti pembayaran sedang dalam antrean verifikasi staf keuangan.');
+        toast.info('Status pembayaran sedang dalam antrean verifikasi perbankan.');
       }
     } else {
       if (!isSilent) {
@@ -1291,7 +2029,7 @@ const checkPaymentStatus = async (isSilent = false) => {
     }
   } catch (err) {
     if (!isSilent) {
-      toast.info('Status pembayaran sedang diperbarui oleh sistem.');
+      toast.info('Status pembayaran sedang disinkronkan dengan gateway.');
     }
   } finally {
     if (!isSilent) isCheckingStatus.value = false;
@@ -1349,25 +2087,51 @@ const handleCancelAdmission = async () => {
 watch(isCurrentInvoicePaid, (newVal) => {
   if (newVal) {
     stopAutoPolling();
+    stopDummyAutoConfirmTimer();
   } else {
-    startAutoPolling();
+    if (isDummyMode.value) {
+      startDummyAutoConfirmTimer();
+    } else {
+      startAutoPolling();
+    }
   }
+});
+
+watch(selectedInvoiceType, () => {
+  if (!isCurrentInvoicePaid.value) {
+    if (isDummyMode.value) {
+      startDummyAutoConfirmTimer();
+    } else {
+      startAutoPolling();
+    }
+  }
+});
+
+watch([currentInvoiceAmount, candidateRegNo, selectedInvoiceType], () => {
+  updateQrisCode();
 });
 
 onMounted(async () => {
   await fetchInvoices();
+  await loadPaymentConfig();
   await loadDuitkuMethods();
+  await updateQrisCode();
   if (applicantStore.isResultPassed && hasTuitionInvoice.value) {
     selectedInvoiceType.value = 'tuition';
   }
   if (!isCurrentInvoicePaid.value) {
-    startAutoPolling();
+    if (isDummyMode.value) {
+      startDummyAutoConfirmTimer();
+    } else {
+      startAutoPolling();
+    }
   }
   window.addEventListener('focus', handleWindowFocus);
 });
 
 onUnmounted(() => {
   stopAutoPolling();
+  stopDummyAutoConfirmTimer();
   window.removeEventListener('focus', handleWindowFocus);
 });
 </script>

@@ -199,11 +199,14 @@ const handleVerifyOtp = async () => {
   isLoading.value = true;
   try {
     await authStore.verifyOtp(email.value, otpCode);
-    toast.success('Verifikasi akun berhasil. Selamat datang di portal PMB.');
+    toast.success('Verifikasi akun berhasil. Silakan bergabung ke grup resmi WhatsApp pendaftar.');
     if (authStore.isAdmin) {
       router.push('/admin');
     } else {
-      router.push('/dashboard');
+      const userEmail = email.value || authStore.currentUser?.email || 'applicant';
+      localStorage.setItem(`bth_needs_onboarding_${userEmail}`, 'true');
+      localStorage.removeItem(`bth_wa_group_joined_${userEmail}`);
+      router.push('/onboarding-wa');
     }
   } catch (err) {
     const data = err.response?.data;

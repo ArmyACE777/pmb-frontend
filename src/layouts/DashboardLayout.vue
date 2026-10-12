@@ -12,17 +12,17 @@
             <!-- Left: Brand Logo & Title -->
             <button @click="navigateTo('overview')" class="flex items-center gap-2.5 sm:gap-3.5 text-left group cursor-pointer flex-shrink-0">
               <img
-                src="/assets/icons/bth-emblem.png"
-                alt="Logo Resmi Universitas Bakti Tunas Husada"
+                :src="cmsStore.identity.emblemUrl || '/assets/icons/bth-emblem.png'"
+                :alt="cmsStore.identity.name || 'Logo Resmi Universitas Bakti Tunas Husada'"
                 class="h-9 w-auto sm:h-11 object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-2xs"
               />
               <div class="flex flex-col">
                 <div class="font-sora font-extrabold text-slate-900 text-sm sm:text-base lg:text-lg leading-tight tracking-tight whitespace-nowrap">
-                  <span class="sm:hidden">Universitas BTH</span>
-                  <span class="hidden sm:inline">Universitas Bakti Tunas Husada</span>
+                  <span class="sm:hidden">{{ cmsStore.identity.shortName || 'Universitas BTH' }}</span>
+                  <span class="hidden sm:inline">{{ cmsStore.identity.name || 'Universitas Bakti Tunas Husada' }}</span>
                 </div>
                 <div class="text-[11px] sm:text-xs text-slate-500 font-sans font-medium leading-tight mt-0.5">
-                  Transforming New Generation
+                  {{ cmsStore.identity.tagline || 'Transforming New Generation' }}
                 </div>
               </div>
             </button>
@@ -128,18 +128,8 @@
                     </div>
                   </div>
 
-                  <!-- Quick Action Links: Pusat Bantuan & Logout -->
+                  <!-- Action Links: Pusat Bantuan & Logout -->
                   <div class="py-1 space-y-1">
-                    <router-link
-                      v-if="authStore.isAdmin"
-                      to="/admin"
-                      @click="showProfileMenu = false"
-                      class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-medium text-blue-700 hover:bg-blue-50 flex items-center gap-2.5 transition-colors cursor-pointer"
-                    >
-                      <Shield class="w-4 h-4 text-blue-600" />
-                      <span>Portal Panitia PMB</span>
-                    </router-link>
-
                     <button
                       @click="showHelpdeskModal = true; showProfileMenu = false"
                       class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-2.5 transition-colors cursor-pointer"
@@ -222,37 +212,52 @@
               <!-- 5. Berkas Persyaratan -->
               <button
                 @click="navigateTo('documents')"
-                class="inline-flex items-center gap-1.5 py-3 text-xs sm:text-sm font-medium transition-colors cursor-pointer whitespace-nowrap"
-                :class="applicantStore.activeTab === 'documents'
-                  ? 'text-[#1E3A8A] font-bold border-b-2 border-[#1E3A8A]'
-                  : 'text-slate-700 hover:text-[#1E3A8A]'"
+                class="inline-flex items-center gap-1.5 py-3 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap"
+                :class="[
+                  applicantStore.isWithdrawn ? 'opacity-40 text-slate-400 cursor-not-allowed' : 'cursor-pointer',
+                  applicantStore.activeTab === 'documents'
+                    ? 'text-[#1E3A8A] font-bold border-b-2 border-[#1E3A8A]'
+                    : 'text-slate-700 hover:text-[#1E3A8A]'
+                ]"
+                :title="applicantStore.isWithdrawn ? 'Fitur berkas dinonaktifkan karena telah mengundurkan diri' : 'Berkas'"
               >
                 <FileText class="w-4 h-4 flex-shrink-0" />
                 <span>Berkas</span>
+                <Lock v-if="applicantStore.isWithdrawn" class="w-3 h-3 text-slate-400" />
               </button>
 
               <!-- 6. Proses Seleksi -->
               <button
                 @click="navigateTo('exam')"
-                class="inline-flex items-center gap-1.5 py-3 text-xs sm:text-sm font-medium transition-colors cursor-pointer whitespace-nowrap"
-                :class="applicantStore.activeTab === 'exam'
-                  ? 'text-[#1E3A8A] font-bold border-b-2 border-[#1E3A8A]'
-                  : 'text-slate-700 hover:text-[#1E3A8A]'"
+                class="inline-flex items-center gap-1.5 py-3 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap"
+                :class="[
+                  applicantStore.isWithdrawn ? 'opacity-40 text-slate-400 cursor-not-allowed' : 'cursor-pointer',
+                  applicantStore.activeTab === 'exam'
+                    ? 'text-[#1E3A8A] font-bold border-b-2 border-[#1E3A8A]'
+                    : 'text-slate-700 hover:text-[#1E3A8A]'
+                ]"
+                :title="applicantStore.isWithdrawn ? 'Fitur seleksi CBT dinonaktifkan karena telah mengundurkan diri' : 'Proses Seleksi'"
               >
                 <ClipboardCheck class="w-4 h-4 flex-shrink-0" />
                 <span>Proses Seleksi</span>
+                <Lock v-if="applicantStore.isWithdrawn" class="w-3 h-3 text-slate-400" />
               </button>
 
               <!-- 7. Kelulusan & Daftar Ulang -->
               <button
                 @click="navigateTo('result')"
-                class="inline-flex items-center gap-1.5 py-3 text-xs sm:text-sm font-medium transition-colors cursor-pointer whitespace-nowrap"
-                :class="applicantStore.activeTab === 'result'
-                  ? 'text-[#1E3A8A] font-bold border-b-2 border-[#1E3A8A]'
-                  : 'text-slate-700 hover:text-[#1E3A8A]'"
+                class="inline-flex items-center gap-1.5 py-3 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap"
+                :class="[
+                  applicantStore.isWithdrawn ? 'opacity-40 text-slate-400 cursor-not-allowed' : 'cursor-pointer',
+                  applicantStore.activeTab === 'result'
+                    ? 'text-[#1E3A8A] font-bold border-b-2 border-[#1E3A8A]'
+                    : 'text-slate-700 hover:text-[#1E3A8A]'
+                ]"
+                :title="applicantStore.isWithdrawn ? 'Fitur daftar ulang dinonaktifkan karena telah mengundurkan diri' : 'Daftar Ulang'"
               >
                 <GraduationCap class="w-4 h-4 flex-shrink-0" />
                 <span>Daftar Ulang</span>
+                <Lock v-if="applicantStore.isWithdrawn" class="w-3 h-3 text-slate-400" />
               </button>
             </div>
 
@@ -318,35 +323,47 @@
 
           <button
             @click="navigateTo('documents')"
-            class="px-3 py-1.5 rounded-lg text-xs font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0"
-            :class="applicantStore.activeTab === 'documents'
-              ? 'bg-[#1E3A8A] text-white shadow-2xs'
-              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'"
+            class="px-3 py-1.5 rounded-lg text-xs font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 flex-shrink-0"
+            :class="[
+              applicantStore.isWithdrawn ? 'opacity-40 text-slate-400 bg-slate-100 cursor-not-allowed border border-slate-200' : 'cursor-pointer',
+              applicantStore.activeTab === 'documents'
+                ? 'bg-[#1E3A8A] text-white shadow-2xs'
+                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+            ]"
           >
             <FileText class="w-3.5 h-3.5" />
             <span>Berkas</span>
+            <Lock v-if="applicantStore.isWithdrawn" class="w-3 h-3 text-slate-400" />
           </button>
 
           <button
             @click="navigateTo('exam')"
-            class="px-3 py-1.5 rounded-lg text-xs font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0"
-            :class="applicantStore.activeTab === 'exam'
-              ? 'bg-[#1E3A8A] text-white shadow-2xs'
-              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'"
+            class="px-3 py-1.5 rounded-lg text-xs font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 flex-shrink-0"
+            :class="[
+              applicantStore.isWithdrawn ? 'opacity-40 text-slate-400 bg-slate-100 cursor-not-allowed border border-slate-200' : 'cursor-pointer',
+              applicantStore.activeTab === 'exam'
+                ? 'bg-[#1E3A8A] text-white shadow-2xs'
+                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+            ]"
           >
             <ClipboardCheck class="w-3.5 h-3.5" />
             <span>Seleksi</span>
+            <Lock v-if="applicantStore.isWithdrawn" class="w-3 h-3 text-slate-400" />
           </button>
 
           <button
             @click="navigateTo('result')"
-            class="px-3 py-1.5 rounded-lg text-xs font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0"
-            :class="applicantStore.activeTab === 'result'
-              ? 'bg-[#1E3A8A] text-white shadow-2xs'
-              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'"
+            class="px-3 py-1.5 rounded-lg text-xs font-sora font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 flex-shrink-0"
+            :class="[
+              applicantStore.isWithdrawn ? 'opacity-40 text-slate-400 bg-slate-100 cursor-not-allowed border border-slate-200' : 'cursor-pointer',
+              applicantStore.activeTab === 'result'
+                ? 'bg-[#1E3A8A] text-white shadow-2xs'
+                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+            ]"
           >
             <GraduationCap class="w-3.5 h-3.5" />
             <span>Kelulusan</span>
+            <Lock v-if="applicantStore.isWithdrawn" class="w-3 h-3 text-slate-400" />
           </button>
         </div>
       </nav>
@@ -367,7 +384,7 @@
               </div>
               <div>
                 <h3 class="font-sora font-bold text-slate-900 text-sm sm:text-base">Pusat Layanan & Bantuan PMB</h3>
-                <p class="text-[11px] text-slate-500">Sekretariat Penerimaan Mahasiswa Baru Universitas BTH</p>
+                <p class="text-[11px] text-slate-500">Sekretariat Penerimaan Mahasiswa Baru {{ cmsStore.identity.shortName || 'Universitas BTH' }}</p>
               </div>
             </div>
             <button @click="showHelpdeskModal = false" class="text-slate-400 hover:text-slate-700 text-2xl font-bold p-1 leading-none cursor-pointer">
@@ -378,7 +395,7 @@
           <div class="space-y-3 text-xs text-slate-600">
             <!-- WhatsApp Hotline -->
             <a
-              href="https://api.whatsapp.com/send?phone=6282117100200&text=Halo%20Helpdesk%20PMB%20BTH%2C%20saya%20ingin%20bertanya%20mengenai%20pendaftaran."
+              :href="cmsStore.contact.whatsappLink || 'https://api.whatsapp.com/send?phone=6282117100200'"
               target="_blank"
               rel="noopener noreferrer"
               class="p-3.5 bg-emerald-50/70 hover:bg-emerald-100/80 rounded-2xl border border-emerald-200 transition-colors flex items-center justify-between gap-3 group"
@@ -389,11 +406,35 @@
                 </div>
                 <div>
                   <div class="font-sora font-bold text-emerald-900 text-xs sm:text-sm">WhatsApp Helpdesk PMB</div>
-                  <div class="text-[11px] text-emerald-700">0821-1710-0200 (Respon Cepat)</div>
+                  <div class="text-[11px] text-emerald-700">{{ cmsStore.contact.whatsapp || '0821-1710-0200' }} (Respon Cepat)</div>
                 </div>
               </div>
               <span class="text-[11px] font-semibold text-emerald-800 bg-white px-3.5 py-1 rounded-full border border-emerald-200 shadow-2xs group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                Chat Sekarang &rarr;
+                Chat Sekarang
+              </span>
+            </a>
+
+            <!-- WhatsApp Komunitas Umum PMB -->
+            <a
+              v-if="cmsStore.links.publicWaGroup"
+              :href="cmsStore.links.publicWaGroup"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="p-3.5 bg-blue-50/70 hover:bg-blue-100/80 rounded-2xl border border-blue-200 transition-colors flex items-center justify-between gap-3 group"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-[#1E3A8A] text-white flex items-center justify-center font-bold flex-shrink-0">
+                  <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="font-sora font-bold text-slate-900 text-xs sm:text-sm">Grup WhatsApp PMB (Umum)</div>
+                  <div class="text-[11px] text-blue-700">Komunitas calon mahasiswa & informasi umum</div>
+                </div>
+              </div>
+              <span class="text-[11px] font-semibold text-[#1E3A8A] bg-white px-3.5 py-1 rounded-full border border-blue-200 shadow-2xs group-hover:bg-[#1E3A8A] group-hover:text-white transition-colors">
+                Gabung Grup
               </span>
             </a>
 
@@ -401,19 +442,19 @@
             <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
               <div class="flex justify-between items-start gap-2">
                 <span class="text-slate-500">Gedung Pelayanan:</span>
-                <span class="font-semibold text-slate-800 text-right">Sekretariat PMB, Gedung Rektorat Lt. 1</span>
+                <span class="font-semibold text-slate-800 text-right">{{ cmsStore.contact.buildingName || 'Sekretariat PMB, Gedung Rektorat Lt. 1' }}</span>
               </div>
               <div class="flex justify-between items-start gap-2">
                 <span class="text-slate-500">Alamat:</span>
-                <span class="font-semibold text-slate-800 text-right">Jl. Cilolohan No. 36, Tasikmalaya 46115</span>
+                <span class="font-semibold text-slate-800 text-right">{{ cmsStore.contact.address || 'Jl. Cilolohan No. 36, Tasikmalaya 46115' }}</span>
               </div>
               <div class="flex justify-between items-start gap-2">
                 <span class="text-slate-500">Jam Operasional:</span>
-                <span class="font-semibold text-slate-800 text-right">Senin - Jumat (08.00 - 16.00 WIB)</span>
+                <span class="font-semibold text-slate-800 text-right">{{ cmsStore.contact.officeHours || 'Senin - Jumat (08.00 - 16.00 WIB)' }}</span>
               </div>
               <div class="flex justify-between items-start gap-2">
                 <span class="text-slate-500">Surel:</span>
-                <span class="font-mono font-semibold text-[#1E3A8A]">pmb@bth.ac.id</span>
+                <span class="font-mono font-semibold text-[#1E3A8A]">{{ cmsStore.contact.email || 'pmb@bth.ac.id' }}</span>
               </div>
             </div>
           </div>
@@ -439,14 +480,14 @@
     <footer class="bg-white border-t border-slate-200/80 py-6 text-slate-500 text-xs relative z-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
         <div class="flex items-center gap-3">
-          <img src="/assets/icons/bth.png" alt="BTH" class="w-8 h-8 object-contain" />
+          <img :src="cmsStore.identity.logoUrl || '/assets/icons/bth.png'" :alt="cmsStore.identity.name" class="w-8 h-8 object-contain" />
           <div>
-            <div class="font-sora font-bold text-slate-800 text-xs">Universitas Bakti Tunas Husada</div>
-            <div class="text-[11px] text-slate-400">Gedung Rektorat & Sekretariat PMB • Jl. Cilolohan No. 36, Tasikmalaya 46115</div>
+            <div class="font-sora font-bold text-slate-800 text-xs">{{ cmsStore.identity.name || 'Universitas Bakti Tunas Husada' }}</div>
+            <div class="text-[11px] text-slate-400">{{ cmsStore.contact.buildingName || 'Gedung Rektorat & Sekretariat PMB' }} &bull; {{ cmsStore.contact.address || 'Jl. Cilolohan No. 36, Tasikmalaya 46115' }}</div>
           </div>
         </div>
         <div class="text-[11px] text-slate-400 leading-relaxed font-sans">
-          &copy; 2026 Panitia Penerimaan Mahasiswa Baru Universitas BTH. Seluruh Hak Dilindungi.
+          &copy; {{ cmsStore.identity.academicYear?.split('/')[0] || '2026' }} Panitia Penerimaan Mahasiswa Baru {{ cmsStore.identity.shortName || 'Universitas BTH' }}. Seluruh Hak Dilindungi.
         </div>
       </div>
     </footer>
@@ -466,17 +507,22 @@ import {
   LogOut,
   HelpCircle,
   Bell,
-  Shield
+  Shield,
+  Lock
 } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useApplicantStore } from '@/stores/applicant';
+import { useCmsStore } from '@/stores/cms';
+import { useToast } from '@/composables/useToast';
 import DashboardBackground from '@/components/common/DashboardBackground.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const applicantStore = useApplicantStore();
+const cmsStore = useCmsStore();
+const toast = useToast();
 
 const showNotifications = ref(false);
 const showProfileMenu = ref(false);
@@ -495,6 +541,10 @@ const toggleMobileNav = () => {
 };
 
 const navigateTo = (tab, section = null) => {
+  if (applicantStore.isWithdrawn && ['documents', 'exam', 'result'].includes(tab)) {
+    toast.warning('Pendaftaran telah berstatus mengundurkan diri. Fitur ini dinonaktifkan.');
+    return;
+  }
   if (router.currentRoute.value.path !== '/dashboard') {
     router.push('/dashboard');
   }
@@ -660,10 +710,6 @@ const userInitials = computed(() => {
 const userPhoto = computed(() => {
   return applicantStore.candidatePhoto || authStore.currentUser?.avatar || null;
 });
-
-const setAllowDemoAdmin = () => {
-  localStorage.setItem('bth_allow_demo_admin', 'true');
-};
 
 const handleLogout = async () => {
   localStorage.removeItem('bth_allow_demo_admin');

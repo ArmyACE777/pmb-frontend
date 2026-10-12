@@ -206,7 +206,7 @@
             <div>
               <div class="text-xs text-blue-200 font-sora flex items-center gap-2">
                 <span>{{ activeExam?.title || 'Ujian CBT PMB Universitas BTH' }}</span>
-                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 font-medium">
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] bg-white/10 text-white border border-white/20 font-medium">
                   <Check class="w-3 h-3 text-emerald-300" />
                   <span>{{ saveStatus }}</span>
                 </span>
@@ -387,7 +387,7 @@
 
             <div class="flex-shrink-0">
               <button
-                v-if="applicantStore.isRegPaymentComplete"
+                v-if="isEligibleForExam"
                 @click="startExam"
                 :disabled="isStartingExam"
                 class="w-full sm:w-auto rounded-xl py-3 px-8 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs sm:text-sm font-semibold transition-all shadow-sm hover:shadow flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
@@ -404,6 +404,22 @@
                 <span>Selesaikan Pembayaran Formulir</span>
               </button>
             </div>
+          </div>
+
+          <!-- Banner Kemitraan Guru BK jika referral diterapkan -->
+          <div
+            v-if="applicantStore.state?.referral?.isApplied"
+            class="mt-4 p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs text-slate-700 font-sans"
+          >
+            <div class="flex items-center gap-2.5">
+              <CheckCircle2 class="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              <span>
+                Biaya formulir dibebaskan via Kemitraan Guru BK <strong>{{ applicantStore.state.referral.schoolName }}</strong> (Kode: <strong class="font-mono text-slate-900">{{ applicantStore.state.referral.code }}</strong>). Anda berhak langsung mengikuti Ujian CBT.
+              </span>
+            </div>
+            <span class="px-2.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 self-start sm:self-auto shrink-0">
+              Bebas Biaya (Lunas)
+            </span>
           </div>
 
           <!-- Parameter Sesi CBT Grid -->
@@ -762,6 +778,19 @@ const activeSubTab = ref('cbt');
 const interviewAttended = ref(false);
 const isSubmittingAttendance = ref(false);
 
+const isEligibleForExam = computed(() => {
+  return Boolean(
+    applicantStore.isRegPaymentComplete ||
+    applicantStore.state?.referral?.isApplied ||
+    applicantStore.isFreeTrack ||
+    applicantStore.state?.payments?.registrationFee?.status === 'paid' ||
+    applicantStore.state?.payments?.registrationFee?.amount === 0 ||
+    applicantStore.state?.payments?.registrationFee?.isFree === true ||
+    applicantStore.state?.admission?.backendStatus === 'form_open' ||
+    applicantStore.state?.admission?.backendStatus === 'exam_scheduled'
+  );
+});
+
 const headerStatusBadge = computed(() => {
   if (activeSubTab.value === 'cbt') {
     if (examStatus.value === 'completed') {
@@ -776,7 +805,7 @@ const headerStatusBadge = computed(() => {
         class: 'bg-amber-50 text-amber-800 border-amber-300',
       };
     }
-    if (!applicantStore.isRegPaymentComplete) {
+    if (!isEligibleForExam.value) {
       return {
         text: 'Menunggu Pembayaran Formulir',
         class: 'bg-slate-100 text-slate-700 border-slate-300',

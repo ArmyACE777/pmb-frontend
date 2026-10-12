@@ -310,7 +310,13 @@
               <div class="flex items-center justify-between">
                 <div>
                   <h4 class="font-sora font-bold text-slate-900 text-sm">{{ prodi.name }}</h4>
-                  <span class="text-[11px] text-slate-500">{{ prodi.degree }} &bull; Akreditasi: {{ prodi.accreditation }}</span>
+                  <div class="flex items-center gap-1.5 mt-1">
+                    <span class="text-[11px] text-slate-500 font-medium">{{ prodi.degree }}</span>
+                    <span class="text-slate-300">•</span>
+                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-semibold whitespace-nowrap bg-blue-50 text-[#1E3A8A] border border-blue-200/60 shadow-2xs">
+                      Akreditasi {{ prodi.accreditation }}
+                    </span>
+                  </div>
                 </div>
                 <div class="text-right">
                   <span class="text-sm font-bold text-slate-900">{{ prodi.applicantsCount }}</span>

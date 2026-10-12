@@ -10,10 +10,24 @@
           Penetapan Nomor Induk Mahasiswa resmi, pembagian gugus PKKMB 2026, dan aktivasi akun SIAKAD.
         </p>
       </div>
-      <div class="flex items-center gap-2 self-start sm:self-auto">
-        <span class="text-xs text-slate-500 font-sans">
-          Format: [Tahun][Kode Prodi][No. Urut]
-        </span>
+      <div class="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+        <button
+          @click="handleExportSevima"
+          class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+          title="Unduh seluruh data calon mahasiswa dalam format 62 kolom SEVIMA"
+        >
+          <FileSpreadsheet class="w-3.5 h-3.5" />
+          <span>Ekspor SEVIMA (.xls)</span>
+        </button>
+
+        <button
+          @click="showImportModal = true"
+          class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+          title="Unggah berkas migrasi SEVIMA untuk impor massal"
+        >
+          <Upload class="w-3.5 h-3.5 text-slate-500" />
+          <span>Impor Data SEVIMA</span>
+        </button>
       </div>
     </div>
 
@@ -75,13 +89,13 @@
           </div>
           <div class="flex flex-col items-end gap-1">
             <span
-              class="text-[10px] font-semibold px-2 py-0.5 rounded border"
+              class="text-[10px] font-semibold px-2 py-0.5 rounded border whitespace-nowrap inline-block"
               :class="applicant.payments.uktFee.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-600 border-slate-200'"
             >
               UKT: {{ applicant.payments.uktFee.status === 'paid' ? 'Lunas' : 'Belum' }}
             </span>
             <span
-              class="text-[10px] font-semibold px-2 py-0.5 rounded border"
+              class="text-[10px] font-semibold px-2 py-0.5 rounded border whitespace-nowrap inline-block"
               :class="applicant.selection.passedStatus === 'passed' ? 'bg-blue-50 text-[#1E3A8A] border-blue-200' : 'bg-slate-50 text-slate-600 border-slate-200'"
             >
               {{ applicant.selection.passedStatus === 'passed' ? 'Lulus Seleksi' : 'Evaluasi' }}
@@ -249,10 +263,10 @@
     <Teleport to="body">
       <div
         v-if="activeApplicant"
-        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
         @click.self="activeApplicant = null"
       >
-        <div class="bg-white rounded-xl max-w-md w-full p-5 sm:p-6 shadow-xl border border-slate-200 relative my-auto">
+        <div class="bg-white rounded-xl max-w-md w-full p-5 sm:p-6 shadow-xl border border-slate-200 relative my-auto max-h-[90vh] overflow-y-auto">
         <button
           @click="activeApplicant = null"
           class="absolute top-5 right-5 text-slate-400 hover:text-slate-700 text-xl font-bold leading-none cursor-pointer"
@@ -321,6 +335,161 @@
       </div>
     </div>
   </Teleport>
+
+  <!-- MODAL IMPOR MASSAL DATA FORMAT SEVIMA -->
+  <Teleport to="body">
+    <div
+      v-if="showImportModal"
+      class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fadeIn font-sans"
+    >
+      <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+        <!-- Header Modal -->
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-200">
+              <FileSpreadsheet class="w-5 h-5" />
+            </div>
+            <div>
+              <h3 class="font-sora font-bold text-sm text-slate-900">
+                Impor Data Biodata Pendaftar Format SEVIMA
+              </h3>
+              <p class="text-[11px] text-slate-500">
+                Sesuai standar template 62 kolom (kolom hijau wajib terisi).
+              </p>
+            </div>
+          </div>
+          <button
+            @click="closeImportModal"
+            class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 cursor-pointer"
+          >
+            <X class="w-4 h-4" />
+          </button>
+        </div>
+
+        <!-- Body Modal -->
+        <div class="p-5 space-y-4 overflow-y-auto flex-1 text-xs">
+          <!-- Step 1: Upload Box -->
+          <div
+            class="border-2 border-dashed rounded-xl p-6 text-center transition-colors cursor-pointer"
+            :class="isDragging ? 'border-[#1E3A8A] bg-blue-50/50' : 'border-slate-200 bg-slate-50/60 hover:bg-slate-50'"
+            @dragover.prevent="isDragging = true"
+            @dragleave.prevent="isDragging = false"
+            @drop.prevent="handleFileDrop"
+            @click="triggerFileInput"
+          >
+            <input
+              ref="fileInputRef"
+              type="file"
+              accept=".csv,.txt,.xls,.xlsx"
+              class="hidden"
+              @change="handleFileInputChange"
+            />
+            <Upload class="w-8 h-8 text-slate-400 mx-auto mb-2" />
+            <div class="font-medium text-slate-700">
+              Klik atau tarik file CSV / Excel format SEVIMA ke sini
+            </div>
+            <div class="text-[10px] text-slate-400 mt-1">
+              Mendukung file .csv (pemisah titik-koma / koma) & tabel SEVIMA
+            </div>
+          </div>
+
+          <!-- Pratinjau Hasil Pembacaan -->
+          <div v-if="importParseResult" class="space-y-3">
+            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="flex items-center gap-3">
+                <span class="font-bold text-slate-800 whitespace-nowrap">Ringkasan Validasi:</span>
+                <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 whitespace-nowrap inline-block">
+                  {{ importParseResult.validCount }} Valid (Siap Impor)
+                </span>
+                <span v-if="importParseResult.invalidCount > 0" class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 whitespace-nowrap inline-block">
+                  {{ importParseResult.invalidCount }} Tidak Valid
+                </span>
+              </div>
+              <button
+                type="button"
+                @click="downloadSevimaTemplate"
+                class="text-[11px] text-[#1E3A8A] font-semibold hover:underline"
+              >
+                Unduh Template Kosong
+              </button>
+            </div>
+
+            <!-- Error List jika ada baris yang hilang kolom wajib -->
+            <div v-if="importParseResult.errors.length > 0" class="p-3 rounded-xl bg-rose-50 border border-rose-200 space-y-1">
+              <div class="font-bold text-rose-900 text-[11px]">Peringatan Kolom Wajib Hijau Kosong:</div>
+              <div v-for="(err, idx) in importParseResult.errors" :key="idx" class="text-[10px] text-rose-700">
+                • {{ err.message }}
+              </div>
+            </div>
+
+            <!-- Preview Data Sample -->
+            <div class="border border-slate-200 rounded-xl overflow-x-auto">
+              <table class="w-full text-left text-[11px]">
+                <thead class="bg-slate-100 text-slate-700 sticky top-0 font-semibold border-b border-slate-200">
+                  <tr>
+                    <th class="p-2">No</th>
+                    <th class="p-2">Kode Pendaftar</th>
+                    <th class="p-2">Nama Pendaftar</th>
+                    <th class="p-2">L/P</th>
+                    <th class="p-2">Tgl Lahir</th>
+                    <th class="p-2">Program</th>
+                    <th class="p-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 bg-white">
+                  <tr v-for="rec in importParseResult.records.slice(0, 15)" :key="rec.rowNumber">
+                    <td class="p-2 text-slate-400 font-mono">{{ rec.rowNumber }}</td>
+                    <td class="p-2 font-mono font-bold text-[#1E3A8A]">{{ rec.data.registrationNumber || '-' }}</td>
+                    <td class="p-2 font-medium text-slate-800">{{ rec.data.fullName || '-' }}</td>
+                    <td class="p-2">{{ rec.data.gender || '-' }}</td>
+                    <td class="p-2 font-mono text-[10px]">{{ rec.data.birthDate || '-' }}</td>
+                    <td class="p-2">{{ rec.data.programType || 'IPA' }}</td>
+                    <td class="p-2">
+                      <span
+                        class="px-1.5 py-0.5 rounded text-[9px] font-bold"
+                        :class="rec.isValid ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'"
+                      >
+                        {{ rec.isValid ? 'Valid' : 'Kolom Wajib Kosong' }}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Modal -->
+        <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+          <button
+            type="button"
+            @click="downloadSevimaTemplate"
+            class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold cursor-pointer"
+          >
+            Unduh Format Blanko SEVIMA (.xls)
+          </button>
+
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              @click="closeImportModal"
+              class="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold cursor-pointer"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              @click="commitSevimaImport"
+              :disabled="!importParseResult || importParseResult.validCount === 0 || isImporting"
+              class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-50"
+            >
+              {{ isImporting ? 'Mengimpor Data...' : `Simpan ${importParseResult?.validCount || 0} Data ke Sistem` }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Teleport>
   </div>
 </template>
 
@@ -329,6 +498,8 @@ import { ref, computed } from 'vue';
 import { useAdminStore } from '@/stores/admin';
 import { useToast } from '@/composables/useToast';
 import { PRODI_METADATA } from '@/stores/applicant';
+import { FileSpreadsheet, Upload, X } from 'lucide-vue-next';
+import { exportToSevimaMigrationExcel, parseSevimaImportContent } from '@/utils/exportHelper';
 
 const props = defineProps({
   currentRole: {
@@ -344,6 +515,128 @@ const formNim = ref('');
 const formGroup = ref('Gugus 01 - Hygeia Farmasi');
 const searchQuery = ref('');
 const selectedFilter = ref('all');
+
+// Import SEVIMA States
+const showImportModal = ref(false);
+const fileInputRef = ref(null);
+const isDragging = ref(false);
+const importParseResult = ref(null);
+const isImporting = ref(false);
+
+const handleExportSevima = () => {
+  const list = adminStore.applicants || [];
+  if (list.length === 0) {
+    toast.error('Belum ada data pendaftar untuk diekspor.');
+    return;
+  }
+  exportToSevimaMigrationExcel({
+    filename: `Format_Migrasi_SEVIMA_PMB_BTH_${new Date().toISOString().split('T')[0]}`,
+    applicants: list,
+  });
+  toast.success(`Berhasil mengekspor ${list.length} pendaftar ke format tabel migrasi SEVIMA.`);
+};
+
+const triggerFileInput = () => {
+  fileInputRef.value?.click();
+};
+
+const handleFileInputChange = (e) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    readFileContent(file);
+  }
+};
+
+const handleFileDrop = (e) => {
+  isDragging.value = false;
+  const file = e.dataTransfer.files?.[0];
+  if (file) {
+    readFileContent(file);
+  }
+};
+
+const readFileContent = (file) => {
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    try {
+      const text = evt.target.result;
+      const res = parseSevimaImportContent(text);
+      importParseResult.value = res;
+      toast.success(`File terbaca: ${res.validCount} baris valid siap diimpor.`);
+    } catch (err) {
+      toast.error(err.message || 'Gagal memproses file. Pastikan format CSV/tabel valid.');
+    }
+  };
+  reader.readAsText(file);
+};
+
+const closeImportModal = () => {
+  showImportModal.value = false;
+  importParseResult.value = null;
+};
+
+const downloadSevimaTemplate = () => {
+  exportToSevimaMigrationExcel({
+    filename: 'Template_Kosong_Migrasi_SEVIMA_PMB_BTH',
+    applicants: [],
+  });
+  toast.info('Template blanko 62-kolom SEVIMA berhasil diunduh.');
+};
+
+const commitSevimaImport = () => {
+  if (!importParseResult.value || importParseResult.value.validCount === 0) return;
+  isImporting.value = true;
+  try {
+    let importedCount = 0;
+    const validRecords = importParseResult.value.records.filter((r) => r.isValid);
+    validRecords.forEach((r) => {
+      const d = r.data;
+      const newApp = {
+        id: d.registrationNumber || `BTH-2026-REG-${Math.floor(10000 + Math.random() * 90000)}`,
+        fullName: d.fullName,
+        email: d.email || `${d.fullName.toLowerCase().replace(/\s+/g, '.') || 'pendaftar'}@bth.ac.id`,
+        phone: d.phone || '081234567890',
+        prodi1: d.prodiChoice1 || 'S1 Farmasi',
+        status: 'registered',
+        isVerified: true,
+        candidate: {
+          fullName: d.fullName,
+          nik: d.nik,
+          birthPlace: d.birthPlace,
+          birthDate: d.birthDate,
+          gender: d.gender === 'P' ? 'Perempuan' : 'Laki-laki',
+          schoolName: d.schoolName || 'SMA/SMK Mitra',
+          schoolMajor: d.majorName || 'IPA',
+          graduationYear: d.graduationYear || '2025',
+          programType: d.programType || 'IPA',
+          lastEducation: d.lastEducation || 'SMA',
+          institutionType: d.institutionType || '7',
+          almamaterSize: d.almamaterSize || 'L',
+        },
+        selection: {
+          passedStatus: 'passed',
+        },
+        payments: {
+          registrationFee: { status: 'paid', amount: 250000 },
+          uktFee: { status: 'paid', amount: 5000000 },
+        },
+        onboarding: {
+          nim: d.nim || '',
+          pkkmbGroup: 'Gugus 01 - Hygeia Farmasi',
+        },
+      };
+      adminStore.applicants.unshift(newApp);
+      importedCount++;
+    });
+    adminStore.syncAllLocalApplicants();
+    toast.success(`Berhasil mengimpor ${importedCount} data pendaftar baru dari format SEVIMA!`);
+    closeImportModal();
+  } catch (err) {
+    toast.error('Terjadi kendala saat menyimpan data impor.');
+  } finally {
+    isImporting.value = false;
+  }
+};
 
 const filters = [
   { id: 'all', label: 'Semua Mahasiswa' },

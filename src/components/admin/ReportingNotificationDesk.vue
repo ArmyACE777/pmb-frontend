@@ -146,6 +146,43 @@
             </button>
           </div>
         </div>
+
+        <!-- 4. Format Migrasi SEVIMA Resmi (62 Kolom Standar PDDIKTI) -->
+        <div class="bg-white rounded-xl p-5 border-2 border-emerald-200 bg-emerald-50/20 shadow-xs flex flex-col justify-between md:col-span-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <div class="h-10 px-2.5 rounded-xl bg-white border border-emerald-200 flex items-center justify-center flex-shrink-0 shadow-2xs">
+                <img src="/assets/icons/sevima.png" alt="SEVIMA" class="h-6 w-auto object-contain" />
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="font-sora font-bold text-slate-900 text-sm">Format Migrasi SIAKAD SEVIMA (Standar 62 Kolom)</h3>
+                  <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 whitespace-nowrap inline-block">
+                    Standar 20261007
+                  </span>
+                </div>
+                <p class="text-xs text-slate-600 mt-0.5 leading-relaxed max-w-2xl font-sans">
+                  Sesuai format resmi migrasi SEVIMA. Dilengkapi penandaan warna hijau (kolom wajib) dan kuning (opsional) untuk sinkronisasi biodata, orang tua, sekolah asal, dan prodi langsung ke database SIAKAD.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 self-start sm:self-center flex-shrink-0">
+              <button
+                @click="exportSevimaExcel"
+                class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
+              >
+                <span>Unduh Format Excel SEVIMA (.xls)</span>
+              </button>
+              <button
+                @click="exportSevimaCsv"
+                class="px-3 py-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+              >
+                Unduh CSV
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Filterable Interactive Data Preview Table -->
@@ -447,7 +484,7 @@
     <Teleport to="body">
       <div
         v-if="printModalOpen"
-        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
         @click.self="printModalOpen = false"
       >
         <div class="bg-white rounded-xl max-w-3xl w-full p-6 sm:p-8 shadow-xl border border-slate-200 relative max-h-[90vh] overflow-y-auto my-auto">
@@ -549,7 +586,7 @@
 import { ref, computed, watch } from 'vue';
 import { useAdminStore } from '@/stores/admin';
 import { PRODI_METADATA } from '@/stores/applicant';
-import { exportToExcelTable, exportToCsvSeparated } from '@/utils/exportHelper';
+import { exportToExcelTable, exportToCsvSeparated, exportToSevimaMigrationExcel, exportToSevimaMigrationCsv } from '@/utils/exportHelper';
 import { useToast } from '@/composables/useToast';
 
 const props = defineProps({
@@ -785,6 +822,32 @@ const exportReport = (type) => {
   });
 
   toast.success(`Rekapitulasi ${type} berhasil diunduh dalam format tabel Excel.`);
+};
+
+const exportSevimaExcel = () => {
+  const applicants = adminStore.applicants || [];
+  if (applicants.length === 0) {
+    toast.error('Belum ada data pendaftar untuk diekspor.');
+    return;
+  }
+  exportToSevimaMigrationExcel({
+    filename: `Format_Migrasi_SEVIMA_PMB_BTH_${new Date().toISOString().slice(0, 10)}`,
+    applicants,
+  });
+  toast.success(`Berhasil mengekspor ${applicants.length} pendaftar ke format migrasi resmi SEVIMA (.xls).`);
+};
+
+const exportSevimaCsv = () => {
+  const applicants = adminStore.applicants || [];
+  if (applicants.length === 0) {
+    toast.error('Belum ada data pendaftar untuk diekspor.');
+    return;
+  }
+  exportToSevimaMigrationCsv({
+    filename: `Format_Migrasi_SEVIMA_PMB_BTH_${new Date().toISOString().slice(0, 10)}`,
+    applicants,
+  });
+  toast.success(`Berhasil mengekspor ${applicants.length} pendaftar ke format CSV SEVIMA.`);
 };
 
 const formalReportTitle = computed(() => {
