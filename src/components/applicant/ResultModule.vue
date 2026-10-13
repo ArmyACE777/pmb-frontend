@@ -757,11 +757,18 @@ const selectedAlmamaterSize = ref(applicantStore.state.onboarding?.almamaterSize
 const displayedNim = computed(() => {
   if (onboarding.value?.nim) return onboarding.value.nim;
   const regNo = candidate.value?.registrationNumber || '1001';
-  const digits = regNo.replace(/\D/g, '').slice(-4) || '1001';
+  const digits = regNo.replace(/\D/g, '').slice(-4).padStart(4, '0') || '1001';
   const prodi = result.value?.acceptedProdi || applicantStore.state.admission?.prodi1 || '';
   const meta = PRODI_METADATA[prodi];
   const prodiCode = meta?.code || '01';
-  return `26${prodiCode}${digits}`;
+
+  let jalurDigit = '1';
+  const track = (applicantStore.state.admission?.track || '').toLowerCase();
+  if (track.includes('prestasi') || track.includes('pmdk')) jalurDigit = '2';
+  else if (track.includes('beasiswa') || track.includes('kip')) jalurDigit = '3';
+  else if (track.includes('pindahan')) jalurDigit = '4';
+
+  return `26${prodiCode}${jalurDigit}${digits}`;
 });
 
 const displayedEmail = computed(() => {

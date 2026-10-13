@@ -718,8 +718,15 @@ const filteredApplicants = computed(() => {
 const openEnrolModal = (applicant) => {
   activeApplicant.value = applicant;
   const meta = PRODI_METADATA[applicant.prodi1] || { code: '01', gugus: 'Gugus 01 - Hygeia Farmasi' };
-  const regSuffix = (applicant.id || '').split('-').pop() || String(Math.floor(Math.random() * 80 + 10));
-  formNim.value = applicant.onboarding?.nim || `26${meta.code}${regSuffix.slice(-4)}`;
+  const regSuffix = (applicant.id || '').replace(/\D/g, '').slice(-4) || '1001';
+
+  let jalurDigit = '1';
+  const track = (applicant.track || '').toLowerCase();
+  if (track.includes('prestasi') || track.includes('pmdk')) jalurDigit = '2';
+  else if (track.includes('beasiswa') || track.includes('kip')) jalurDigit = '3';
+  else if (track.includes('pindahan')) jalurDigit = '4';
+
+  formNim.value = applicant.onboarding?.nim || `26${meta.code}${jalurDigit}${regSuffix.padStart(4, '0')}`;
   formGroup.value = applicant.onboarding?.pkkmbGroup || meta.gugus;
 };
 

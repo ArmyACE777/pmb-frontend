@@ -1429,6 +1429,17 @@ export const useAdminStore = defineStore('admin', () => {
     const meta = PRODI_METADATA[prodi] || { code: '01', gugus: 'Gugus 01 - Hygeia Farmasi' };
     const prodiCode = meta.code || '01';
 
+    // Digit Jalur: 1=Reguler, 2=Prestasi, 3=Beasiswa/KIP, 4=Pindahan (Standar PRD & DECISIONS.md Q2)
+    let jalurDigit = '1';
+    const track = (applicant.track || '').toLowerCase();
+    if (track.includes('prestasi') || track.includes('pmdk')) {
+      jalurDigit = '2';
+    } else if (track.includes('beasiswa') || track.includes('kip') || track.includes('afirmasi')) {
+      jalurDigit = '3';
+    } else if (track.includes('pindahan') || track.includes('alih')) {
+      jalurDigit = '4';
+    }
+
     let seqStr = '0001';
     if (customSeq != null) {
       seqStr = String(customSeq).padStart(4, '0');
@@ -1437,7 +1448,7 @@ export const useAdminStore = defineStore('admin', () => {
       seqStr = regSuffix ? regSuffix.padStart(4, '0') : '0001';
     }
 
-    const nim = `26${prodiCode}${seqStr}`;
+    const nim = `26${prodiCode}${jalurDigit}${seqStr}`;
     const group = meta.gugus || 'Gugus 01 - Hygeia Farmasi';
 
     applicant.onboarding = applicant.onboarding || {};
@@ -1535,8 +1546,18 @@ export const useAdminStore = defineStore('admin', () => {
     const meta = PRODI_METADATA[prodi] || { code: '01', gugus: 'Gugus 01 - Hygeia Farmasi' };
     const regSuffix = (applicant.id || '').replace(/\D/g, '').slice(-4) || '1001';
 
+    let jalurDigit = '1';
+    const track = (applicant.track || '').toLowerCase();
+    if (track.includes('prestasi') || track.includes('pmdk')) {
+      jalurDigit = '2';
+    } else if (track.includes('beasiswa') || track.includes('kip') || track.includes('afirmasi')) {
+      jalurDigit = '3';
+    } else if (track.includes('pindahan') || track.includes('alih')) {
+      jalurDigit = '4';
+    }
+
     applicant.onboarding.isEnrolled = true;
-    applicant.onboarding.nim = customNim || `26${meta.code}${regSuffix.padStart(4, '0')}`;
+    applicant.onboarding.nim = customNim || `26${meta.code}${jalurDigit}${regSuffix.padStart(4, '0')}`;
     applicant.onboarding.pkkmbGroup = group || meta.gugus || 'Gugus 01 - Hygeia Farmasi';
 
     if (isCurrentApplicant(applicantId)) {
