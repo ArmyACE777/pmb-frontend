@@ -157,11 +157,11 @@
         <div>
           <div class="flex items-center gap-2">
             <h4 class="font-sora font-bold text-xs sm:text-sm text-slate-900">
-              Penerbitan NIM Otomatis Berbasis Sistem (T.A. 2026/2027)
+              Penerbitan NIM Otomatis (T.A. 2026/2027)
             </h4>
           </div>
           <p class="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
-            Sesuai pedoman akademik BTH dan format migrasi SIAKAD SEVIMA, Nomor Induk Mahasiswa serta Gugus PKKMB diterbitkan secara <strong>otomatis oleh sistem</strong> seketika mahasiswa dinyatakan <strong>Lulus Seleksi</strong> dan menyelesaikan <strong>Pelunasan UKT Semester 1</strong>. Admin tidak perlu menetapkan manual.
+            NIM dan Gugus PKKMB diterbitkan otomatis seketika mahasiswa melunasi UKT Semester 1.
           </p>
         </div>
       </div>
