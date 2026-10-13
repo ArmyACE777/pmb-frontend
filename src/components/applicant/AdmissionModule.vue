@@ -362,7 +362,7 @@
       <!-- Action Footer (Clean: Pusat Layanan BTH) -->
       <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-end gap-3 font-sans">
         <a
-          href="https://api.whatsapp.com/send?phone=6282117100200&text=Halo%20Helpdesk%20PMB%20BTH%2C%20saya%20ingin%20konfirmasi%20pengunduran%20diri%20dan%20refund."
+          :href="cmsStore.contact.whatsappLink || 'https://api.whatsapp.com/send?phone=6282117100200&text=Halo%20Helpdesk%20PMB%20BTH%2C%20saya%20ingin%20konfirmasi%20pengunduran%20diri%20dan%20refund.'"
           target="_blank"
           rel="noopener noreferrer"
           class="text-xs text-[#1E3A8A] hover:underline font-semibold flex items-center gap-1.5"

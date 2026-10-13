@@ -518,7 +518,7 @@
                   <span class="font-sora font-bold text-slate-900 text-xs">Grup Umum (Semua Orang)</span>
                 </div>
                 <p class="text-[11px] text-slate-600 leading-relaxed mb-3">
-                  Untuk calon pendaftar & masyarakat umum sebelum mendaftar akun. Ditampilkan di footer login/register & modal helpdesk.
+                  Grup komunitas calon mahasiswa. Ditampilkan secara eksklusif di dalam Dashboard calon pendaftar & modal helpdesk terpadu (bebas spam publik).
                 </p>
                 <label class="block font-semibold text-slate-700 mb-1">URL Undangan WhatsApp</label>
                 <input
@@ -529,7 +529,7 @@
                 />
               </div>
               <div class="pt-2 border-t border-blue-200/60 text-[10px] text-blue-700">
-                <span>Target Pengguna: Calon Mahasiswa & Masyarakat Umum</span>
+                <span>Target Pengguna: Calon Mahasiswa Terdaftar di Dashboard</span>
               </div>
             </div>
 

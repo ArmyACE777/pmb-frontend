@@ -5,6 +5,37 @@
     <!-- KONDISI 1: BERANDA UTAMA (OVERVIEW) -->
     <div v-if="activeTab === 'overview'" class="space-y-6 animate-fadeIn pb-12">
 
+      <!-- 0. Banner Pengumuman Resmi Kampus dari CMS (Jika Diaktifkan) -->
+      <div
+        v-if="cmsStore.announcement?.enabled"
+        class="p-4 sm:p-5 bg-gradient-to-r from-[#1E3A8A] to-blue-800 text-white rounded-2xl shadow-xs space-y-2 border border-blue-900/50 flex flex-col md:flex-row md:items-center justify-between gap-4"
+      >
+        <div class="space-y-1.5 max-w-3xl">
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/20 text-white border border-white/30 font-mono">
+              {{ cmsStore.announcement.badge || 'Informasi PMB' }}
+            </span>
+            <h3 class="font-sora font-bold text-xs sm:text-sm text-white">
+              {{ cmsStore.announcement.title }}
+            </h3>
+          </div>
+          <p class="text-xs text-blue-100/90 leading-relaxed font-sans">
+            {{ cmsStore.announcement.text }}
+          </p>
+        </div>
+        <div v-if="cmsStore.announcement.actionText && cmsStore.announcement.actionLink" class="flex-shrink-0">
+          <a
+            :href="cmsStore.announcement.actionLink"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-blue-50 text-[#1E3A8A] rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+          >
+            <span>{{ cmsStore.announcement.actionText }}</span>
+            <ArrowRight class="w-3.5 h-3.5" />
+          </a>
+        </div>
+      </div>
+
       <!-- 1. Hero Card: Identitas Resmi Calon Mahasiswa & Status Seleksi -->
       <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-7">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5">
@@ -323,11 +354,16 @@
 
           <!-- Card Grup WhatsApp Resmi Informasi PMB (Diatur oleh Admin) -->
           <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-3 text-xs font-sans">
-            <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-              <MessageSquare class="w-4 h-4 text-emerald-600" />
-              <h3 class="font-sora font-bold text-slate-900 text-sm">
-                Grup WhatsApp Calon Mahasiswa
-              </h3>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <MessageSquare class="w-4 h-4 text-emerald-600" />
+                <h3 class="font-sora font-bold text-slate-900 text-sm">
+                  Grup WhatsApp Calon Mahasiswa
+                </h3>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                Pendaftar
+              </span>
             </div>
 
             <p class="text-[11px] text-slate-600 leading-relaxed">
@@ -336,8 +372,8 @@
 
             <div class="pt-1">
               <a
-                v-if="currentTrackWhatsappUrl || cmsStore.links.onboardingWaGroup || cmsStore.links.officialWaGroup"
-                :href="currentTrackWhatsappUrl || cmsStore.links.onboardingWaGroup || cmsStore.links.officialWaGroup"
+                v-if="currentTrackWhatsappUrl || cmsStore.links.onboardingWaGroup || cmsStore.links.publicWaGroup || cmsStore.links.officialWaGroup"
+                :href="currentTrackWhatsappUrl || cmsStore.links.onboardingWaGroup || cmsStore.links.publicWaGroup || cmsStore.links.officialWaGroup"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="w-full py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-sora font-semibold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs text-center"
