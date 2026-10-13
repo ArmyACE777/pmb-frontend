@@ -950,8 +950,10 @@ import { useAuthStore } from '@/stores/auth';
 import { useReferralStore } from '@/stores/referral';
 import { financeApi } from '@/api/finance';
 import { useToast } from '@/composables/useToast';
+import { useRoute } from 'vue-router';
 
 const emit = defineEmits(['switch-tab']);
+const route = useRoute();
 const applicantStore = useApplicantStore();
 const authStore = useAuthStore();
 const referralStore = useReferralStore();
@@ -2124,6 +2126,17 @@ watch([currentInvoiceAmount, candidateRegNo, selectedInvoiceType], () => {
 });
 
 onMounted(async () => {
+  if (route?.query?.paid === 'true' || route?.query?.demo_paid === 'true') {
+    applicantStore.payRegFee('Simulasi Pelunasan Demo');
+    if (applicantStore.state?.admission) {
+      applicantStore.state.admission.backendStatus = 'form_open';
+      applicantStore.state.admission.status = 'Berkas & Pembayaran Terverifikasi';
+      if (!applicantStore.state.admission.prodi1) {
+        applicantStore.state.admission.prodi1 = 'S1 Farmasi';
+      }
+    }
+  }
+
   await fetchInvoices();
   await loadPaymentConfig();
   await loadDuitkuMethods();
