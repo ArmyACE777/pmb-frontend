@@ -1178,7 +1178,7 @@ export const useApplicantStore = defineStore('applicant', () => {
       const regSuffix = state.value.candidate.registrationNumber.split('-').pop() || '1001';
       // Format Standar PRD Fase 2 (Bagian 4.10): {YY}{nim_code_prodi}{jalur_digit}{urut 4}
       const yearPrefix = new Date().getFullYear().toString().slice(-2);
-      const selectedProdi = state.value.admission.prodi1 || 'Program Studi Terpilih';
+      const selectedProdi = state.value.result?.acceptedProdi || state.value.admission.prodi1 || 'Program Studi Terpilih';
       const meta = PRODI_METADATA[selectedProdi] || {
         code: '01',
         faculty: 'Universitas BTH',

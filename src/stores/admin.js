@@ -1434,7 +1434,7 @@ export const useAdminStore = defineStore('admin', () => {
   // Action: Terbitkan NIM secara otomatis berdasarkan petunjuk dokumen akademik BTH
   const autoGenerateNimForApplicant = (applicant, customSeq = null) => {
     if (!applicant) return null;
-    const prodi = applicant.prodi1 || 'S1 Farmasi';
+    const prodi = applicant.acceptedProdi || applicant.prodi1 || applicant.studyProgram || 'S1 Farmasi';
     const meta = PRODI_METADATA[prodi] || { code: '01', gugus: 'Gugus 01 - Hygeia Farmasi' };
     const prodiCode = meta.code || '01';
 
