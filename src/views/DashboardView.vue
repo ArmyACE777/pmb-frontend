@@ -790,7 +790,7 @@ const currentTrackWhatsappUrl = computed(() => {
   } catch (e) {
     console.warn('Gagal memuat URL grup WhatsApp:', e);
   }
-  return 'https://chat.whatsapp.com/BTH-Reguler2026';
+  return cmsStore.links.onboardingWaGroup || cmsStore.links.publicWaGroup || cmsStore.links.officialWaGroup || 'https://chat.whatsapp.com/BTH-Reguler2026';
 });
 
 const formatLogDate = (isoStr) => {
