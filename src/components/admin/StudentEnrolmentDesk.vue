@@ -69,10 +69,10 @@
         class="pb-1"
       >
         <button
-          @click="generateAllEligible"
+          @click="runAutoSync"
           class="w-full py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs rounded-lg transition-colors cursor-pointer text-center"
         >
-          Generate Batch Semua yang Lunas
+          Sinkronkan Semua yang Lunas
         </button>
       </div>
 
@@ -122,19 +122,25 @@
         </div>
 
         <button
-          v-if="!applicant.onboarding.nim"
-          @click="openEnrolModal(applicant)"
-          class="w-full py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer text-center"
-        >
-          Tetapkan NIM & Gugus
-        </button>
-        <button
-          v-else
+          v-if="applicant.onboarding.nim"
           @click="openEnrolModal(applicant)"
           class="w-full py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer text-center"
         >
-          Edit Data NIM / Gugus
+          Lihat / Koreksi Data
         </button>
+        <button
+          v-else-if="applicant.selection.passedStatus === 'passed' && applicant.payments.uktFee.status === 'paid'"
+          @click="generateApplicantNimDirectly(applicant)"
+          class="w-full py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer text-center"
+        >
+          Terbitkan NIM Sekarang
+        </button>
+        <div
+          v-else
+          class="text-center text-[11px] text-slate-400 italic py-1"
+        >
+          NIM otomatis diterbitkan saat UKT lunas
+        </div>
       </div>
 
       <div v-if="filteredApplicants.length === 0" class="py-10 text-center text-slate-400 bg-white rounded-xl border border-slate-200 p-6">
@@ -142,19 +148,46 @@
       </div>
     </div>
 
+    <!-- Banner Informasi Otomatisasi Sistem -->
+    <div class="bg-gradient-to-r from-blue-50/90 to-emerald-50/90 border border-blue-200/80 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+      <div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-lg bg-[#1E3A8A] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs mt-0.5 sm:mt-0">
+          NIM
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h4 class="font-sora font-bold text-xs sm:text-sm text-slate-900">
+              Penerbitan NIM Otomatis Berbasis Sistem (T.A. 2026/2027)
+            </h4>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+              Auto-Provisioning Aktif
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+            Sesuai pedoman akademik BTH dan format migrasi SIAKAD SEVIMA, Nomor Induk Mahasiswa serta Gugus PKKMB diterbitkan secara <strong>otomatis oleh sistem</strong> seketika mahasiswa dinyatakan <strong>Lulus Seleksi</strong> dan menyelesaikan <strong>Pelunasan UKT Semester 1</strong>. Admin tidak perlu menetapkan manual.
+          </p>
+        </div>
+      </div>
+      <button
+        v-if="currentRole === 'superadmin'"
+        @click="runAutoSync"
+        class="self-start sm:self-auto px-3.5 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs rounded-lg transition-colors cursor-pointer text-center shrink-0 shadow-2xs flex items-center gap-1.5"
+      >
+        <span>Sinkronkan Semua yang Lunas</span>
+      </button>
+    </div>
+
     <!-- Desktop Enrolment Table (>= md) -->
     <div class="hidden md:block bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
       <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h3 class="font-sora font-bold text-slate-900 text-sm">
-          Daftar Calon Mahasiswa Siap Penerbitan NIM (Lulus & Lunas UKT)
-        </h3>
-        <button
-          v-if="currentRole === 'superadmin'"
-          @click="generateAllEligible"
-          class="self-start sm:self-auto px-3.5 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold text-xs rounded-lg transition-colors cursor-pointer text-center"
-        >
-          Generate Batch Semua yang Lunas
-        </button>
+        <div>
+          <h3 class="font-sora font-bold text-slate-900 text-sm">
+            Daftar Calon Mahasiswa Terdaftar & Siap Terbit NIM
+          </h3>
+          <p class="text-[11px] text-slate-500">
+            NIM terbit otomatis sesuai urutan sequence program studi & langsung siap diekspor ke format SEVIMA.
+          </p>
+        </div>
       </div>
 
       <div class="overflow-x-auto">
@@ -165,9 +198,9 @@
               <th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-[200px]">Nama Mahasiswa & Prodi</th>
               <th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-[120px]">Status Seleksi</th>
               <th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-[110px]">Status UKT</th>
-              <th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-[130px]">NIM Diterbitkan</th>
-              <th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-[140px]">Gugus PKKMB 2026</th>
-              <th class="py-3.5 px-4 font-bold text-right whitespace-nowrap min-w-[120px]">Aksi Penetapan</th>
+              <th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-[150px]">NIM Diterbitkan</th>
+              <th class="py-3.5 px-4 font-bold whitespace-nowrap min-w-[150px]">Gugus PKKMB 2026</th>
+              <th class="py-3.5 px-4 font-bold text-right whitespace-nowrap min-w-[120px]">Aksi / Koreksi</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 font-sans">
@@ -190,9 +223,10 @@
               <!-- Selection -->
               <td class="py-3.5 px-4 whitespace-nowrap">
                 <span
-                  class="text-xs font-medium whitespace-nowrap"
-                  :class="applicant.selection.passedStatus === 'passed' ? 'text-emerald-700' : 'text-slate-600'"
+                  class="text-xs font-medium whitespace-nowrap inline-flex items-center gap-1"
+                  :class="applicant.selection.passedStatus === 'passed' ? 'text-emerald-700 font-semibold' : 'text-slate-600'"
                 >
+                  <span v-if="applicant.selection.passedStatus === 'passed'" class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                   {{ applicant.selection.passedStatus === 'passed' ? 'Lulus Seleksi' : 'Dalam Evaluasi' }}
                 </span>
               </td>
@@ -200,19 +234,29 @@
               <!-- UKT Status -->
               <td class="py-3.5 px-4 whitespace-nowrap">
                 <span
-                  class="text-xs font-medium whitespace-nowrap"
-                  :class="applicant.payments.uktFee.status === 'paid' ? 'text-emerald-700' : 'text-slate-500'"
+                  class="text-xs font-medium whitespace-nowrap inline-flex items-center gap-1"
+                  :class="applicant.payments.uktFee.status === 'paid' ? 'text-emerald-700 font-semibold' : 'text-slate-500'"
                 >
+                  <span v-if="applicant.payments.uktFee.status === 'paid'" class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                   {{ applicant.payments.uktFee.status === 'paid' ? 'Lunas' : 'Belum Lunas' }}
                 </span>
               </td>
 
               <!-- NIM -->
               <td class="py-3.5 px-4 whitespace-nowrap">
-                <span v-if="applicant.onboarding.nim" class="font-mono font-semibold text-xs text-slate-900 whitespace-nowrap">
-                  {{ applicant.onboarding.nim }}
-                </span>
-                <span v-else class="text-xs text-slate-400 italic whitespace-nowrap">Belum Ada</span>
+                <div v-if="applicant.onboarding.nim" class="inline-flex items-center gap-1.5">
+                  <span class="font-mono font-bold text-xs text-slate-900 bg-emerald-50 text-emerald-800 border border-emerald-200/90 px-2 py-0.5 rounded shadow-2xs">
+                    {{ applicant.onboarding.nim }}
+                  </span>
+                  <span class="text-[9px] font-bold text-emerald-700 uppercase tracking-tight bg-emerald-100/60 px-1 py-0.2 rounded">
+                    Otomatis
+                  </span>
+                </div>
+                <div v-else-if="applicant.selection.passedStatus === 'passed' && applicant.payments.uktFee.status === 'paid'" class="inline-flex items-center gap-1 text-blue-600 font-medium text-[11px]">
+                  <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping"></span>
+                  <span>Siap Terbit Otomatis</span>
+                </div>
+                <span v-else class="text-[11px] text-slate-400 italic whitespace-nowrap">Menunggu Lunas UKT</span>
               </td>
 
               <!-- PKKMB Group -->
@@ -220,25 +264,31 @@
                 <span v-if="applicant.onboarding.pkkmbGroup" class="text-xs text-slate-800 font-medium whitespace-nowrap">
                   {{ applicant.onboarding.pkkmbGroup }}
                 </span>
-                <span v-else class="text-xs text-slate-400 italic whitespace-nowrap">Belum Diplot</span>
+                <span v-else class="text-[11px] text-slate-400 italic whitespace-nowrap">Diplot saat Lunas</span>
               </td>
 
               <!-- Action -->
               <td class="py-3.5 px-4 text-right whitespace-nowrap">
                 <button
-                  v-if="!applicant.onboarding.nim"
-                  @click="openEnrolModal(applicant)"
-                  class="px-3 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-medium text-xs rounded transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
-                >
-                  Tetapkan NIM
-                </button>
-                <button
-                  v-else
+                  v-if="applicant.onboarding.nim"
                   @click="openEnrolModal(applicant)"
                   class="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-medium rounded transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
                 >
-                  Edit Data
+                  Lihat / Koreksi Data
                 </button>
+                <button
+                  v-else-if="applicant.selection.passedStatus === 'passed' && applicant.payments.uktFee.status === 'paid'"
+                  @click="generateApplicantNimDirectly(applicant)"
+                  class="px-3 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-medium text-xs rounded transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
+                >
+                  Terbitkan Sekarang
+                </button>
+                <span
+                  v-else
+                  class="text-[11px] text-slate-400 italic"
+                >
+                  Otomatis saat Lunas
+                </span>
               </td>
             </tr>
             <tr v-if="filteredApplicants.length === 0">
@@ -494,7 +544,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useAdminStore } from '@/stores/admin';
 import { useToast } from '@/composables/useToast';
 import { PRODI_METADATA } from '@/stores/applicant';
@@ -686,16 +736,26 @@ const saveNim = () => {
   activeApplicant.value = null;
 };
 
-const generateAllEligible = () => {
-  let count = 0;
-  adminStore.applicants.forEach((a, idx) => {
-    if (a.selection?.passedStatus === 'passed' && !a.onboarding?.nim) {
-      const meta = PRODI_METADATA[a.prodi1] || { code: '01', gugus: 'Gugus 01 - Hygeia Farmasi' };
-      const num = `26${meta.code}00${String(idx + 1).padStart(2, '0')}`;
-      adminStore.generateNim(a.id, num, meta.gugus);
-      count++;
-    }
-  });
-  toast.success(`Penerbitan NIM untuk ${count} calon mahasiswa berhasil diproses.`);
+const generateApplicantNimDirectly = (applicant) => {
+  const nim = adminStore.autoGenerateNimForApplicant(applicant);
+  toast.success(`NIM ${nim} berhasil diterbitkan otomatis untuk ${applicant.fullName}.`);
 };
+
+const runAutoSync = () => {
+  const count = adminStore.syncAutoEnrollAllEligible();
+  if (count > 0) {
+    toast.success(`Berhasil menerbitkan NIM otomatis untuk ${count} calon mahasiswa baru.`);
+  } else {
+    toast.info('Semua calon mahasiswa yang telah Lulus & Lunas UKT sudah memiliki NIM resmi.');
+  }
+};
+
+const generateAllEligible = () => {
+  runAutoSync();
+};
+
+onMounted(() => {
+  // Jalankan auto-enrolment seketika meja kerja dibuka untuk memastikan seluruh pendaftar yang lunas langsung memiliki NIM
+  adminStore.syncAutoEnrollAllEligible();
+});
 </script>

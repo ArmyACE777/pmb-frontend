@@ -1374,6 +1374,13 @@ export const useAdminStore = defineStore('admin', () => {
       applicant.payments.uktFee.statusLabel = 'Lunas (Dikonfirmasi Admin)';
       applicant.payments.uktFee.paidAt = nowStr;
       applicant.payments.uktFee.confirmedBy = confirmedBy;
+      applicant.onboarding.isEnrolled = true;
+
+      // OTOMATIS: Terbitkan NIM jika calon mahasiswa telah lulus seleksi
+      if (!applicant.onboarding.nim && applicant.selection?.passedStatus === 'passed') {
+        autoGenerateNimForApplicant(applicant);
+      }
+
       if (isCurrentApplicant(applicantId)) {
         applicantStore.payUktFee(confirmedBy);
       }
@@ -1415,6 +1422,63 @@ export const useAdminStore = defineStore('admin', () => {
       });
   };
 
+  // Action: Terbitkan NIM secara otomatis berdasarkan petunjuk dokumen akademik BTH
+  const autoGenerateNimForApplicant = (applicant, customSeq = null) => {
+    if (!applicant) return null;
+    const prodi = applicant.prodi1 || 'S1 Farmasi';
+    const meta = PRODI_METADATA[prodi] || { code: '01', gugus: 'Gugus 01 - Hygeia Farmasi' };
+    const prodiCode = meta.code || '01';
+
+    let seqStr = '0001';
+    if (customSeq != null) {
+      seqStr = String(customSeq).padStart(4, '0');
+    } else {
+      const regSuffix = (applicant.id || '').replace(/\D/g, '').slice(-4);
+      seqStr = regSuffix ? regSuffix.padStart(4, '0') : '0001';
+    }
+
+    const nim = `26${prodiCode}${seqStr}`;
+    const group = meta.gugus || 'Gugus 01 - Hygeia Farmasi';
+
+    applicant.onboarding = applicant.onboarding || {};
+    applicant.onboarding.isEnrolled = true;
+    applicant.onboarding.nim = nim;
+    applicant.onboarding.pkkmbGroup = group;
+
+    if (isCurrentApplicant(applicant.id)) {
+      applicantStore.state.onboarding.nim = nim;
+      applicantStore.state.onboarding.pkkmbGroup = group;
+      applicantStore.state.onboarding.isEnrolled = true;
+    }
+
+    syncApplicantToLocalApplicantStorage(applicant);
+
+    nimApi
+      .generateNim({
+        applicant_id: applicant.id,
+        nim,
+        faculty: applicant.faculty,
+        prodi: applicant.prodi1,
+      })
+      .catch((e) => {
+        console.warn('NIM API Notice (autoGenerateNim fallback):', e?.message);
+      });
+
+    return nim;
+  };
+
+  // Action: Sinkronkan seluruh pendaftar yang lulus & lunas agar langsung memiliki NIM otomatis
+  const syncAutoEnrollAllEligible = () => {
+    let count = 0;
+    applicants.value.forEach((a, idx) => {
+      if (a.selection?.passedStatus === 'passed' && a.payments?.uktFee?.status === 'paid' && !a.onboarding?.nim) {
+        autoGenerateNimForApplicant(a, idx + 1);
+        count++;
+      }
+    });
+    return count;
+  };
+
   // Action: Simpan nilai wawancara & status kelulusan seleksi
   const updateInterview = (applicantId, score, notes, interviewer) => {
     const applicant = applicants.value.find((a) => a.id === applicantId);
@@ -1429,6 +1493,11 @@ export const useAdminStore = defineStore('admin', () => {
     applicant.selection.passedStatus = isPass ? 'passed' : 'failed';
     if (isPass && !applicant.selection.decisionLetterNo) {
       applicant.selection.decisionLetterNo = `08${applicant.id.slice(-3)}/SK-PMB/UBTH/X/2026`;
+    }
+
+    // OTOMATIS: Terbitkan NIM jika telah lunas UKT Semester 1
+    if (isPass && applicant.payments?.uktFee?.status === 'paid' && !applicant.onboarding?.nim) {
+      autoGenerateNimForApplicant(applicant);
     }
 
     if (isCurrentApplicant(applicantId)) {
@@ -1457,18 +1526,23 @@ export const useAdminStore = defineStore('admin', () => {
       });
   };
 
-  // Action: Terbitkan NIM & plot gugus PKKMB
+  // Action: Terbitkan NIM & plot gugus PKKMB (dengan opsi kustom)
   const generateNim = (applicantId, customNim, group) => {
     const applicant = applicants.value.find((a) => a.id === applicantId);
     if (!applicant) return;
 
+    const prodi = applicant.prodi1 || 'S1 Farmasi';
+    const meta = PRODI_METADATA[prodi] || { code: '01', gugus: 'Gugus 01 - Hygeia Farmasi' };
+    const regSuffix = (applicant.id || '').replace(/\D/g, '').slice(-4) || '1001';
+
     applicant.onboarding.isEnrolled = true;
-    applicant.onboarding.nim = customNim || `2601${applicant.id.slice(-4)}`;
-    applicant.onboarding.pkkmbGroup = group || 'Gugus 01 - Hygeia Farmasi';
+    applicant.onboarding.nim = customNim || `26${meta.code}${regSuffix.padStart(4, '0')}`;
+    applicant.onboarding.pkkmbGroup = group || meta.gugus || 'Gugus 01 - Hygeia Farmasi';
 
     if (isCurrentApplicant(applicantId)) {
       applicantStore.state.onboarding.nim = applicant.onboarding.nim;
       applicantStore.state.onboarding.pkkmbGroup = applicant.onboarding.pkkmbGroup;
+      applicantStore.state.onboarding.isEnrolled = true;
     }
 
     // Sinkronkan ke local storage siswa dan siarkan update
@@ -2039,6 +2113,8 @@ export const useAdminStore = defineStore('admin', () => {
     confirmPayment,
     updateInterview,
     generateNim,
+    autoGenerateNimForApplicant,
+    syncAutoEnrollAllEligible,
     syncCurrentApplicant,
     syncAllLocalApplicants,
     resetAdminData,
