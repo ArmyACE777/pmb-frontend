@@ -679,13 +679,12 @@ export const useApplicantStore = defineStore('applicant', () => {
       return false;
     }
 
-    // 1. Jalur Bebas Biaya (Rp 0), Kode Referal Kemitraan Sekolah, atau status registrasi lunas
+    // 1. Jalur Bebas Biaya (Rp 0) atau Kode Referal Kemitraan Sekolah otomatis lunas
     if (
       state.value?.referral?.isApplied ||
       isFreeTrack.value ||
       state.value?.payments?.registrationFee?.isFree === true ||
-      state.value?.payments?.registrationFee?.amount === 0 ||
-      state.value?.payments?.registrationFee?.status === 'paid'
+      state.value?.payments?.registrationFee?.amount === 0
     ) {
       return true;
     }
@@ -695,17 +694,22 @@ export const useApplicantStore = defineStore('applicant', () => {
       return false;
     }
 
-    // 2. Jika backend admission menyatakan status belum bayar (awaiting_payment / draft)
+    // 2. Status registrasi lunas di store
+    if (state.value?.payments?.registrationFee?.status === 'paid') {
+      return true;
+    }
+
+    // 3. Jika backend admission menyatakan status belum bayar (awaiting_payment / draft)
     if (backendStatus === 'awaiting_payment' || backendStatus === 'draft') {
       return state.value?.payments?.registrationFee?.status === 'paid';
     }
 
-    // 3. Status backend yang menandakan pendaftaran sudah melewati tahap pembayaran formulir
+    // 4. Status backend yang menandakan pendaftaran sudah melewati tahap pembayaran formulir
     if (backendStatus === 'form_open' || backendStatus === 'submitted' || backendStatus === 'verified' || backendStatus === 'exam_scheduled') {
       return true;
     }
 
-    // 4. Default fallback: cek status pembayaran registrasi di store
+    // 5. Default fallback: cek status pembayaran registrasi di store
     return state.value?.payments?.registrationFee?.status === 'paid';
   });
 
@@ -1120,6 +1124,12 @@ export const useApplicantStore = defineStore('applicant', () => {
     state.value.payments.registrationFee.statusLabel = 'Lunas (Dikonfirmasi Admin)';
     state.value.payments.registrationFee.confirmedBy = confirmedBy;
     state.value.payments.registrationFee.paidAt = new Date().toLocaleString('id-ID');
+
+    // Update status aplikasi pendaftaran menjadi form_open dan berkas & pembayaran terverifikasi
+    if (state.value.admission) {
+      state.value.admission.backendStatus = 'form_open';
+      state.value.admission.status = 'Berkas & Pembayaran Terverifikasi';
+    }
 
     recordActivity({
       category: 'payment',

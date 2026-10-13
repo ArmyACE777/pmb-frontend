@@ -168,32 +168,35 @@
           </div>
         </div>
 
-        <!-- Tombol Aksi Kuitansi & Arah Tahapan Selanjutnya -->
+        <!-- Tombol Arah Tahapan Selanjutnya -->
         <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
           <button
+            v-if="selectedInvoiceType === 'registration'"
             type="button"
-            @click="showReceiptModal = true"
-            class="w-full sm:w-1/2 py-2.5 px-4 rounded border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold font-sora transition-colors cursor-pointer text-center"
+            @click="emit('switch-tab', 'documents')"
+            class="w-full sm:w-1/2 py-2.5 px-4 rounded bg-white border border-[#1E3A8A] text-[#1E3A8A] hover:bg-blue-50 text-xs font-semibold font-sora transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 shadow-2xs"
           >
-            Lihat Kuitansi
+            <span>Lanjut Unggah Berkas</span>
+            <ChevronRight class="w-4 h-4" />
           </button>
 
           <button
             v-if="selectedInvoiceType === 'registration'"
             type="button"
             @click="emit('switch-tab', 'exam')"
-            class="w-full sm:w-1/2 py-2.5 px-4 rounded bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-semibold font-sora transition-colors cursor-pointer text-center"
+            class="w-full sm:w-1/2 py-2.5 px-4 rounded bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-semibold font-sora transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 shadow-2xs"
           >
-            Lanjut ke Seleksi CBT
+            <span>Lanjut ke Seleksi CBT</span>
+            <ChevronRight class="w-4 h-4" />
           </button>
 
           <button
             v-else-if="selectedInvoiceType === 'tuition'"
             type="button"
             @click="emit('switch-tab', 'result')"
-            class="w-full sm:w-1/2 py-2.5 px-4 rounded bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-semibold font-sora transition-colors cursor-pointer text-center"
+            class="w-full py-2.5 px-4 rounded bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-semibold font-sora transition-colors cursor-pointer text-center"
           >
-            Kembali ke Pengumuman
+            Kembali ke Pengumuman Kelulusan
           </button>
         </div>
       </div>
@@ -245,6 +248,7 @@
     <!-- KONDISI B: BELUM LUNAS (CHECKOUT PEMBAYARAN VIA REAL BACKEND GATEWAY)      -->
     <!-- ========================================================================= -->
     <div v-else class="space-y-6">
+
       <!-- Program Cicilan UKT (CR-010: Khusus Tagihan UKT) -->
       <div v-if="selectedInvoiceType === 'tuition'" class="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
@@ -528,16 +532,64 @@
               </div>
 
               <!-- Tombol Cek Status & Simulasi Bayar Berhasil (In-page) -->
-              <div class="pt-2 space-y-2.5">
-                <button
-                  type="button"
-                  @click="checkPaymentStatus"
-                  :disabled="isCheckingStatus"
-                  class="w-full py-2.5 px-4 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold rounded-xl text-xs sm:text-sm transition-colors cursor-pointer disabled:opacity-50 text-center flex items-center justify-center gap-2 shadow-2xs"
-                >
-                  <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isCheckingStatus }" />
-                  <span>{{ isCheckingStatus ? 'Memeriksa ke Sistem Bank...' : 'Cek Status Pembayaran Sekarang' }}</span>
-                </button>
+              <div class="pt-2 space-y-3">
+                <!-- Panel Sandbox / Simulator Webhook Transaksi (Mode Dummy/Dev) -->
+                <div v-if="isDummyMode" class="p-3.5 bg-blue-50/80 border border-blue-200 rounded-xl space-y-2.5">
+                  <div class="flex items-center justify-between">
+                    <span class="inline-flex items-center gap-1.5 text-[11px] font-sora font-bold text-[#1E3A8A]">
+                      <Zap class="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                      <span>Pengujian Sandbox & Webhook (Dev Mode)</span>
+                    </span>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-100 text-[#1E3A8A] font-semibold">
+                      Duitku Sandbox Mock
+                    </span>
+                  </div>
+                  <p class="text-[11px] text-slate-600 font-sans leading-relaxed">
+                    Karena Anda berada di lingkungan pengujian (sandbox), Anda dapat memicu notifikasi webhook bank langsung tanpa transfer nyata, atau mengecek respons gateway.
+                  </p>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    <!-- Tombol 1: Trigger Webhook Simulasi Lunas -->
+                    <button
+                      type="button"
+                      @click="triggerSandboxWebhookSimulation"
+                      :disabled="isSimulatingWebhook || isCheckingStatus"
+                      class="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-sora font-semibold rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50 text-center flex items-center justify-center gap-2 shadow-2xs"
+                      title="Memicu webhook pelunasan seolah-olah calon mahasiswa telah transfer di ATM/m-Banking"
+                    >
+                      <Zap class="w-4 h-4 text-amber-300 fill-amber-300" :class="{ 'animate-pulse': isSimulatingWebhook }" />
+                      <span>{{ isSimulatingWebhook ? 'Memproses Webhook...' : 'Simulasikan Bayar (Webhook)' }}</span>
+                    </button>
+
+                    <!-- Tombol 2: Cek Status Pembayaran ke Bank/Gateway -->
+                    <button
+                      type="button"
+                      @click="checkPaymentStatus(false)"
+                      :disabled="isCheckingStatus || isSimulatingWebhook"
+                      class="w-full py-2.5 px-3 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50 text-center flex items-center justify-center gap-2 shadow-2xs"
+                      title="Mengecek ke server bank apakah mutasi sudah masuk"
+                    >
+                      <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': isCheckingStatus }" />
+                      <span>{{ isCheckingStatus ? 'Menghubungi Bank...' : 'Cek Status Pembayaran' }}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Tombol Produksi Real Gateway (Jika Dummy Mode Nonaktif) -->
+                <div v-else class="space-y-2">
+                  <button
+                    type="button"
+                    @click="checkPaymentStatus(false)"
+                    :disabled="isCheckingStatus"
+                    class="w-full py-2.5 px-4 bg-[#1E3A8A] hover:bg-[#172554] text-white font-sora font-semibold rounded-xl text-xs sm:text-sm transition-colors cursor-pointer disabled:opacity-50 text-center flex items-center justify-center gap-2 shadow-2xs"
+                  >
+                    <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isCheckingStatus }" />
+                    <span>{{ isCheckingStatus ? 'Memeriksa ke Sistem Bank...' : 'Cek Status Pembayaran Sekarang' }}</span>
+                  </button>
+                  <p class="text-[11px] text-slate-500 text-center font-sans">
+                    Sistem mendeteksi pelunasan perbankan secara otomatis dalam beberapa detik setelah Anda menyelesaikan transfer. Anda juga dapat menekan tombol di atas untuk sinkronisasi seketika.
+                  </p>
+                </div>
               </div>
 
               <!-- Opsi Batalkan Pendaftaran (Hanya Tampil Sebelum Bayar Pendaftaran) -->
@@ -743,7 +795,7 @@
             <ul class="space-y-1.5 text-[11px] text-slate-500 list-disc list-inside leading-relaxed">
               <li>Pembayaran diproses secara otomatis oleh sistem perbankan.</li>
               <li>Tersedia metode pembayaran QRIS, Virtual Account bank, dan dompet digital.</li>
-              <li>Kuitansi resmi dapat diakses segera setelah tagihan lunas.</li>
+              <li>Status pelunasan pembayaran terverifikasi otomatis untuk membuka akses tahapan selanjutnya.</li>
             </ul>
             <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
               <span class="text-[11px] text-slate-500">Kanal Transaksi Resmi:</span>
@@ -837,96 +889,7 @@
       </div>
     </Teleport>
 
-    <!-- MODAL KUITANSI RESMI PMB BTH (CR-010 / Kuitansi Digital) -->
-    <Teleport to="body">
-      <div
-        v-if="showReceiptModal"
-        class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/65 backdrop-blur-sm animate-fadeIn"
-      >
-        <div class="bg-white rounded-xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden">
-          <div class="p-6 space-y-4">
-            <!-- Kop Surat Resmi Kuitansi -->
-            <div class="text-center pb-3 border-b-2 border-slate-800">
-              <div class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
-                Yayasan Bakti Tunas Husada Tasikmalaya
-              </div>
-              <div class="font-sora font-extrabold text-base text-[#1E3A8A] tracking-tight mt-0.5">
-                UNIVERSITAS BAKTI TUNAS HUSADA
-              </div>
-              <div class="text-[10px] text-slate-500 mt-0.5">
-                Biro Administrasi Keuangan PMB • Jl. Cilolohan No. 36, Tasikmalaya
-              </div>
-            </div>
 
-            <div class="text-center py-1">
-              <h4 class="font-sora font-bold text-slate-900 text-sm uppercase tracking-wide">
-                Tanda Bukti Pembayaran (Kuitansi)
-              </h4>
-              <span class="text-[11px] font-mono text-slate-500">Nomor: {{ currentReceiptNumber }}</span>
-            </div>
-
-            <!-- Tabel Data Kuitansi -->
-            <div class="bg-slate-50 rounded border border-slate-200 p-3.5 space-y-2 text-xs font-sans">
-              <div class="flex justify-between py-1 border-b border-slate-200">
-                <span class="text-slate-500">Telah Diterima Dari:</span>
-                <strong class="text-slate-900">{{ candidateFullName }}</strong>
-              </div>
-              <div class="flex justify-between py-1 border-b border-slate-200">
-                <span class="text-slate-500">Nomor Registrasi PMB:</span>
-                <span class="font-mono text-slate-800">{{ candidateRegNo }}</span>
-              </div>
-              <div class="flex justify-between py-1 border-b border-slate-200">
-                <span class="text-slate-500">Program Studi:</span>
-                <span class="text-slate-800 font-medium">{{ activeProdiName }}</span>
-              </div>
-              <div class="flex justify-between py-1 border-b border-slate-200">
-                <span class="text-slate-500">Guna Pembayaran:</span>
-                <span class="text-slate-800">{{ selectedInvoiceType === 'tuition' ? 'Uang Kuliah Tunggal (UKT) Semester 1 TA 2026/2027' : 'Biaya Formulir Pendaftaran PMB TA 2026/2027' }}</span>
-              </div>
-              <div class="flex justify-between py-1 border-b border-slate-200">
-                <span class="text-slate-500">Waktu Verifikasi Lunas:</span>
-                <span class="text-slate-800">{{ currentPaidAtFormatted }}</span>
-              </div>
-              <div class="flex justify-between items-center pt-2">
-                <span class="font-bold text-slate-800">Jumlah Pembayaran:</span>
-                <strong class="font-sora font-extrabold text-base text-[#1E3A8A]">
-                  Rp {{ currentInvoiceAmount.toLocaleString('id-ID') }}
-                </strong>
-              </div>
-            </div>
-
-            <div class="flex justify-between items-end pt-2 text-[11px] text-slate-600">
-              <div>
-                <p>Dokumen ini adalah bukti pembayaran digital yang sah.</p>
-                <p class="text-slate-400">Dicetak melalui Portal PMB BTH</p>
-              </div>
-              <div class="text-center font-medium">
-                <div>Tasikmalaya, {{ currentDateFormatted }}</div>
-                <div class="text-emerald-700 font-bold mt-1">[TERVERIFIKASI LUNAS]</div>
-                <div class="text-[10px] text-slate-500 mt-0.5">Biro Keuangan BTH</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2">
-            <button
-              type="button"
-              @click="printReceipt"
-              class="px-4 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-semibold rounded cursor-pointer"
-            >
-              Cetak Kuitansi
-            </button>
-            <button
-              type="button"
-              @click="showReceiptModal = false"
-              class="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold rounded cursor-pointer"
-            >
-              Tutup
-            </button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
 
     <!-- MODAL BATALKAN PENDAFTARAN RESMI -->
     <Teleport to="body">
@@ -980,7 +943,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { Copy, RefreshCw, ChevronDown, Download, AlertCircle, CheckCircle2 } from 'lucide-vue-next';
+import { Copy, RefreshCw, ChevronDown, Download, AlertCircle, CheckCircle2, ChevronRight, Zap } from 'lucide-vue-next';
 import QRCode from 'qrcode';
 import { useApplicantStore } from '@/stores/applicant';
 import { useAuthStore } from '@/stores/auth';
@@ -1422,19 +1385,26 @@ const isRegPaid = computed(() => {
   if (applicantStore.isFreeTrack || applicantStore.state?.referral?.isApplied) {
     return true;
   }
+  // 2. Prasyarat: Program studi harus sudah ditentukan
   if (!applicantStore.state.admission?.prodi1) return false;
-  // 2. Cek backend invoice jika ada
+
+  // 3. Cek status pelunasan di store
+  if (applicantStore.state?.payments?.registrationFee?.status === 'paid') {
+    return true;
+  }
+
+  // 4. Cek backend invoice jika ada
   const inv = backendInvoices.value.find((i) => i.fee_type === 'registration');
   if (inv) {
     if (inv.status === 'paid' || inv.amount === 0 || inv.payment_scheme === 'free') {
       return true;
     }
     // Jika backend invoice belum paid dan status admission di backend masih awaiting_payment
-    if (applicantStore.state?.admission?.backendStatus === 'awaiting_payment') {
+    if (applicantStore.state?.admission?.backendStatus === 'awaiting_payment' && applicantStore.state?.payments?.registrationFee?.status !== 'paid') {
       return false;
     }
   }
-  // 3. Sinkronkan dengan getter utama applicantStore
+  // 5. Sinkronkan dengan getter utama applicantStore
   return applicantStore.isRegPaymentComplete;
 });
 
@@ -1642,6 +1612,12 @@ const triggerDuitkuPopup = (refCode) => {
 };
 
 const initiateDuitkuPayment = async () => {
+  if (selectedInvoiceType.value === 'registration' && !applicantStore.state.admission?.prodi1) {
+    toast.warning('Pilihan Program Studi belum ditentukan. Silakan tentukan program studi Anda terlebih dahulu di menu Jalur Pendaftaran.');
+    emit('switch-tab', 'admission');
+    return;
+  }
+
   isInitiatingDuitku.value = true;
   startAutoPolling();
 
@@ -1855,6 +1831,14 @@ const fetchInvoices = async () => {
       const regInv = backendInvoices.value.find((i) => i.fee_type === 'registration');
       if (regInv) {
         activeInvoiceId.value = regInv.id;
+        // Jaga agar status tidak tertimpa jika sudah tercatat lunas di store
+        if (applicantStore.state?.payments?.registrationFee?.status === 'paid') {
+          regInv.status = 'paid';
+        }
+      }
+      const uktInv = backendInvoices.value.find((i) => i.fee_type === 'tuition' || i.fee_type === 'ukt');
+      if (uktInv && applicantStore.state?.payments?.uktFee?.status === 'paid') {
+        uktInv.status = 'paid';
       }
     }
   } catch (err) {
@@ -1875,28 +1859,54 @@ const stopDummyAutoConfirmTimer = () => {
 
 const startDummyAutoConfirmTimer = () => {
   stopDummyAutoConfirmTimer();
-  // Khusus mode dummy jika tagihan saat ini belum lunas
-  if (!isDummyMode.value || isCurrentInvoicePaid.value) return;
+  // Di mode sandbox dev, pengujian pelunasan dilakukan secara manual melalui tombol "Simulasikan Bayar (Webhook)"
+};
 
-  // Sesuai requirement: setelah 5 detik otomatis khusus untuk dummy pembayaran telah dikonfirmasi
-  dummyAutoConfirmTimer = setTimeout(async () => {
-    if (!isCurrentInvoicePaid.value && isDummyMode.value) {
-      await executeConfirmPaid('Otomatis Sistem (Simulasi Dummy 5 Detik)');
-    }
-  }, 5000);
+const isSimulatingWebhook = ref(false);
+
+// Memicu webhook simulasi pelunasan (Sandbox Mode)
+const triggerSandboxWebhookSimulation = async () => {
+  // 1. Validasi Prasyarat: Calon mahasiswa harus sudah menentukan Program Studi di Langkah 2
+  if (selectedInvoiceType.value === 'registration' && !applicantStore.state.admission?.prodi1) {
+    toast.warning('Pilihan Program Studi belum ditentukan. Silakan pilih program studi Anda terlebih dahulu di menu Jalur Pendaftaran.');
+    emit('switch-tab', 'admission');
+    return;
+  }
+
+  isSimulatingWebhook.value = true;
+  try {
+    // Sedikit jeda visual halus (600ms) agar simulasi webhook terasa seperti request jaringan riil
+    await new Promise((resolve) => setTimeout(resolve, 600));
+
+    await executeConfirmPaid('Simulasi Webhook Sandbox');
+    toast.success('⚡ Webhook pembayaran bank berhasil diproses! Tagihan pendaftaran resmi LUNAS dan sesi Ujian CBT Anda telah aktif.');
+  } finally {
+    isSimulatingWebhook.value = false;
+  }
 };
 
 const executeConfirmPaid = async (sourceLabel = 'Simulasi Duitku Dummy') => {
   stopDummyAutoConfirmTimer();
   stopAutoPolling();
 
+  // Validasi prasyarat prodi
+  if (selectedInvoiceType.value === 'registration' && !applicantStore.state.admission?.prodi1) {
+    toast.warning('Pilihan Program Studi belum ditentukan. Silakan tentukan program studi Anda terlebih dahulu di menu Jalur Pendaftaran.');
+    emit('switch-tab', 'admission');
+    return;
+  }
+
   const methodName = paymentCategoryTab.value === 'va'
     ? `Virtual Account ${activeVaBank.value?.shortName || 'BSI'}`
     : 'QRIS Duitku';
 
-  // 1. Catat lunas di store calon mahasiswa
+  // 1. Catat lunas di store calon mahasiswa & aktifkan form_open
   if (selectedInvoiceType.value === 'registration') {
     applicantStore.payRegFee(methodName);
+    if (applicantStore.state?.admission) {
+      applicantStore.state.admission.backendStatus = 'form_open';
+      applicantStore.state.admission.status = 'Berkas & Pembayaran Terverifikasi';
+    }
   } else {
     applicantStore.payUktFee(methodName);
   }
@@ -1925,18 +1935,21 @@ const executeConfirmPaid = async (sourceLabel = 'Simulasi Duitku Dummy') => {
     if (activePaymentId.value) {
       await financeApi.simulatePaymentPaid(activePaymentId.value).catch(() => null);
     }
-    await fetchInvoices();
   } catch (err) {
     console.warn('executeConfirmPaid sync notice:', err?.message);
   }
 
+  // Pastikan targetInv tetap paid
+  if (targetInv) {
+    targetInv.status = 'paid';
+  }
+
   showDuitkuModal.value = false;
-  toast.success('Pembayaran telah terverifikasi lunas.');
 };
 
 const startAutoPolling = () => {
   stopAutoPolling();
-  // Jika dalam mode dummy, jalankan timer 5 detik auto-confirm
+  // Jika dalam mode dummy, jalankan timer 5 detik auto-confirm jika prodi sudah lengkap
   if (isDummyMode.value) {
     startDummyAutoConfirmTimer();
     return;
@@ -1968,23 +1981,26 @@ const handleWindowFocus = async () => {
 const checkPaymentStatus = async (isSilent = false) => {
   if (!isSilent) isCheckingStatus.value = true;
   try {
-    // =========================================================================
-    // KONDISI 1: JIKA MASIH DALAM DUMMY MODE (DEVELOPMENT / MOCK)
-    // Tombol cek status langsung otomatis terkonfirmasi karena masih dummy
-    // =========================================================================
-    if (isDummyMode.value) {
+    // 1. Validasi Prasyarat: Jika prodi belum dipilih
+    if (selectedInvoiceType.value === 'registration' && !applicantStore.state.admission?.prodi1 && !isCurrentInvoicePaid.value) {
       if (!isSilent) {
-        // Sedikit jeda visual halus (400ms) agar interaksi tombol terasa responsif & alami
-        await new Promise((resolve) => setTimeout(resolve, 400));
+        toast.warning('Pilihan Program Studi belum ditentukan. Silakan tentukan program studi Anda terlebih dahulu di menu Jalur Pendaftaran.');
+        emit('switch-tab', 'admission');
       }
-      await executeConfirmPaid('Pemeriksaan Status Cepat Dummy');
       return;
     }
 
-    // =========================================================================
-    // KONDISI 2: JIKA SUDAH DIIMPLEMENTASIKAN DENGAN DUITKU REAL
-    // Secara otomatis mengikuti API resmi Duitku yang ada
-    // =========================================================================
+    // 2. Jika tagihan sudah tercatat lunas
+    if (isCurrentInvoicePaid.value) {
+      stopAutoPolling();
+      stopDummyAutoConfirmTimer();
+      if (!isSilent) {
+        toast.success('Pembayaran telah terverifikasi lunas oleh sistem perbankan.');
+      }
+      return;
+    }
+
+    // 3. Pengecekan status riil ke backend gateway
     let isConfirmedPaid = false;
     let isAwaiting = false;
 
@@ -2006,25 +2022,21 @@ const checkPaymentStatus = async (isSilent = false) => {
     await fetchInvoices();
 
     if (isCurrentInvoicePaid.value || isConfirmedPaid) {
-      stopAutoPolling();
-      stopDummyAutoConfirmTimer();
-      showDuitkuModal.value = false;
-      const methodName = paymentCategoryTab.value === 'va'
-        ? `Virtual Account ${activeVaBank.value?.shortName || 'BSI'}`
-        : 'QRIS Duitku';
-      if (selectedInvoiceType.value === 'registration') {
-        applicantStore.payRegFee(methodName);
-      } else {
-        applicantStore.payUktFee(methodName);
+      await executeConfirmPaid('Verifikasi Status Gateway');
+      if (!isSilent) {
+        toast.success('Pembayaran telah terverifikasi lunas oleh sistem perbankan.');
       }
-      toast.success('Pembayaran telah terverifikasi secara otomatis oleh sistem perbankan.');
     } else if (isCurrentInvoicePending.value || isAwaiting) {
       if (!isSilent) {
         toast.info('Status pembayaran sedang dalam antrean verifikasi perbankan.');
       }
     } else {
       if (!isSilent) {
-        toast.warning('Pembayaran belum terdeteksi. Silakan selesaikan transaksi lalu periksa kembali.');
+        if (isDummyMode.value) {
+          toast.info('Belum ada mutasi pembayaran terdeteksi dari bank. Silakan klik tombol "Simulasikan Bayar (Webhook)" di atas untuk menguji alur pelunasan.');
+        } else {
+          toast.warning('Pembayaran belum terdeteksi. Silakan selesaikan transaksi lalu periksa kembali.');
+        }
       }
     }
   } catch (err) {
