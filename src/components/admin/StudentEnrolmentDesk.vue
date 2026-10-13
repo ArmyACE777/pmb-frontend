@@ -159,9 +159,6 @@
             <h4 class="font-sora font-bold text-xs sm:text-sm text-slate-900">
               Penerbitan NIM Otomatis Berbasis Sistem (T.A. 2026/2027)
             </h4>
-            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-              Auto-Provisioning Aktif
-            </span>
           </div>
           <p class="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
             Sesuai pedoman akademik BTH dan format migrasi SIAKAD SEVIMA, Nomor Induk Mahasiswa serta Gugus PKKMB diterbitkan secara <strong>otomatis oleh sistem</strong> seketika mahasiswa dinyatakan <strong>Lulus Seleksi</strong> dan menyelesaikan <strong>Pelunasan UKT Semester 1</strong>. Admin tidak perlu menetapkan manual.
@@ -244,17 +241,14 @@
 
               <!-- NIM -->
               <td class="py-3.5 px-4 whitespace-nowrap">
-                <div v-if="applicant.onboarding.nim" class="inline-flex items-center gap-1.5">
+                <div v-if="applicant.onboarding.nim">
                   <span class="font-mono font-bold text-xs text-slate-900 bg-emerald-50 text-emerald-800 border border-emerald-200/90 px-2 py-0.5 rounded shadow-2xs">
                     {{ applicant.onboarding.nim }}
-                  </span>
-                  <span class="text-[9px] font-bold text-emerald-700 uppercase tracking-tight bg-emerald-100/60 px-1 py-0.2 rounded">
-                    Otomatis
                   </span>
                 </div>
                 <div v-else-if="applicant.selection.passedStatus === 'passed' && applicant.payments.uktFee.status === 'paid'" class="inline-flex items-center gap-1 text-blue-600 font-medium text-[11px]">
                   <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping"></span>
-                  <span>Siap Terbit Otomatis</span>
+                  <span>Siap Terbit</span>
                 </div>
                 <span v-else class="text-[11px] text-slate-400 italic whitespace-nowrap">Menunggu Lunas UKT</span>
               </td>
@@ -287,7 +281,7 @@
                   v-else
                   class="text-[11px] text-slate-400 italic"
                 >
-                  Otomatis saat Lunas
+                  Saat Lunas UKT
                 </span>
               </td>
             </tr>
