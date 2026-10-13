@@ -758,7 +758,10 @@ const displayedNim = computed(() => {
   if (onboarding.value?.nim) return onboarding.value.nim;
   const regNo = candidate.value?.registrationNumber || '1001';
   const digits = regNo.replace(/\D/g, '').slice(-4) || '1001';
-  return `2601${digits}`;
+  const prodi = result.value?.acceptedProdi || applicantStore.state.admission?.prodi1 || '';
+  const meta = PRODI_METADATA[prodi];
+  const prodiCode = meta?.code || '01';
+  return `26${prodiCode}${digits}`;
 });
 
 const displayedEmail = computed(() => {

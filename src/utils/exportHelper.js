@@ -371,7 +371,7 @@ export function mapApplicantToSevimaRow(app) {
     isActive: '1',
     isFinalized: app.status === 'registered' || app.isVerified ? '1' : '0',
     programType: c.programType || 'IPA',
-    nim: app.nim || app.studentId || '',
+    nim: app.onboarding?.nim || app.nim || app.studentId || '',
     examNumber: app.examCardNumber || app.examNumber || '',
     prodiChoice1: p.code || adm.prodi1Code || '132',
     concentrationChoice1: '',
