@@ -859,7 +859,16 @@ function updateApplicantWithLocalState(applicant, localState) {
 
   if (onb.nim || pays.uktFee?.status === 'paid') {
     applicant.onboarding = applicant.onboarding || {};
-    if (onb.nim) applicant.onboarding.nim = onb.nim;
+    if (onb.nim) {
+      // Normalisasi format lama 8-digit ke format standar resmi 9-digit {YY}{prodi}{jalur}{urut:4}
+      if (onb.nim.length === 8 && onb.nim.startsWith('26')) {
+        const prodiCode = onb.nim.slice(2, 4);
+        const seq = onb.nim.slice(4);
+        applicant.onboarding.nim = `26${prodiCode}1${seq}`;
+      } else {
+        applicant.onboarding.nim = onb.nim;
+      }
+    }
     if (onb.pkkmbGroup) applicant.onboarding.pkkmbGroup = onb.pkkmbGroup;
     if (pays.uktFee?.status === 'paid') applicant.onboarding.isEnrolled = true;
   }
