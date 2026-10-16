@@ -533,19 +533,19 @@
 
               <!-- Tombol Cek Status & Simulasi Bayar Berhasil (In-page) -->
               <div class="pt-2 space-y-3">
-                <!-- Panel Sandbox / Simulator Webhook Transaksi (Mode Dummy/Dev) -->
+                <!-- Panel Sandbox / Simulator Webhook Transaksi (Mode Dummy/Dev/Demo Staging) -->
                 <div v-if="isDummyMode" class="p-3.5 bg-blue-50/80 border border-blue-200 rounded-xl space-y-2.5">
                   <div class="flex items-center justify-between">
                     <span class="inline-flex items-center gap-1.5 text-[11px] font-sora font-bold text-[#1E3A8A]">
                       <Zap class="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                      <span>Pengujian Sandbox & Webhook (Dev Mode)</span>
+                      <span>Pengujian Sandbox & Simulasi Webhook (Demo Mode)</span>
                     </span>
                     <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-100 text-[#1E3A8A] font-semibold">
                       Duitku Sandbox Mock
                     </span>
                   </div>
                   <p class="text-[11px] text-slate-600 font-sans leading-relaxed">
-                    Karena Anda berada di lingkungan pengujian (sandbox), Anda dapat memicu notifikasi webhook bank langsung tanpa transfer nyata, atau mengecek respons gateway.
+                    Karena Anda berada di lingkungan pengujian (sandbox/demo), Anda dapat memicu notifikasi webhook bank langsung tanpa transfer nyata, atau mengecek respons gateway.
                   </p>
 
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
@@ -1144,8 +1144,9 @@ const showReceiptModal = ref(false);
 const showDuitkuModal = ref(false);
 const isSimulatingPaid = ref(false);
 
-// Mode Payment Gateway: Dummy (mock/dev) vs Real Duitku API
-const isDummyMode = ref(true); // Default true saat development / dummy PMB
+// Mode Payment Gateway: Real Gateway vs Sandbox Dev / Demo Staging (Skenario A)
+const allowSimulatorByEnv = import.meta.env.VITE_ENABLE_SANDBOX_SIMULATOR === 'true';
+const isDummyMode = ref(allowSimulatorByEnv || import.meta.env.DEV);
 const paymentConfig = ref(null);
 let dummyAutoConfirmTimer = null;
 
@@ -1154,17 +1155,17 @@ const loadPaymentConfig = async () => {
     const res = await financeApi.getPaymentConfig().catch(() => null);
     if (res?.data) {
       paymentConfig.value = res.data;
-      // Jika backend secara resmi dikonfigurasi dengan provider Duitku riil dan tidak mengizinkan simulasi dev:
-      if (res.data.provider === 'duitku' && res.data.can_simulate === false) {
-        isDummyMode.value = false;
-      } else {
+      // Aktifkan mode simulasi jika diizinkan oleh ENV (Skenario A) atau backend dev can_simulate
+      if (allowSimulatorByEnv || (import.meta.env.DEV && res.data.can_simulate === true)) {
         isDummyMode.value = true;
+      } else {
+        isDummyMode.value = false;
       }
     } else {
-      isDummyMode.value = true;
+      isDummyMode.value = allowSimulatorByEnv || import.meta.env.DEV;
     }
   } catch {
-    isDummyMode.value = true;
+    isDummyMode.value = allowSimulatorByEnv || import.meta.env.DEV;
   }
 };
 
@@ -1951,13 +1952,8 @@ const executeConfirmPaid = async (sourceLabel = 'Simulasi Duitku Dummy') => {
 
 const startAutoPolling = () => {
   stopAutoPolling();
-  // Jika dalam mode dummy, jalankan timer 5 detik auto-confirm jika prodi sudah lengkap
-  if (isDummyMode.value) {
-    startDummyAutoConfirmTimer();
-    return;
-  }
 
-  // Jika dalam mode Duitku real: polling otomatis setiap 4.5 detik untuk mendeteksi konfirmasi webhook perbankan
+  // Polling otomatis setiap 4.5 detik untuk mendeteksi konfirmasi webhook perbankan
   pollInterval = setInterval(async () => {
     if (isCurrentInvoicePaid.value) {
       stopAutoPolling();
@@ -2101,23 +2097,14 @@ const handleCancelAdmission = async () => {
 watch(isCurrentInvoicePaid, (newVal) => {
   if (newVal) {
     stopAutoPolling();
-    stopDummyAutoConfirmTimer();
   } else {
-    if (isDummyMode.value) {
-      startDummyAutoConfirmTimer();
-    } else {
-      startAutoPolling();
-    }
+    startAutoPolling();
   }
 });
 
 watch(selectedInvoiceType, () => {
   if (!isCurrentInvoicePaid.value) {
-    if (isDummyMode.value) {
-      startDummyAutoConfirmTimer();
-    } else {
-      startAutoPolling();
-    }
+    startAutoPolling();
   }
 });
 
@@ -2126,17 +2113,6 @@ watch([currentInvoiceAmount, candidateRegNo, selectedInvoiceType], () => {
 });
 
 onMounted(async () => {
-  if (route?.query?.paid === 'true' || route?.query?.demo_paid === 'true') {
-    applicantStore.payRegFee('Simulasi Pelunasan Demo');
-    if (applicantStore.state?.admission) {
-      applicantStore.state.admission.backendStatus = 'form_open';
-      applicantStore.state.admission.status = 'Berkas & Pembayaran Terverifikasi';
-      if (!applicantStore.state.admission.prodi1) {
-        applicantStore.state.admission.prodi1 = 'S1 Farmasi';
-      }
-    }
-  }
-
   await fetchInvoices();
   await loadPaymentConfig();
   await loadDuitkuMethods();
@@ -2145,11 +2121,7 @@ onMounted(async () => {
     selectedInvoiceType.value = 'tuition';
   }
   if (!isCurrentInvoicePaid.value) {
-    if (isDummyMode.value) {
-      startDummyAutoConfirmTimer();
-    } else {
-      startAutoPolling();
-    }
+    startAutoPolling();
   }
   window.addEventListener('focus', handleWindowFocus);
 });

@@ -106,12 +106,10 @@ function createInitialState(user) {
     }
   } catch {}
 
-  const isUjang = user?.email === 'ujang@gmail.com' || adminSeed?.email === 'ujang@gmail.com';
-  const regNo = adminSeed?.id || (isUjang ? 'BTH-2026-REG-09182' : generateRegNumber(user?.id, user?.email));
-  const regSuffix = isUjang ? '09182' : (regNo.split('-').pop() || String(Math.floor(10000 + Math.random() * 90000)));
+  const regNo = adminSeed?.id || generateRegNumber(user?.id, user?.email);
   const currentYear = new Date().getFullYear();
 
-  const isFeePaid = adminSeed?.payments?.registrationFee?.status === 'paid' || isUjang;
+  const isFeePaid = adminSeed?.payments?.registrationFee?.status === 'paid';
   const isUktPaid = adminSeed?.payments?.uktFee?.status === 'paid';
   const isPassed = adminSeed?.selection?.passedStatus === 'passed';
   const hasNim = !!adminSeed?.onboarding?.nim;
@@ -119,48 +117,48 @@ function createInitialState(user) {
   return {
     candidate: {
       registrationNumber: regNo,
-      fullName: isUjang ? 'Ujang Mahasiswa' : (adminSeed?.fullName || user?.full_name || ''),
-      nik: isUjang ? '3278011204040008' : (adminSeed?.nik && adminSeed.nik !== '-' ? adminSeed.nik : ''),
-      nisn: isUjang ? '0061284918' : (adminSeed?.nisn && adminSeed.nisn !== '-' ? adminSeed.nisn : ''),
+      fullName: adminSeed?.fullName || user?.full_name || '',
+      nik: adminSeed?.nik && adminSeed.nik !== '-' ? adminSeed.nik : '',
+      nisn: adminSeed?.nisn && adminSeed.nisn !== '-' ? adminSeed.nisn : '',
       email: user?.email || adminSeed?.email || '',
-      phone: isUjang ? '08123456789' : (adminSeed?.phone && adminSeed.phone !== '-' ? adminSeed.phone : (user?.phone || '')),
-      gender: isUjang ? 'Laki-laki' : (adminSeed?.gender && adminSeed.gender !== '-' ? adminSeed.gender : 'Laki-laki'),
-      birthPlace: isUjang ? 'Bandung' : 'Tasikmalaya',
-      birthDate: isUjang ? '2008-04-12' : '2008-05-15',
-      religion: isUjang ? 'Islam' : 'Islam',
+      phone: adminSeed?.phone && adminSeed.phone !== '-' ? adminSeed.phone : (user?.phone || ''),
+      gender: adminSeed?.gender && adminSeed.gender !== '-' ? adminSeed.gender : 'Laki-laki',
+      birthPlace: '',
+      birthDate: '',
+      religion: 'Islam',
       citizenship: 'WNI',
-      address: isUjang ? 'Jl. Raya Margahayu No. 45' : 'Jl. Cilolohan No. 35',
-      city: isUjang ? 'Kab. Bandung' : (adminSeed?.city || 'Kota Tasikmalaya'),
-      province: isUjang ? 'Jawa Barat' : 'Jawa Barat',
-      postalCode: isUjang ? '40225' : '46115',
-      schoolName: isUjang ? 'SMK MARHAS MARGAHAYU' : (adminSeed?.schoolName && adminSeed.schoolName !== 'Belum Diisi' ? adminSeed.schoolName : ''),
-      schoolMajor: isUjang ? 'Farmasi Klinis dan Komunitas' : 'MIPA / IPA',
-      graduationYear: isUjang ? '2026' : '2026',
-      averageScore: isUjang ? '86.50' : (adminSeed?.averageScore && adminSeed.averageScore !== '-' ? adminSeed.averageScore : ''),
-      fatherName: isUjang ? 'Asep Hidayat' : 'Budi Santoso',
-      fatherJob: isUjang ? 'Wiraswasta' : 'Karyawan Swasta',
-      fatherIncome: isUjang ? 'Rp 3.000.000 - Rp 5.000.000' : 'Rp 3.000.000 - Rp 5.000.000',
-      fatherEducation: 'SMA',
+      address: '',
+      city: adminSeed?.city || '',
+      province: 'Jawa Barat',
+      postalCode: '',
+      schoolName: adminSeed?.schoolName && adminSeed.schoolName !== 'Belum Diisi' ? adminSeed.schoolName : '',
+      schoolMajor: '',
+      graduationYear: String(currentYear),
+      averageScore: adminSeed?.averageScore && adminSeed.averageScore !== '-' ? adminSeed.averageScore : '',
+      fatherName: '',
+      fatherJob: '',
+      fatherIncome: '',
+      fatherEducation: '',
       fatherLifeStatus: '1',
-      fatherAddress: isUjang ? 'Jl. Raya Margahayu No. 45' : 'Jl. Cilolohan No. 35',
-      fatherBirthPlace: isUjang ? 'Bandung' : 'Tasikmalaya',
-      fatherBirthDate: isUjang ? '1978-05-10' : '1975-06-12',
-      motherName: isUjang ? 'Eni Rohaeni' : 'Siti Maryam',
-      motherJob: isUjang ? 'Ibu Rumah Tangga' : 'Ibu Rumah Tangga',
-      motherIncome: isUjang ? 'Tidak Berpenghasilan' : 'Tidak Berpenghasilan',
-      motherEducation: 'SMA',
+      fatherAddress: '',
+      fatherBirthPlace: '',
+      fatherBirthDate: '',
+      motherName: '',
+      motherJob: '',
+      motherIncome: '',
+      motherEducation: '',
       motherLifeStatus: '1',
-      motherAddress: isUjang ? 'Jl. Raya Margahayu No. 45' : 'Jl. Cilolohan No. 35',
-      motherBirthPlace: isUjang ? 'Bandung' : 'Tasikmalaya',
-      motherBirthDate: isUjang ? '1982-08-20' : '1978-09-14',
-      parentIncome: isUjang ? 'Rp 3.000.000 - Rp 5.000.000' : 'Rp 3.000.000 - Rp 5.000.000',
-      emergencyContact: isUjang ? '08123456789' : (user?.phone || '081234567890'),
+      motherAddress: '',
+      motherBirthPlace: '',
+      motherBirthDate: '',
+      parentIncome: '',
+      emergencyContact: user?.phone || '',
       photoUrl: user?.avatar || '',
       // Atribut Tambahan Format Migrasi SEVIMA (20261007 format migrasi sevima.xlsx)
-      rt: isUjang ? '03' : '02',
-      rw: '05',
-      dusun: 'Sukajaya',
-      subDistrict: 'Tawang',
+      rt: '',
+      rw: '',
+      dusun: '',
+      subDistrict: '',
       familyCardNumber: '',
       almamaterSize: 'L',
       programType: 'IPA',
@@ -172,18 +170,18 @@ function createInitialState(user) {
       isKipKuliah: '0',
       npsn: '',
       schoolProvince: 'Jawa Barat',
-      schoolCity: 'Kota Tasikmalaya',
+      schoolCity: '',
       unScore: '',
     },
     admission: {
-      track: isUjang ? 'Jalur Kemitraan Guru BK (SMK MARHAS MARGAHAYU)' : (adminSeed?.track || 'Jalur Reguler Gelombang 1'),
+      track: adminSeed?.track || 'Jalur Reguler Gelombang 1',
       academicYear: `${currentYear}/${currentYear + 1}`,
-      prodi1: isUjang ? 'S1 Farmasi' : (adminSeed?.prodi1 && adminSeed.prodi1 !== 'Belum Memilih Prodi' ? adminSeed.prodi1 : ''),
-      prodi1Faculty: isUjang ? 'Fakultas Farmasi' : (adminSeed?.faculty && adminSeed.faculty !== '-' ? adminSeed.faculty : ''),
-      prodi1Degree: isUjang ? 'S.Farm.' : 'S.Kom.',
-      prodi2: isUjang ? 'D3 Farmasi' : (adminSeed?.prodi2 && adminSeed.prodi2 !== '-' ? adminSeed.prodi2 : ''),
-      prodi2Faculty: isUjang ? 'Fakultas Farmasi' : '',
-      prodi2Degree: isUjang ? 'A.Md.Farm.' : '',
+      prodi1: adminSeed?.prodi1 && adminSeed.prodi1 !== 'Belum Memilih Prodi' ? adminSeed.prodi1 : '',
+      prodi1Faculty: adminSeed?.faculty && adminSeed.faculty !== '-' ? adminSeed.faculty : '',
+      prodi1Degree: 'S1',
+      prodi2: adminSeed?.prodi2 && adminSeed.prodi2 !== '-' ? adminSeed.prodi2 : '',
+      prodi2Faculty: '',
+      prodi2Degree: '',
       quotaWave1: 120,
       status: hasNim ? 'Mahasiswa Resmi Terdaftar (NIM Terbit)' : (isPassed ? 'Dinyatakan Lulus Seleksi' : (isFeePaid ? 'Berkas & Pembayaran Terverifikasi' : 'Pengisian Formulir Pendaftaran')),
     },
@@ -411,31 +409,7 @@ export const useApplicantStore = defineStore('applicant', () => {
             merged.candidate.phone = user.phone || merged.candidate.phone || '';
           }
 
-          // Sinkronisasi khusus akun demo Ujang Mahasiswa ke mitra MARHASBISA
-          if (user?.email === 'ujang@gmail.com') {
-            merged.candidate.registrationNumber = merged.candidate.registrationNumber || 'BTH-2026-REG-09182';
-            merged.candidate.fullName = 'Ujang Mahasiswa';
-            merged.candidate.nik = merged.candidate.nik || '3278011204040008';
-            merged.candidate.nisn = merged.candidate.nisn || '0061284918';
-            merged.candidate.phone = merged.candidate.phone || '08123456789';
-            merged.candidate.schoolName = merged.candidate.schoolName || 'SMK MARHAS MARGAHAYU';
-            merged.candidate.city = merged.candidate.city || 'Kab. Bandung';
-            merged.admission.track = merged.admission.track || 'Jalur Kemitraan Guru BK (SMK MARHAS MARGAHAYU)';
-            merged.admission.prodi1 = merged.admission.prodi1 || 'S1 Farmasi';
-            merged.admission.prodi1Faculty = merged.admission.prodi1Faculty || 'Fakultas Farmasi';
-            merged.referral = {
-              code: 'MARHASBISA',
-              schoolName: 'SMK MARHAS MARGAHAYU',
-              picName: 'Kemal Ramadhan',
-              isApplied: true,
-              appliedAt: merged.referral?.appliedAt || '2026-02-15T08:00:00Z',
-            };
-            if (merged.payments?.registrationFee) {
-              merged.payments.registrationFee.status = 'paid';
-              merged.payments.registrationFee.statusLabel = 'Lunas (Kemitraan Guru BK)';
-              merged.payments.registrationFee.paymentMethod = 'Kemitraan Guru BK (MARHASBISA)';
-            }
-          }
+
 
           // Rekonsiliasi dengan data resmi dari Meja Admin jika ada update
           try {

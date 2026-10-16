@@ -33,8 +33,17 @@ export const useAuthStore = defineStore('auth', () => {
       !!localStorage.getItem('bth_bk_session')
     );
   });
+  const isMarketing = computed(() => {
+    if (isAdmin.value) return false;
+    return (
+      userRoles.value.includes('marketing') ||
+      userRoles.value.includes('tim_marketing') ||
+      user.value?.role === 'marketing' ||
+      !!localStorage.getItem('bth_marketing_session')
+    );
+  });
   const isApplicant = computed(() => {
-    return !isAdmin.value && !isBkPartner.value;
+    return !isAdmin.value && !isBkPartner.value && !isMarketing.value;
   });
 
   const permissions = ref([]);
@@ -69,6 +78,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const setAuth = (data) => {
     localStorage.removeItem('bth_bk_session');
+    localStorage.removeItem('bth_marketing_session');
     if (data.access_token) {
       accessToken.value = data.access_token;
       localStorage.setItem('access_token', data.access_token);
@@ -85,6 +95,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const setBkUser = (partner) => {
     localStorage.removeItem('bth_allow_demo_admin');
+    localStorage.removeItem('bth_marketing_session');
     localStorage.removeItem('refresh_token');
     const bkUser = {
       id: partner.id,
@@ -104,6 +115,28 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem('bth_bk_session', JSON.stringify(partner));
   };
 
+  const setMarketingUser = (marketingPartner) => {
+    localStorage.removeItem('bth_allow_demo_admin');
+    localStorage.removeItem('bth_bk_session');
+    localStorage.removeItem('refresh_token');
+    const mktUser = {
+      id: marketingPartner.id,
+      name: marketingPartner.picName,
+      full_name: marketingPartner.picName,
+      email: marketingPartner.email,
+      school_name: marketingPartner.schoolName || 'Tim Marketing Lapangan BTH',
+      code: marketingPartner.code,
+      roles: ['marketing'],
+      role: 'marketing',
+      status: 'active',
+    };
+    user.value = mktUser;
+    accessToken.value = `mkt_token_${marketingPartner.id}`;
+    localStorage.setItem('access_token', accessToken.value);
+    localStorage.setItem('user', JSON.stringify(mktUser));
+    localStorage.setItem('bth_marketing_session', JSON.stringify(marketingPartner));
+  };
+
   const clearAuth = () => {
     accessToken.value = null;
     refreshToken.value = null;
@@ -112,6 +145,7 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
     localStorage.removeItem('bth_bk_session');
+    localStorage.removeItem('bth_marketing_session');
     localStorage.removeItem('bth_allow_demo_admin');
   };
 
@@ -384,8 +418,10 @@ export const useAuthStore = defineStore('auth', () => {
     isDekan,
     isAdmin,
     isBkPartner,
+    isMarketing,
     isApplicant,
     setBkUser,
+    setMarketingUser,
     permissions,
     hasPermission,
     fetchPermissions,

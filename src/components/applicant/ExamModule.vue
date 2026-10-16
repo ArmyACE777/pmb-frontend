@@ -1126,9 +1126,13 @@ const finishExam = async () => {
         correctCount = Math.ceil(questions.value.length * 0.7);
       }
     } else {
-      // Perhitungan fallback
-      finalScore = 85;
-      correctCount = questions.value.length - 1;
+      // Jika mode dev lokal offline tanpa CBT service
+      if (import.meta.env.DEV) {
+        finalScore = 85;
+        correctCount = questions.value.length - 1;
+      } else {
+        throw new Error('Sesi ujian tidak valid atau koneksi ke server CBT terputus.');
+      }
     }
 
     applicantStore.submitExam(finalScore, correctCount);
@@ -1142,13 +1146,18 @@ const finishExam = async () => {
         passing_grade: 70,
       })
       .catch((err) => {
-        console.warn('Scoring API Notice (fallback):', err?.message);
+        console.warn('Scoring API Notice:', err?.message);
       });
 
     toast.success('Ujian CBT online berhasil dikumpulkan. Skor Anda telah tercatat dalam sistem.');
   } catch (err) {
     console.warn('Submit attempt notice:', err?.message);
-    applicantStore.submitExam(80, questions.value.length - 1);
+    if (import.meta.env.DEV) {
+      applicantStore.submitExam(80, questions.value.length - 1);
+      toast.info('Mode Dev Lokal: Hasil ujian dicatat secara simulasi.');
+    } else {
+      toast.error('Gagal mengumpulkan lembar jawaban ujian ke server. Silakan periksa koneksi internet Anda atau hubungi panitia PMB.');
+    }
   } finally {
     isSubmittingExam.value = false;
     isTesting.value = false;

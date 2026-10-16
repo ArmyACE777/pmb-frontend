@@ -88,15 +88,13 @@ const whatsappGroupUrl = computed(() => {
   return cmsStore.links.onboardingWaGroup || cmsStore.links.officialWaGroup || 'https://chat.whatsapp.com/BTH-MabaOnboarding2026';
 });
 
-// Guard di dalam komponen: Jika user yang sudah terdaftar mengakses halaman ini, langsung arahkan ke dashboard
 onMounted(() => {
-  const isDemo = route.query.demo === 'true' || localStorage.getItem('bth_allow_demo_admin') === 'true';
   const userEmail = authStore.currentUser?.email || localStorage.getItem('bth_auth_user_email') || 'applicant';
   const needsOnboarding = localStorage.getItem(`bth_needs_onboarding_${userEmail}`) === 'true';
   const hasJoined = localStorage.getItem(`bth_wa_group_joined_${userEmail}`) === 'true';
 
   // Jika bukan pendaftar baru yang butuh onboarding atau sudah pernah bergabung, langsung ke dashboard
-  if (!isDemo && (!needsOnboarding || hasJoined)) {
+  if (!needsOnboarding || hasJoined) {
     router.replace('/dashboard');
   }
 });

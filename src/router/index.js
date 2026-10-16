@@ -10,6 +10,7 @@ const router = createRouter({
         const authStore = useAuthStore();
         if (!authStore.isAuthenticated) return '/login';
         if (authStore.isAdmin) return '/admin';
+        if (authStore.isMarketing) return '/marketing';
         if (authStore.isBkPartner) return '/bk';
         return '/dashboard';
       },
@@ -69,6 +70,13 @@ const router = createRouter({
       component: () => import('@/views/BkDashboardView.vue'),
       meta: { requiresAuth: true, bkOnly: true },
     },
+    // 2b. Dashboard Tim Marketing Lapangan (Akses Terisolasi: Tim Marketing PMB)
+    {
+      path: '/marketing',
+      name: 'marketing-dashboard',
+      component: () => import('@/views/MarketingDashboardView.vue'),
+      meta: { requiresAuth: true, marketingOnly: true },
+    },
     // 3. Dashboard Admin PMB (Akses Terisolasi: Panitia, Keuangan, & Superadmin)
     {
       path: '/admin',
@@ -93,11 +101,8 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
 
-  const isDemoModeAllowed =
-    localStorage.getItem('bth_allow_demo_admin') === 'true' || to.query.demo === 'true';
-
   // 1. Guard Autentikasi Umum: Jika route butuh login dan pengguna belum login
-  if (to.meta.requiresAuth && !authStore.isAuthenticated && !isDemoModeAllowed) {
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return next({
       name: 'login',
       query: to.fullPath !== '/' && to.fullPath !== '/dashboard' ? { redirect: to.fullPath } : {},
@@ -107,15 +112,19 @@ router.beforeEach((to, from, next) => {
   // 2. Guard Halaman Tamu (/login, /register): Jika SUDAH login, arahkan ke dashboard masing-masing secara otomatis
   if (to.meta.guestOnly && authStore.isAuthenticated) {
     if (authStore.isAdmin) return next({ name: 'admin-dashboard' });
+    if (authStore.isMarketing) return next({ name: 'marketing-dashboard' });
     if (authStore.isBkPartner) return next({ name: 'bk-dashboard' });
     return next({ name: 'dashboard' });
   }
 
   // 3. Guard Isolasi Keamanan Dashboard Admin (/admin)
-  // Calon Mahasiswa & Guru BK DILARANG KERAS mengakses meja kerja admin
+  // Calon Mahasiswa, Marketing, & Guru BK DILARANG KERAS mengakses meja kerja admin
   if (to.meta.adminOnly) {
     const hasAdminRole = authStore.isAdmin;
-    if (!hasAdminRole && !isDemoModeAllowed) {
+    if (!hasAdminRole) {
+      if (authStore.isMarketing) {
+        return next({ name: 'marketing-dashboard', query: { unauthorized: 'admin' } });
+      }
       if (authStore.isBkPartner) {
         return next({ name: 'bk-dashboard', query: { unauthorized: 'admin' } });
       }
@@ -124,18 +133,27 @@ router.beforeEach((to, from, next) => {
   }
 
   // 4. Guard Isolasi Keamanan Dashboard Mitra Guru BK (/bk)
-  // Calon Mahasiswa DILARANG KERAS mengakses data rekomendasi dan komisi Guru BK
   if (to.meta.bkOnly) {
-    const canAccessBk = authStore.isBkPartner || authStore.isAdmin || isDemoModeAllowed;
+    const canAccessBk = authStore.isBkPartner || authStore.isAdmin;
     if (!canAccessBk) {
       return next({ name: 'dashboard', query: { unauthorized: 'bk' } });
     }
   }
 
+  // 4b. Guard Isolasi Keamanan Dashboard Tim Marketing (/marketing)
+  if (to.meta.marketingOnly) {
+    const canAccessMarketing = authStore.isMarketing || authStore.isAdmin;
+    if (!canAccessMarketing) {
+      return next({ name: 'dashboard', query: { unauthorized: 'marketing' } });
+    }
+  }
+
   // 5. Guard Isolasi Keamanan Dashboard Calon Mahasiswa (/dashboard)
-  // Mitra Guru BK (bukan admin) DILARANG mengakses modul biodata formulir mahasiswa
   if (to.meta.applicantOnly) {
-    if (authStore.isBkPartner && !authStore.isAdmin) {
+    if ((authStore.isBkPartner || authStore.isMarketing) && !authStore.isAdmin) {
+      if (authStore.isMarketing) {
+        return next({ name: 'marketing-dashboard', query: { unauthorized: 'applicant' } });
+      }
       return next({ name: 'bk-dashboard', query: { unauthorized: 'applicant' } });
     }
   }
@@ -145,7 +163,7 @@ router.beforeEach((to, from, next) => {
   const needsOnboarding = localStorage.getItem(`bth_needs_onboarding_${userEmail}`) === 'true';
   const hasJoinedWa = localStorage.getItem(`bth_wa_group_joined_${userEmail}`) === 'true';
 
-  if (to.name === 'dashboard' && !authStore.isAdmin && !authStore.isBkPartner) {
+  if (to.name === 'dashboard' && !authStore.isAdmin && !authStore.isBkPartner && !authStore.isMarketing) {
     if (needsOnboarding && !hasJoinedWa && !to.query.skip_wa) {
       return next({ name: 'onboarding-wa' });
     }

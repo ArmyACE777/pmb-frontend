@@ -975,18 +975,14 @@ export const useAdminStore = defineStore('admin', () => {
               a.fullName !== 'Administrator PMB' &&
               !a.email?.includes('superadmin@bth')
           );
-          const hasUjang = cleaned.some((a) => a.email === 'ujang@gmail.com');
-          if (!hasUjang) {
-            const ujangSeed = OFFICIAL_CANDIDATE_SEEDS.find((a) => a.email === 'ujang@gmail.com');
-            if (ujangSeed) cleaned.unshift(ujangSeed);
-          }
           return cleaned;
         }
       }
     } catch (e) {
       console.warn('Failed to parse admin data from storage:', e);
     }
-    return JSON.parse(JSON.stringify(OFFICIAL_CANDIDATE_SEEDS));
+    // Hanya gunakan seed data kandidat fiktif saat mode development lokal
+    return import.meta.env.DEV ? JSON.parse(JSON.stringify(OFFICIAL_CANDIDATE_SEEDS)) : [];
   };
 
   const applicants = ref(loadInitialData());
@@ -1618,21 +1614,7 @@ export const useAdminStore = defineStore('admin', () => {
       return cachedToken;
     }
 
-    try {
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
-      const res = await axios.post(`${baseURL}/auth/login`, {
-        email: 'superadmin@bth.id',
-        password: 'Password123!',
-      });
-      const token = res.data?.data?.access_token;
-      if (token) {
-        sessionStorage.setItem('bth_admin_session_token', token);
-        return token;
-      }
-    } catch (e) {
-      console.warn('Gagal mendapatkan token sesi internal superadmin:', e);
-    }
-    return currentToken;
+    return currentToken || '';
   };
 
   // Action: Sinkronkan seluruh data pelamar dari penyimpanan lokal browser (bth_applicant_v3_*)
@@ -1802,7 +1784,7 @@ export const useAdminStore = defineStore('admin', () => {
     } catch (e) {
       console.warn('Failed to parse path changes:', e);
     }
-    return JSON.parse(JSON.stringify(OFFICIAL_PATH_CHANGE_SEEDS));
+    return import.meta.env.DEV ? JSON.parse(JSON.stringify(OFFICIAL_PATH_CHANGE_SEEDS)) : [];
   };
 
   const loadInitialWithdrawals = () => {
@@ -1815,7 +1797,7 @@ export const useAdminStore = defineStore('admin', () => {
     } catch (e) {
       console.warn('Failed to parse withdrawals:', e);
     }
-    return JSON.parse(JSON.stringify(OFFICIAL_WITHDRAWAL_SEEDS));
+    return import.meta.env.DEV ? JSON.parse(JSON.stringify(OFFICIAL_WITHDRAWAL_SEEDS)) : [];
   };
 
   const loadInitialRefunds = () => {
@@ -1828,7 +1810,7 @@ export const useAdminStore = defineStore('admin', () => {
     } catch (e) {
       console.warn('Failed to parse refund reviews:', e);
     }
-    return JSON.parse(JSON.stringify(OFFICIAL_REFUND_SEEDS));
+    return import.meta.env.DEV ? JSON.parse(JSON.stringify(OFFICIAL_REFUND_SEEDS)) : [];
   };
 
   const loadInitialInstallments = () => {
@@ -1841,7 +1823,7 @@ export const useAdminStore = defineStore('admin', () => {
     } catch (e) {
       console.warn('Failed to parse installments:', e);
     }
-    return JSON.parse(JSON.stringify(OFFICIAL_INSTALLMENT_SEEDS));
+    return import.meta.env.DEV ? JSON.parse(JSON.stringify(OFFICIAL_INSTALLMENT_SEEDS)) : [];
   };
 
   const pathChanges = ref(loadInitialPathChanges());

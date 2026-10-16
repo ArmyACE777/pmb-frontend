@@ -75,12 +75,35 @@
           </div>
         </div>
       </div>
+
+      <!-- SUB-TAB SWITCHER: MITRA SEKOLAH (BK) VS LAPORAN KUNJUNGAN MARKETING -->
+      <div class="flex items-center gap-1.5 p-1 bg-slate-200/60 rounded-xl text-xs font-medium self-start w-fit border border-slate-200 mt-4">
+        <button
+          type="button"
+          @click="activeSubTab = 'referrals'"
+          class="px-4 py-2 rounded-lg transition-all cursor-pointer flex items-center gap-2"
+          :class="activeSubTab === 'referrals' ? 'bg-white text-slate-900 font-semibold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+        >
+          <Users class="w-4 h-4 text-[#1E3A8A]" />
+          <span>Mitra Sekolah & Guru BK ({{ referralList.length }})</span>
+        </button>
+
+        <button
+          type="button"
+          @click="activeSubTab = 'marketing'"
+          class="px-4 py-2 rounded-lg transition-all cursor-pointer flex items-center gap-2"
+          :class="activeSubTab === 'marketing' ? 'bg-white text-slate-900 font-semibold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+        >
+          <ExternalLink class="w-4 h-4 text-[#1E3A8A]" />
+          <span>Laporan Visitasi Tim Marketing ({{ marketingVisitsList.length }})</span>
+        </button>
+      </div>
     </div>
 
     <!-- ========================================================================= -->
     <!-- MEJA UTAMA: DAFTAR MITRA SEKOLAH & PENGATURAN KOMISI                      -->
     <!-- ========================================================================= -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+    <div v-if="activeSubTab === 'referrals'" class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
       <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div class="flex items-center gap-2 w-full sm:w-auto">
           <span class="text-xs font-semibold text-slate-600 whitespace-nowrap">Status:</span>
@@ -205,6 +228,195 @@
           </tbody>
         </table>
       </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: LAPORAN VISITASI TIM MARKETING (FOTO KAMERA & GEOTAGGING GPS)      -->
+    <!-- ========================================================================= -->
+    <div v-else-if="activeSubTab === 'marketing'" class="space-y-4">
+      <!-- 3 Kartu KPI Visitasi Marketing -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs">
+          <span class="text-xs text-slate-500 font-medium">Total Visitasi Lapangan</span>
+          <div class="my-1">
+            <span class="text-xl font-bold font-mono text-slate-900">{{ marketingVisitsList.length }} Kunjungan</span>
+          </div>
+          <span class="text-[11px] text-slate-500">Tervalidasi dengan foto kamera & GPS</span>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs">
+          <span class="text-xs text-slate-500 font-medium">Sekolah Mitra Terjangkau</span>
+          <div class="my-1">
+            <span class="text-xl font-bold font-mono text-slate-900">{{ uniqueMarketingSchools }} Sekolah</span>
+          </div>
+          <span class="text-[11px] text-slate-500">Jawa Barat & sekitarnya</span>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs">
+          <span class="text-xs text-slate-500 font-medium">Total Audiens Siswa</span>
+          <div class="my-1">
+            <span class="text-xl font-bold font-mono text-slate-900">{{ totalMarketingAudiences }} Siswa</span>
+          </div>
+          <span class="text-[11px] text-slate-500">Edukasi & sosialisasi PMB</span>
+        </div>
+      </div>
+
+      <!-- Tabel Visitasi Lapangan -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+          <div>
+            <h3 class="font-sora font-semibold text-sm text-slate-900">
+              Daftar Laporan Kunjungan Sekolah oleh Tim Marketing
+            </h3>
+            <p class="text-xs text-slate-500">
+              Dokumentasi resmi kunjungan lapangan dengan stempel waktu dan koordinat geotagging kamera
+            </p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs min-w-[720px]">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-sora font-semibold whitespace-nowrap">
+              <tr>
+                <th class="py-3 px-4 w-12 text-center">#</th>
+                <th class="py-3 px-4">Waktu & Petugas</th>
+                <th class="py-3 px-4">Sekolah Tujuan</th>
+                <th class="py-3 px-4">PIC Sekolah Ditemui</th>
+                <th class="py-3 px-4 text-center">Audiens</th>
+                <th class="py-3 px-4">Topik & Catatan</th>
+                <th class="py-3 px-4 text-center">Bukti Foto & GPS</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 font-sans">
+              <tr
+                v-for="(v, idx) in marketingVisitsList"
+                :key="v.id || idx"
+                class="hover:bg-slate-50/70 transition-colors"
+              >
+                <td class="py-3 px-4 text-center text-slate-400 font-mono">{{ idx + 1 }}</td>
+                <td class="py-3 px-4 whitespace-nowrap">
+                  <div class="font-semibold text-slate-900">{{ v.marketingName || 'Tim Marketing PMB' }}</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5 font-mono">{{ v.visitDate }} • {{ v.timestamp || '-' }}</div>
+                </td>
+                <td class="py-3 px-4">
+                  <div class="font-semibold text-slate-900">{{ v.schoolName }}</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">{{ v.schoolCity || 'Jawa Barat' }}</div>
+                </td>
+                <td class="py-3 px-4 text-slate-700">
+                  <div class="font-medium">{{ v.picMetName || '-' }}</div>
+                  <div class="text-[11px] text-slate-500">{{ v.picMetRole || '-' }} ({{ v.picMetPhone || '-' }})</div>
+                </td>
+                <td class="py-3 px-4 text-center whitespace-nowrap">
+                  <span class="px-2.5 py-1 rounded bg-slate-100 font-mono font-bold text-slate-800 text-xs border border-slate-200">
+                    {{ v.studentAudienceCount || 0 }} Siswa
+                  </span>
+                </td>
+                <td class="py-3 px-4 text-slate-600 max-w-xs">
+                  <div class="font-medium text-slate-800 truncate" :title="v.presentationTopic">
+                    {{ v.presentationTopic }}
+                  </div>
+                  <div class="text-[11px] text-slate-500 line-clamp-1 mt-0.5" :title="v.notes">
+                    {{ v.notes || '-' }}
+                  </div>
+                </td>
+                <td class="py-3 px-4 text-center whitespace-nowrap">
+                  <div class="flex flex-col items-center gap-1">
+                    <button
+                      type="button"
+                      @click="selectedPreviewVisit = v"
+                      class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-[11px] font-medium transition cursor-pointer flex items-center gap-1 border border-slate-200"
+                    >
+                      <span>Lihat Foto Geotag</span>
+                    </button>
+                    <a
+                      v-if="v.latitude"
+                      :href="`https://www.google.com/maps/search/?api=1&query=${v.latitude},${v.longitude}`"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-[10px] text-[#1E3A8A] hover:underline font-mono"
+                    >
+                      Maps: {{ v.latitude.toFixed(4) }}, {{ v.longitude.toFixed(4) }} &rarr;
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="marketingVisitsList.length === 0">
+                <td colspan="7" class="py-8 text-center text-slate-400">
+                  Belum ada laporan kunjungan marketing yang tercatat.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Modal Preview Foto Geotagging Admin -->
+      <Teleport to="body">
+        <div
+          v-if="selectedPreviewVisit"
+          class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs animate-in fade-in"
+          @click.self="selectedPreviewVisit = null"
+        >
+          <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200 p-5 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 class="font-sora font-bold text-sm text-slate-900">
+                  {{ selectedPreviewVisit.schoolName }}
+                </h3>
+                <p class="text-[11px] text-slate-500 font-sans">
+                  {{ selectedPreviewVisit.schoolCity }} • Petugas: {{ selectedPreviewVisit.marketingName }}
+                </p>
+              </div>
+              <button
+                type="button"
+                @click="selectedPreviewVisit = null"
+                class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+              >
+                <X class="w-5 h-5" />
+              </button>
+            </div>
+
+            <div class="rounded-xl overflow-hidden border border-slate-200 bg-slate-900">
+              <img
+                :src="selectedPreviewVisit.photoUrl || '/assets/icons/bth-emblem.png'"
+                alt="Bukti Kunjungan"
+                class="w-full h-auto object-contain max-h-80 mx-auto"
+              />
+            </div>
+
+            <div class="space-y-1.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100">
+              <div><strong>Tanggal:</strong> {{ selectedPreviewVisit.visitDate }} ({{ selectedPreviewVisit.timestamp || '-' }})</div>
+              <div><strong>PIC Ditemui:</strong> {{ selectedPreviewVisit.picMetName }} ({{ selectedPreviewVisit.picMetRole || '-' }}) • {{ selectedPreviewVisit.picMetPhone || '-' }}</div>
+              <div><strong>Audiens:</strong> {{ selectedPreviewVisit.studentAudienceCount }} Siswa</div>
+              <div><strong>Topik:</strong> {{ selectedPreviewVisit.presentationTopic }}</div>
+              <div v-if="selectedPreviewVisit.notes"><strong>Catatan:</strong> {{ selectedPreviewVisit.notes }}</div>
+              <div v-if="selectedPreviewVisit.latitude" class="pt-1 flex items-center justify-between text-[11px]">
+                <span class="font-mono text-slate-500">
+                  Koordinat: {{ selectedPreviewVisit.latitude.toFixed(6) }}, {{ selectedPreviewVisit.longitude.toFixed(6) }}
+                </span>
+                <a
+                  :href="`https://www.google.com/maps/search/?api=1&query=${selectedPreviewVisit.latitude},${selectedPreviewVisit.longitude}`"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-[#1E3A8A] font-semibold hover:underline"
+                >
+                  Buka Google Maps &rarr;
+                </a>
+              </div>
+            </div>
+
+            <div class="text-right">
+              <button
+                type="button"
+                @click="selectedPreviewVisit = null"
+                class="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      </Teleport>
     </div>
 
     <!-- ========================================================================= -->
@@ -704,6 +916,17 @@ const statusFilter = ref('ALL');
 const searchQuery = ref('');
 const showModal = ref(false);
 const selectedPartner = ref(null);
+
+const activeSubTab = ref('referrals');
+const selectedPreviewVisit = ref(null);
+const marketingVisitsList = computed(() => referralStore.marketingVisits || []);
+const uniqueMarketingSchools = computed(() => {
+  const set = new Set(marketingVisitsList.value.map((v) => v.schoolName));
+  return set.size;
+});
+const totalMarketingAudiences = computed(() => {
+  return marketingVisitsList.value.reduce((sum, v) => sum + (Number(v.studentAudienceCount) || 0), 0);
+});
 
 const selectedCommissionPartner = ref(null);
 const commissionForm = reactive({

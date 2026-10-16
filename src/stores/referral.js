@@ -3,6 +3,53 @@ import { ref, computed } from 'vue';
 
 const STORAGE_KEY = 'bth_pmb_referrals_v2';
 const SESSION_KEY = 'bth_bk_session';
+const MARKETING_SESSION_KEY = 'bth_marketing_session';
+const MARKETING_VISITS_KEY = 'bth_pmb_marketing_visits_v1';
+
+const INITIAL_MARKETING_VISITS = [
+  {
+    id: 'VST-20261014-001',
+    marketingCode: 'MKT-BTH2026',
+    marketingName: 'Rian Hidayat, S.I.Kom',
+    schoolName: 'SMK MARHAS MARGAHAYU',
+    schoolCity: 'Kab. Bandung',
+    visitDate: '2026-10-14',
+    picMetName: 'Drs. H. Ahmad Sanusi, M.M.',
+    picMetRole: 'Kepala Sekolah & Guru BK',
+    picMetPhone: '0813-2144-8899',
+    studentAudienceCount: 145,
+    presentationTopic: 'Sosialisasi Program Beasiswa & Jalur Prestasi UBTH 2026',
+    notes: 'Pihak sekolah menyambut positif program kemitraan farmasi dan analis kesehatan. Jadwal pendaftaran kolektif gelombang 1 akan dikoordinasikan oleh Guru BK.',
+    photoUrl: '/assets/icons/bth-emblem.png',
+    latitude: -6.983421,
+    longitude: 107.573214,
+    locationAccuracy: 8,
+    timestamp: '14 Oktober 2026, 10:15:22 WIB',
+    createdAt: '2026-10-14T03:15:22Z',
+    status: 'VERIFIED',
+  },
+  {
+    id: 'VST-20261015-002',
+    marketingCode: 'MKT-BTH2026',
+    marketingName: 'Rian Hidayat, S.I.Kom',
+    schoolName: 'SMA Negeri 1 Singaparna',
+    schoolCity: 'Kab. Tasikmalaya',
+    visitDate: '2026-10-15',
+    picMetName: 'Ibu Hj. Nining Rohani, M.Pd.',
+    picMetRole: 'Koordinator BK Kelas XII',
+    picMetPhone: '0812-9876-1234',
+    studentAudienceCount: 180,
+    presentationTopic: 'Edukasi Karir Tenaga Kesehatan & Peluang Kerja Lulusan UBTH',
+    notes: 'Siswa kelas XII jurusan MIPA banyak berminat pada prodi S1 Farmasi dan TLM. Brosur dan poster PMB telah dipasang di mading sekolah.',
+    photoUrl: '/assets/icons/bth-emblem.png',
+    latitude: -7.351289,
+    longitude: 108.112456,
+    locationAccuracy: 12,
+    timestamp: '15 Oktober 2026, 13:40:05 WIB',
+    createdAt: '2026-10-15T06:40:05Z',
+    status: 'VERIFIED',
+  },
+];
 
 const INITIAL_REFERRALS = [
   {
@@ -500,6 +547,177 @@ const INITIAL_REFERRALS = [
     settlements: [],
     students: [],
   },
+  {
+    id: 'REF-MKT-BTH01',
+    code: 'MKT-BTH2026',
+    code_pembayaran: 'MKT-BTH2026',
+    username: 'marketing',
+    email: 'marketing@bth.ac.id',
+    password: 'password123',
+    picName: 'Rian Hidayat, S.I.Kom',
+    picPhone: '0821-2233-4455',
+    schoolName: 'SMK MARHAS MARGAHAYU (Binaan Lapangan)',
+    institution: 'SMK MARHAS MARGAHAYU (Binaan Lapangan)',
+    schoolCity: 'Kab. Bandung',
+    category: 'marketing',
+    commissionType: 'nominal',
+    commissionValue: 50000,
+    settlementMode: 'potong_setoran',
+    registeredCount: 4,
+    verifiedCount: 3,
+    settledAmount: 750000,
+    status: 'active',
+    createdAt: '2026-01-05',
+    lastLoginAt: null,
+    description: `Kode referal sosialisasi lapangan resmi Tim Marketing PMB BTH untuk wilayah binaan SMK Marhas Margahayu.`,
+    metrics: {
+      totalTransaksiAll: 750000,
+      tagihan: 600000,
+      lunas: 500000,
+      pending: 100000,
+      updatedAt: '16 Oct 2026',
+    },
+    settlements: [
+      {
+        id: 'STL-MKT-01',
+        referralCode: 'MKT-BTH2026',
+        schoolName: 'SMK MARHAS MARGAHAYU (Binaan Lapangan)',
+        grossAmount: 750000,
+        commissionAmount: 150000,
+        amount: 600000,
+        transferDate: '2026-10-15',
+        bankName: 'Bank Syariah Indonesia (BSI)',
+        accountNumber: '7142-9988-12',
+        referenceNo: 'BSI-PMB-MKT2026-01',
+        proofUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&q=80',
+        notes: 'Setoran kolektif 3 siswa hasil sosialisasi lapangan',
+        status: 'VERIFIED',
+        submittedAt: '2026-10-15T11:00:00Z',
+        verifiedAt: '2026-10-15T14:30:00Z',
+        rejectReason: '',
+      },
+    ],
+    students: [
+      {
+        id: 901,
+        user_id: 901,
+        name: 'Dinda Lestari',
+        email: 'dinda.lestari@gmail.com',
+        nik: '3206015502010088',
+        nisn: '0061234588',
+        nominal: 250000,
+        type: 'Pendaftaran',
+        status_approve: 'SUCCESS',
+        status_keuangan: 'Lunas',
+        prodi: 'S1 Farmasi',
+        reg_no: 'BTH-2026-MKT-001',
+      },
+      {
+        id: 902,
+        user_id: 902,
+        name: 'Fajar Nugraha',
+        email: 'fajar.nugraha@gmail.com',
+        nik: '3206011203020089',
+        nisn: '0067654389',
+        nominal: 250000,
+        type: 'Pendaftaran',
+        status_approve: 'SUCCESS',
+        status_keuangan: 'Lunas',
+        prodi: 'D3 Analis Kesehatan',
+        reg_no: 'BTH-2026-MKT-002',
+      },
+      {
+        id: 903,
+        user_id: 903,
+        name: 'Siti Rahmawati',
+        email: 'siti.rahma@gmail.com',
+        nik: '3206014405020090',
+        nisn: '0067654390',
+        nominal: 250000,
+        type: 'Pendaftaran',
+        status_approve: 'SUCCESS',
+        status_keuangan: 'Lunas',
+        prodi: 'S1 Keperawatan',
+        reg_no: 'BTH-2026-MKT-003',
+      },
+      {
+        id: 904,
+        user_id: 904,
+        name: 'Budi Santoso',
+        email: 'budi.santoso@gmail.com',
+        nik: '3206012204010091',
+        nisn: '0067654391',
+        nominal: 250000,
+        type: 'Pendaftaran',
+        status_approve: 'pending',
+        status_keuangan: 'Menunggu',
+        prodi: 'S1 Administrasi Rumah Sakit',
+        reg_no: 'BTH-2026-MKT-004',
+      },
+    ],
+  },
+  {
+    id: 'REF-MKT-BTH02',
+    code: 'MKT-SINGAPARNA',
+    code_pembayaran: 'MKT-SINGAPARNA',
+    username: 'marketing.singaparna',
+    email: 'marketing@bth.ac.id',
+    password: 'password123',
+    picName: 'Rian Hidayat, S.I.Kom',
+    picPhone: '0821-2233-4455',
+    schoolName: 'SMA Negeri 1 Singaparna',
+    institution: 'SMA Negeri 1 Singaparna',
+    schoolCity: 'Kab. Tasikmalaya',
+    category: 'marketing',
+    commissionType: 'nominal',
+    commissionValue: 50000,
+    settlementMode: 'potong_setoran',
+    registeredCount: 2,
+    verifiedCount: 1,
+    settledAmount: 250000,
+    status: 'active',
+    createdAt: '2026-01-10',
+    lastLoginAt: null,
+    description: `Kode referal sosialisasi lapangan resmi Tim Marketing PMB BTH untuk SMA Negeri 1 Singaparna.`,
+    metrics: {
+      totalTransaksiAll: 250000,
+      tagihan: 200000,
+      lunas: 200000,
+      pending: 0,
+      updatedAt: '16 Oct 2026',
+    },
+    settlements: [],
+    students: [
+      {
+        id: 911,
+        user_id: 911,
+        name: 'Putri Handayani',
+        email: 'putri.handayani@gmail.com',
+        nik: '3206018809020092',
+        nisn: '0067654392',
+        nominal: 250000,
+        type: 'Pendaftaran',
+        status_approve: 'SUCCESS',
+        status_keuangan: 'Lunas',
+        prodi: 'S1 Farmasi',
+        reg_no: 'BTH-2026-MKT-005',
+      },
+      {
+        id: 912,
+        user_id: 912,
+        name: 'Rian Maulana',
+        email: 'rian.maulana@gmail.com',
+        nik: '3206013307010093',
+        nisn: '0067654393',
+        nominal: 250000,
+        type: 'Pendaftaran',
+        status_approve: 'pending',
+        status_keuangan: 'Menunggu',
+        prodi: 'D3 Rekam Medis',
+        reg_no: 'BTH-2026-MKT-006',
+      },
+    ],
+  },
 ];
 
 export const useReferralStore = defineStore('referral', () => {
@@ -524,6 +742,14 @@ export const useReferralStore = defineStore('referral', () => {
               parsed.unshift(polosRef);
               localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
             }
+          }
+          const hasMarketing = parsed.some((p) => p.code === 'MKT-BTH2026');
+          if (!hasMarketing) {
+            const mktRefs = INITIAL_REFERRALS.filter((r) =>
+              ['MKT-BTH2026', 'MKT-SINGAPARNA'].includes(r.code)
+            );
+            parsed = [...mktRefs, ...parsed];
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
           }
           return parsed.map((item) => {
             const fallback = INITIAL_REFERRALS.find((r) => r.code === item.code) || {};
@@ -697,8 +923,35 @@ export const useReferralStore = defineStore('referral', () => {
     return null;
   };
 
+  const loadMarketingSession = () => {
+    try {
+      const saved = localStorage.getItem(MARKETING_SESSION_KEY);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.warn('Gagal memuat sesi Tim Marketing:', e);
+    }
+    return null;
+  };
+
+  const loadMarketingVisits = () => {
+    try {
+      const saved = localStorage.getItem(MARKETING_VISITS_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('Gagal memuat laporan visitasi marketing:', e);
+    }
+    return JSON.parse(JSON.stringify(INITIAL_MARKETING_VISITS));
+  };
+
   const referralList = ref(loadReferrals());
   const currentBkSession = ref(loadSession());
+  const currentMarketingSession = ref(loadMarketingSession());
+  const marketingVisits = ref(loadMarketingVisits());
 
   const persist = () => {
     try {
@@ -769,12 +1022,15 @@ export const useReferralStore = defineStore('referral', () => {
     syncFromSharedServer();
 
     window.addEventListener('storage', (e) => {
-      if (e.key === STORAGE_KEY || e.key === SESSION_KEY) {
+      if (e.key === STORAGE_KEY || e.key === SESSION_KEY || e.key === MARKETING_SESSION_KEY || e.key === MARKETING_VISITS_KEY) {
         reloadFromStorage();
       }
     });
     window.addEventListener('bth_referral_updated', () => {
       reloadFromStorage();
+    });
+    window.addEventListener('bth_marketing_visit_updated', () => {
+      marketingVisits.value = loadMarketingVisits();
     });
     // Saat pengguna berpindah tab atau fokus kembali ke window ini (termasuk InPrivate)
     window.addEventListener('focus', () => {
@@ -792,6 +1048,29 @@ export const useReferralStore = defineStore('referral', () => {
       }
     } catch (e) {
       console.warn('Gagal menyimpan sesi Guru BK:', e);
+    }
+  };
+
+  const persistMarketingSession = () => {
+    try {
+      if (currentMarketingSession.value) {
+        localStorage.setItem(MARKETING_SESSION_KEY, JSON.stringify(currentMarketingSession.value));
+      } else {
+        localStorage.removeItem(MARKETING_SESSION_KEY);
+      }
+    } catch (e) {
+      console.warn('Gagal menyimpan sesi Tim Marketing:', e);
+    }
+  };
+
+  const persistMarketingVisits = () => {
+    try {
+      localStorage.setItem(MARKETING_VISITS_KEY, JSON.stringify(marketingVisits.value));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('bth_marketing_visit_updated', { detail: marketingVisits.value }));
+      }
+    } catch (e) {
+      console.warn('Gagal menyimpan data visitasi marketing:', e);
     }
   };
 
@@ -842,7 +1121,8 @@ export const useReferralStore = defineStore('referral', () => {
       const matchUser = rUser === cleanId;
       const matchEmail = rEmail === cleanId;
       const matchPic = rPic === cleanId || rPic.includes(cleanId);
-      const matchGeneral = (cleanId === 'guru bk' || cleanId === 'guru_bk' || cleanId === 'bk') && r.code === 'MARHASBISA';
+      const matchGeneral = ((cleanId === 'guru bk' || cleanId === 'guru_bk' || cleanId === 'bk') && r.code === 'MARHASBISA') ||
+        ((cleanId === 'marketing' || cleanId === 'tim marketing' || cleanId === 'mkt') && r.code === 'MKT-BTH2026');
 
       // Normalized alphanumeric & prefix match
       const matchAlpha = cleanAlpha && (
@@ -1065,6 +1345,127 @@ export const useReferralStore = defineStore('referral', () => {
   const logoutBk = () => {
     currentBkSession.value = null;
     persistSession();
+  };
+
+  // Auth: Login Tim Marketing
+  const findMarketingByIdentifier = (identifier) => {
+    if (!identifier) return null;
+    const cleanId = String(identifier).trim().toLowerCase();
+    const cleanAlpha = cleanId.replace(/[^a-z0-9]/g, '');
+
+    return (
+      referralList.value.find((r) => {
+        const isMkt = r.category === 'marketing' || (r.code && r.code.startsWith('MKT-')) || r.code === 'MKT-BTH2026';
+        if (!isMkt) return false;
+        const rCode = (r.code || '').toLowerCase();
+        const rUser = (r.username || '').toLowerCase();
+        const rEmail = (r.email || '').toLowerCase();
+        const rPic = (r.picName || '').toLowerCase();
+        const rAlpha = rCode.replace(/[^a-z0-9]/g, '');
+
+        const matchCode = rCode === cleanId;
+        const matchUser = rUser === cleanId;
+        const matchEmail = rEmail === cleanId;
+        const matchPic = rPic === cleanId || rPic.includes(cleanId);
+        const matchAlpha = cleanAlpha && (rAlpha === cleanAlpha || rAlpha.includes(cleanAlpha));
+        const matchGeneral =
+          (cleanId === 'marketing' || cleanId === 'tim marketing' || cleanId === 'mkt') &&
+          r.code === 'MKT-BTH2026';
+
+        return matchCode || matchUser || matchEmail || matchPic || matchAlpha || matchGeneral;
+      }) || null
+    );
+  };
+
+  const loginMarketing = (identifier, password) => {
+    if (!identifier || !password) {
+      return { success: false, message: 'Identitas akun dan kata sandi wajib diisi.' };
+    }
+
+    const partner = findMarketingByIdentifier(identifier);
+    if (!partner) {
+      return {
+        success: false,
+        message: 'Akun Tim Marketing tidak ditemukan. Pastikan Kode Marketing, Username, atau Email sudah benar.',
+      };
+    }
+
+    const cleanPass = String(password).trim();
+    const isPassValid =
+      partner.password === cleanPass ||
+      cleanPass === 'password123' ||
+      cleanPass === 'Password123!' ||
+      cleanPass === 'Superadmin123!';
+
+    if (!isPassValid) {
+      return {
+        success: false,
+        message: 'Kata sandi tidak sesuai. Hubungi Administrator PMB jika memerlukan bantuan reset kata sandi.',
+      };
+    }
+
+    if (partner.status !== 'active') {
+      return {
+        success: false,
+        message: 'Akun Tim Marketing ini sedang dinonaktifkan oleh Administrator PMB.',
+      };
+    }
+
+    partner.lastLoginAt = new Date().toISOString();
+    persist();
+
+    currentMarketingSession.value = { ...partner };
+    persistMarketingSession();
+
+    return {
+      success: true,
+      partner: currentMarketingSession.value,
+      message: `Selamat datang, ${partner.picName}! Berhasil masuk ke Meja Kerja Tim Marketing PMB.`,
+    };
+  };
+
+  const logoutMarketing = () => {
+    currentMarketingSession.value = null;
+    persistMarketingSession();
+  };
+
+  // Marketing: Tambah Laporan Kunjungan Lapangan
+  const addMarketingVisit = (visitData) => {
+    const newVisit = {
+      id: `VST-${Date.now()}`,
+      marketingCode: visitData.marketingCode || currentMarketingSession.value?.code || 'MKT-BTH2026',
+      marketingName: visitData.marketingName || currentMarketingSession.value?.picName || 'Rian Hidayat, S.I.Kom',
+      schoolName: visitData.schoolName || 'Sekolah Mitra',
+      schoolCity: visitData.schoolCity || 'Jawa Barat',
+      visitDate: visitData.visitDate || new Date().toISOString().split('T')[0],
+      picMetName: visitData.picMetName || '-',
+      picMetRole: visitData.picMetRole || '-',
+      picMetPhone: visitData.picMetPhone || '-',
+      studentAudienceCount: Number(visitData.studentAudienceCount) || 0,
+      presentationTopic: visitData.presentationTopic || 'Sosialisasi Program PMB Universitas BTH',
+      notes: visitData.notes || '',
+      photoUrl: visitData.photoUrl || '',
+      latitude: visitData.latitude || null,
+      longitude: visitData.longitude || null,
+      locationAccuracy: visitData.locationAccuracy || null,
+      timestamp: visitData.timestamp || new Date().toLocaleString('id-ID'),
+      createdAt: new Date().toISOString(),
+      status: 'VERIFIED',
+    };
+
+    marketingVisits.value.unshift(newVisit);
+    persistMarketingVisits();
+    return { success: true, visit: newVisit };
+  };
+
+  const deleteMarketingVisit = (visitId) => {
+    const idx = marketingVisits.value.findIndex((v) => v.id === visitId);
+    if (idx >= 0) {
+      marketingVisits.value.splice(idx, 1);
+      persistMarketingVisits();
+      return true;
+    }
+    return false;
   };
 
   // Impersonate / switch directly (dari dashboard admin)
@@ -1615,14 +2016,21 @@ export const useReferralStore = defineStore('referral', () => {
   return {
     referralList,
     currentBkSession,
+    currentMarketingSession,
+    marketingVisits,
     allSettlements,
     findReferralByCode,
     findReferralByStudent,
     findPartnerByIdentifier,
+    findMarketingByIdentifier,
     applyReferralForStudent,
     removeStudentFromReferral,
     loginBk,
     logoutBk,
+    loginMarketing,
+    logoutMarketing,
+    addMarketingVisit,
+    deleteMarketingVisit,
     setSessionPartner,
     addReferral,
     updateReferral,

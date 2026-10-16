@@ -142,6 +142,9 @@ onMounted(() => {
   if (route.query.unauthorized === 'bk') {
     toast.error('Akses ditolak: Halaman khusus mitra Guru BK.');
   }
+  if (route.query.unauthorized === 'marketing') {
+    toast.error('Akses ditolak: Halaman khusus Tim Marketing Lapangan.');
+  }
 });
 
 const handleLogin = async () => {
@@ -150,7 +153,22 @@ const handleLogin = async () => {
   const inputPass = String(password.value).trim();
 
   try {
-    // 1. Cek terlebih dahulu apakah kredensial cocok dengan akun Mitra Guru BK
+    // 1. Cek terlebih dahulu apakah kredensial cocok dengan akun Tim Marketing Lapangan
+    const knownMarketing = referralStore.findMarketingByIdentifier(inputIdent);
+    if (knownMarketing) {
+      const mktResult = referralStore.loginMarketing(inputIdent, inputPass);
+      if (mktResult.success) {
+        authStore.setMarketingUser(mktResult.partner);
+        toast.success(mktResult.message);
+        router.push('/marketing');
+        return;
+      } else {
+        toast.error(mktResult.message);
+        return;
+      }
+    }
+
+    // 2. Cek apakah kredensial cocok dengan akun Mitra Guru BK
     const knownBkPartner = referralStore.findPartnerByIdentifier(inputIdent);
     if (knownBkPartner) {
       const bkResult = referralStore.loginBk(inputIdent, inputPass);
@@ -165,7 +183,7 @@ const handleLogin = async () => {
       }
     }
 
-    // 2. Autentikasi ke backend API (Admin PMB / Calon Mahasiswa)
+    // 3. Autentikasi ke backend API (Admin PMB / Calon Mahasiswa)
     await authStore.login(inputIdent, inputPass);
 
     const userEmail = authStore.currentUser?.email || inputIdent;
@@ -178,6 +196,9 @@ const handleLogin = async () => {
     } else if (authStore.isAdmin) {
       toast.success(`Selamat datang, ${authStore.currentUser?.full_name || 'Administrator'}! Masuk ke Meja Kerja PMB.`);
       router.push('/admin');
+    } else if (authStore.isMarketing) {
+      toast.success(`Selamat datang di Dashboard Tim Marketing PMB.`);
+      router.push('/marketing');
     } else if (authStore.isBkPartner) {
       toast.success(`Selamat datang di Dashboard Mitra Guru BK.`);
       router.push('/bk');
