@@ -114,18 +114,9 @@
     <!-- ================================================================= -->
     <div v-if="activeSubDesk === 'jenjang'" class="space-y-6">
       <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-        <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div>
-            <h3 class="font-sora font-bold text-slate-900 text-sm">Jenjang Pendidikan Akademik</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Klasifikasi program pendidikan diploma, sarjana, magister, dan profesi Universitas BTH</p>
-          </div>
-          <button
-            @click="openAddDegreeModal"
-            class="px-3 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded transition-colors cursor-pointer inline-flex items-center gap-1.5 self-stretch sm:self-auto justify-center"
-          >
-            <Plus class="w-3.5 h-3.5" />
-            <span>Tambah Jenjang</span>
-          </button>
+        <div class="p-4 border-b border-slate-100">
+          <h3 class="font-sora font-bold text-slate-900 text-sm">Jenjang Pendidikan Akademik</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Klasifikasi program pendidikan diploma, sarjana, magister, dan profesi Universitas BTH</p>
         </div>
 
         <div class="overflow-x-auto">
@@ -205,18 +196,9 @@
     <!-- ================================================================= -->
     <div v-else-if="activeSubDesk === 'fakultas'" class="space-y-6">
       <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-        <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div>
-            <h3 class="font-sora font-bold text-slate-900 text-sm">Fakultas & Unit Akademik</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Daftar fakultas pengampu program studi di lingkungan Universitas Bakti Tunas Husada</p>
-          </div>
-          <button
-            @click="openAddFacultyModal"
-            class="px-3 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded transition-colors cursor-pointer inline-flex items-center gap-1.5 self-stretch sm:self-auto justify-center"
-          >
-            <Plus class="w-3.5 h-3.5" />
-            <span>Tambah Fakultas</span>
-          </button>
+        <div class="p-4 border-b border-slate-100">
+          <h3 class="font-sora font-bold text-slate-900 text-sm">Fakultas & Unit Akademik</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Daftar fakultas pengampu program studi di lingkungan Universitas Bakti Tunas Husada</p>
         </div>
 
         <div class="overflow-x-auto">
@@ -351,22 +333,13 @@
             </select>
           </div>
 
-          <div class="flex items-center gap-2 w-full sm:w-auto">
-            <div class="w-full sm:w-64">
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="Cari prodi / kode / NIM code..."
-                class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs outline-none focus:border-[#1E3A8A] text-slate-800"
-              />
-            </div>
-            <button
-              @click="openAddProgramModal"
-              class="px-3 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded transition-colors cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap"
-            >
-              <Plus class="w-3.5 h-3.5" />
-              <span>Tambah Prodi</span>
-            </button>
+          <div class="w-full sm:w-72">
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Cari prodi / kode / NIM code..."
+              class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs outline-none focus:border-[#1E3A8A] text-slate-800"
+            />
           </div>
         </div>
 
