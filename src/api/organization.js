@@ -53,6 +53,13 @@ export const organizationApi = {
   },
 
   /**
+   * Menghapus fakultas
+   */
+  async deleteFaculty(id) {
+    return apiClient.delete(`/organization/admin/faculties/${id}`);
+  },
+
+  /**
    * Menambahkan program studi baru
    */
   async createStudyProgram(data) {
@@ -71,5 +78,12 @@ export const organizationApi = {
    */
   async toggleStudyProgram(id) {
     return apiClient.patch(`/organization/admin/study-programs/${id}/toggle`);
+  },
+
+  /**
+   * Menghapus program studi
+   */
+  async deleteStudyProgram(id) {
+    return apiClient.delete(`/organization/admin/study-programs/${id}`);
   },
 };

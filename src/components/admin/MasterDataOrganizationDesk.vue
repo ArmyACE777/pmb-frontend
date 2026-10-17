@@ -8,7 +8,7 @@
             Master Data & Pengaturan Sistem PMB
           </h2>
           <p class="text-xs text-slate-500 mt-1">
-            Pengelolaan struktur organisasi akademik fakultas & prodi serta konfigurasi matriks hak akses peran pengguna (RBAC).
+            Pengelolaan struktur organisasi akademik jenjang, fakultas & prodi serta konfigurasi matriks hak akses peran pengguna (RBAC).
           </p>
         </div>
 
@@ -21,12 +21,32 @@
             {{ organizationStore.isLoading || isSyncingRbac ? 'Sinkronisasi...' : 'Sinkronkan Data' }}
           </button>
 
+          <!-- Tombol Tambah Kontekstual Sesuai Tab Aktif -->
           <button
-            v-if="activeSubDesk === 'programs'"
-            @click="openAddModal"
-            class="px-4 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded transition-colors cursor-pointer"
+            v-if="activeSubDesk === 'jenjang'"
+            @click="openAddDegreeModal"
+            class="px-4 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded transition-colors cursor-pointer inline-flex items-center gap-1.5"
           >
-            Tambah Program Studi
+            <Plus class="w-3.5 h-3.5" />
+            <span>Tambah Jenjang</span>
+          </button>
+
+          <button
+            v-else-if="activeSubDesk === 'fakultas'"
+            @click="openAddFacultyModal"
+            class="px-4 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded transition-colors cursor-pointer inline-flex items-center gap-1.5"
+          >
+            <Plus class="w-3.5 h-3.5" />
+            <span>Tambah Fakultas</span>
+          </button>
+
+          <button
+            v-else-if="activeSubDesk === 'programs'"
+            @click="openAddProgramModal"
+            class="px-4 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded transition-colors cursor-pointer inline-flex items-center gap-1.5"
+          >
+            <Plus class="w-3.5 h-3.5" />
+            <span>Tambah Program Studi</span>
           </button>
 
           <button
@@ -50,7 +70,7 @@
             ? 'bg-[#1E3A8A] text-white border-[#1E3A8A]'
             : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
         >
-          Jenjang Pendidikan
+          Jenjang Pendidikan ({{ organizationStore.degrees.length }})
         </button>
 
         <button
@@ -61,7 +81,7 @@
             ? 'bg-[#1E3A8A] text-white border-[#1E3A8A]'
             : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
         >
-          Fakultas Akademik
+          Fakultas Akademik ({{ organizationStore.faculties.length }})
         </button>
 
         <button
@@ -72,7 +92,7 @@
             ? 'bg-[#1E3A8A] text-white border-[#1E3A8A]'
             : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
         >
-          Program Studi (Prodi)
+          Program Studi ({{ organizationStore.studyPrograms.length }})
         </button>
 
         <button
@@ -94,15 +114,22 @@
     <!-- ================================================================= -->
     <div v-if="activeSubDesk === 'jenjang'" class="space-y-6">
       <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+        <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
             <h3 class="font-sora font-bold text-slate-900 text-sm">Jenjang Pendidikan Akademik</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Klasifikasi program pendidikan diploma, sarjana, dan profesi Universitas BTH</p>
+            <p class="text-xs text-slate-500 mt-0.5">Klasifikasi program pendidikan diploma, sarjana, magister, dan profesi Universitas BTH</p>
           </div>
+          <button
+            @click="openAddDegreeModal"
+            class="px-3 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded transition-colors cursor-pointer inline-flex items-center gap-1.5 self-stretch sm:self-auto justify-center"
+          >
+            <Plus class="w-3.5 h-3.5" />
+            <span>Tambah Jenjang</span>
+          </button>
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs min-w-[700px]">
+          <table class="w-full text-left text-xs min-w-[760px]">
             <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-sora font-semibold whitespace-nowrap">
               <tr>
                 <th class="py-3 px-4 whitespace-nowrap">No</th>
@@ -112,11 +139,12 @@
                 <th class="py-3 px-4 whitespace-nowrap">Gelar Kelulusan</th>
                 <th class="py-3 px-4 text-center whitespace-nowrap">Jumlah Prodi</th>
                 <th class="py-3 px-4 text-center whitespace-nowrap">Alokasi Kuota</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap min-w-[130px]">Status PMB</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap min-w-[120px]">Status PMB</th>
+                <th class="py-3 px-4 text-right whitespace-nowrap min-w-[190px]">Aksi</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 font-sans">
-              <tr v-for="(deg, idx) in degreesList" :key="deg.code" class="hover:bg-slate-50/70 transition-colors">
+              <tr v-for="(deg, idx) in organizationStore.degreesWithCount" :key="deg.id || deg.code" class="hover:bg-slate-50/70 transition-colors">
                 <td class="py-3 px-4 font-mono text-slate-400 whitespace-nowrap">{{ idx + 1 }}</td>
                 <td class="py-3 px-4 whitespace-nowrap">
                   <span class="font-mono font-bold text-xs px-2.5 py-1 bg-blue-50 text-[#1E3A8A] rounded border border-blue-200/60 inline-block whitespace-nowrap">
@@ -131,10 +159,39 @@
                 <td class="py-3 px-4 text-center whitespace-nowrap">
                   <span
                     class="text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap inline-block"
-                    :class="deg.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'"
+                    :class="deg.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'"
                   >
-                    {{ deg.isActive ? 'Buka Pendaftaran' : 'Persiapan' }}
+                    {{ deg.is_active ? 'Buka Pendaftaran' : 'Persiapan' }}
                   </span>
+                </td>
+                <td class="py-3 px-4 text-right whitespace-nowrap">
+                  <div class="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                    <button
+                      @click="toggleDegreeStatus(deg)"
+                      class="px-2.5 py-1 text-xs font-medium rounded border transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
+                      :class="deg.is_active
+                        ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                        : 'bg-white hover:bg-slate-50 text-[#1E3A8A] border-slate-200'"
+                    >
+                      {{ deg.is_active ? 'Tutup' : 'Buka' }}
+                    </button>
+                    <button
+                      @click="openEditDegreeModal(deg)"
+                      class="px-2.5 py-1 text-xs font-medium rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-colors whitespace-nowrap cursor-pointer shadow-2xs inline-flex items-center gap-1"
+                      title="Edit Jenjang"
+                    >
+                      <Edit class="w-3 h-3 text-slate-500" />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      @click="confirmDeleteDegree(deg)"
+                      class="px-2.5 py-1 text-xs font-medium rounded border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 transition-colors whitespace-nowrap cursor-pointer shadow-2xs inline-flex items-center gap-1"
+                      title="Hapus Jenjang"
+                    >
+                      <Trash2 class="w-3 h-3 text-rose-500" />
+                      <span>Hapus</span>
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -148,29 +205,37 @@
     <!-- ================================================================= -->
     <div v-else-if="activeSubDesk === 'fakultas'" class="space-y-6">
       <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+        <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
             <h3 class="font-sora font-bold text-slate-900 text-sm">Fakultas & Unit Akademik</h3>
             <p class="text-xs text-slate-500 mt-0.5">Daftar fakultas pengampu program studi di lingkungan Universitas Bakti Tunas Husada</p>
           </div>
+          <button
+            @click="openAddFacultyModal"
+            class="px-3 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded transition-colors cursor-pointer inline-flex items-center gap-1.5 self-stretch sm:self-auto justify-center"
+          >
+            <Plus class="w-3.5 h-3.5" />
+            <span>Tambah Fakultas</span>
+          </button>
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs min-w-[780px]">
+          <table class="w-full text-left text-xs min-w-[850px]">
             <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-sora font-semibold whitespace-nowrap">
               <tr>
                 <th class="py-3 px-4 whitespace-nowrap">No</th>
                 <th class="py-3 px-4 whitespace-nowrap">Kode</th>
                 <th class="py-3 px-4 whitespace-nowrap min-w-[180px]">Nama Fakultas</th>
                 <th class="py-3 px-4 whitespace-nowrap min-w-[180px]">Pimpinan (Dekan)</th>
-                <th class="py-3 px-4 whitespace-nowrap min-w-[170px]">Lokasi Gedung</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap min-w-[120px]">Akreditasi</th>
+                <th class="py-3 px-4 whitespace-nowrap min-w-[160px]">Lokasi Gedung</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap min-w-[110px]">Akreditasi</th>
                 <th class="py-3 px-4 text-center whitespace-nowrap min-w-[100px]">Jumlah Prodi</th>
                 <th class="py-3 px-4 text-center whitespace-nowrap min-w-[90px]">Status</th>
+                <th class="py-3 px-4 text-right whitespace-nowrap min-w-[190px]">Aksi</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 font-sans">
-              <tr v-for="(fac, idx) in facultiesList" :key="fac.code" class="hover:bg-slate-50/70 transition-colors">
+              <tr v-for="(fac, idx) in organizationStore.facultiesWithCount" :key="fac.id || fac.code" class="hover:bg-slate-50/70 transition-colors">
                 <td class="py-3 px-4 font-mono text-slate-400 whitespace-nowrap">{{ idx + 1 }}</td>
                 <td class="py-3 px-4 whitespace-nowrap">
                   <span class="font-mono font-bold text-xs px-2.5 py-1 bg-slate-100 text-slate-900 rounded whitespace-nowrap inline-block">
@@ -187,9 +252,41 @@
                 </td>
                 <td class="py-3 px-4 text-center font-mono font-bold text-slate-800 whitespace-nowrap">{{ fac.prodiCount }} Prodi</td>
                 <td class="py-3 px-4 text-center whitespace-nowrap">
-                  <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 whitespace-nowrap inline-block">
-                    Aktif
+                  <span
+                    class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap inline-block"
+                    :class="fac.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'"
+                  >
+                    {{ fac.is_active ? 'Aktif' : 'Nonaktif' }}
                   </span>
+                </td>
+                <td class="py-3 px-4 text-right whitespace-nowrap">
+                  <div class="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                    <button
+                      @click="toggleFacultyStatus(fac)"
+                      class="px-2.5 py-1 text-xs font-medium rounded border transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
+                      :class="fac.is_active
+                        ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                        : 'bg-white hover:bg-slate-50 text-[#1E3A8A] border-slate-200'"
+                    >
+                      {{ fac.is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                    </button>
+                    <button
+                      @click="openEditFacultyModal(fac)"
+                      class="px-2.5 py-1 text-xs font-medium rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-colors whitespace-nowrap cursor-pointer shadow-2xs inline-flex items-center gap-1"
+                      title="Edit Fakultas"
+                    >
+                      <Edit class="w-3 h-3 text-slate-500" />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      @click="confirmDeleteFaculty(fac)"
+                      class="px-2.5 py-1 text-xs font-medium rounded border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 transition-colors whitespace-nowrap cursor-pointer shadow-2xs inline-flex items-center gap-1"
+                      title="Hapus Fakultas"
+                    >
+                      <Trash2 class="w-3 h-3 text-rose-500" />
+                      <span>Hapus</span>
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -199,7 +296,7 @@
     </div>
 
     <!-- ================================================================= -->
-    <!-- TAMPILAN 1: MASTER FAKULTAS & PROGRAM STUDI                       -->
+    <!-- TAMPILAN: MASTER PROGRAM STUDI (PRODI)                            -->
     <!-- ================================================================= -->
     <div v-else-if="activeSubDesk === 'programs'" class="space-y-6">
       <!-- KPI Summary Cards -->
@@ -254,13 +351,22 @@
             </select>
           </div>
 
-          <div class="w-full sm:w-72">
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Cari prodi / kode / NIM code..."
-              class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs outline-none focus:border-[#1E3A8A] text-slate-800"
-            />
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <div class="w-full sm:w-64">
+              <input
+                v-model="searchQuery"
+                type="text"
+                placeholder="Cari prodi / kode / NIM code..."
+                class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs outline-none focus:border-[#1E3A8A] text-slate-800"
+              />
+            </div>
+            <button
+              @click="openAddProgramModal"
+              class="px-3 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-sora font-semibold rounded transition-colors cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap"
+            >
+              <Plus class="w-3.5 h-3.5" />
+              <span>Tambah Prodi</span>
+            </button>
           </div>
         </div>
 
@@ -278,7 +384,7 @@
                 <th class="py-3 px-4 whitespace-nowrap min-w-[120px] text-center">Akreditasi</th>
                 <th class="py-3 px-4 whitespace-nowrap min-w-[150px]">Biaya UKT</th>
                 <th class="py-3 px-4 text-center whitespace-nowrap min-w-[110px]">Status PMB</th>
-                <th class="py-3 px-4 text-right whitespace-nowrap min-w-[140px]">Aksi</th>
+                <th class="py-3 px-4 text-right whitespace-nowrap min-w-[190px]">Aksi</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 font-sans">
@@ -326,15 +432,33 @@
                   </span>
                 </td>
                 <td class="py-3 px-4 text-right whitespace-nowrap">
-                  <button
-                    @click="toggleStatus(sp)"
-                    class="px-2.5 py-1 text-xs font-medium rounded border transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
-                    :class="sp.is_active
-                      ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
-                      : 'bg-white hover:bg-slate-50 text-[#1E3A8A] border-slate-200'"
-                  >
-                    {{ sp.is_active ? 'Tutup Pendaftaran' : 'Buka Pendaftaran' }}
-                  </button>
+                  <div class="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                    <button
+                      @click="toggleStatus(sp)"
+                      class="px-2.5 py-1 text-xs font-medium rounded border transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
+                      :class="sp.is_active
+                        ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                        : 'bg-white hover:bg-slate-50 text-[#1E3A8A] border-slate-200'"
+                    >
+                      {{ sp.is_active ? 'Tutup' : 'Buka' }}
+                    </button>
+                    <button
+                      @click="openEditProgramModal(sp)"
+                      class="px-2.5 py-1 text-xs font-medium rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-colors whitespace-nowrap cursor-pointer shadow-2xs inline-flex items-center gap-1"
+                      title="Edit Program Studi"
+                    >
+                      <Edit class="w-3 h-3 text-slate-500" />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      @click="confirmDeleteProgram(sp)"
+                      class="px-2.5 py-1 text-xs font-medium rounded border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 transition-colors whitespace-nowrap cursor-pointer shadow-2xs inline-flex items-center gap-1"
+                      title="Hapus Program Studi"
+                    >
+                      <Trash2 class="w-3 h-3 text-rose-500" />
+                      <span>Hapus</span>
+                    </button>
+                  </div>
                 </td>
               </tr>
               <tr v-if="filteredPrograms.length === 0">
@@ -349,7 +473,7 @@
     </div>
 
     <!-- ================================================================= -->
-    <!-- TAMPILAN 2: MATRIKS HAK AKSES & PERAN (CR-009 RBAC)                -->
+    <!-- TAMPILAN: MATRIKS HAK AKSES & PERAN (CR-009 RBAC)                -->
     <!-- ================================================================= -->
     <div v-else-if="activeSubDesk === 'rbac'" class="space-y-6">
       <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-4">
@@ -442,205 +566,541 @@
       </div>
     </div>
 
-    <!-- Modal Tambah Program Studi Baru -->
+    <!-- ================================================================= -->
+    <!-- MODAL 1: TAMBAH / EDIT PROGRAM STUDI                             -->
+    <!-- ================================================================= -->
     <Teleport to="body">
       <div
-        v-if="showAddModal"
+        v-if="showProgramModal"
         class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm modal-sharp"
-        @click.self="showAddModal = false"
+        @click.self="showProgramModal = false"
       >
         <div class="relative w-full max-w-xl max-h-[92vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden my-auto transform-gpu">
-          <!-- Top Accent Bar -->
           <div class="h-1 w-full bg-[#1E3A8A] flex-shrink-0"></div>
 
-        <!-- Modal Header -->
-        <div class="p-5 sm:p-6 pb-4 flex items-start justify-between gap-4 border-b border-slate-100 flex-shrink-0">
-          <div class="flex items-center gap-3.5">
-            <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center justify-center text-[#1E3A8A] flex-shrink-0 shadow-2xs">
-              <Building2 class="w-5 h-5 text-[#1E3A8A]" />
-            </div>
-            <div>
-              <div class="text-[10px] font-bold text-blue-700 uppercase tracking-wider font-sora flex items-center gap-1.5">
-                <span>Katalog Akademik PMB</span>
-                <span class="text-slate-400 font-normal">/</span>
-                <span class="text-slate-500 font-normal">Organization Service</span>
+          <div class="p-5 sm:p-6 pb-4 flex items-start justify-between gap-4 border-b border-slate-100 flex-shrink-0">
+            <div class="flex items-center gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center justify-center text-[#1E3A8A] flex-shrink-0 shadow-2xs">
+                <BookOpen class="w-5 h-5 text-[#1E3A8A]" />
               </div>
-              <h3 class="font-sora font-bold text-slate-900 text-base sm:text-lg">
-                Tambah Program Studi Baru
-              </h3>
+              <div>
+                <div class="text-[10px] font-bold text-blue-700 uppercase tracking-wider font-sora flex items-center gap-1.5">
+                  <span>Katalog Akademik PMB</span>
+                  <span class="text-slate-400 font-normal">/</span>
+                  <span class="text-slate-500 font-normal">{{ isEditingProgram ? 'Edit Data' : 'Tambah Baru' }}</span>
+                </div>
+                <h3 class="font-sora font-bold text-slate-900 text-base sm:text-lg">
+                  {{ isEditingProgram ? 'Edit Program Studi' : 'Tambah Program Studi Baru' }}
+                </h3>
+              </div>
             </div>
+            <button
+              @click="showProgramModal = false"
+              class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              aria-label="Tutup Modal"
+            >
+              <X class="w-5 h-5" />
+            </button>
           </div>
-          <button
-            @click="showAddModal = false"
-            class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-            aria-label="Tutup Modal"
-          >
-            <X class="w-5 h-5" />
-          </button>
+
+          <form @submit.prevent="submitProgramForm" class="p-5 sm:p-6 space-y-4 flex-1 overflow-y-auto text-xs font-sans">
+            <!-- Nama Program Studi -->
+            <div class="space-y-1.5">
+              <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
+                <BookOpen class="w-3.5 h-3.5 text-blue-600" />
+                <span>Nama Lengkap Program Studi</span>
+                <span class="text-rose-500">*</span>
+              </label>
+              <input
+                v-model="programForm.name"
+                type="text"
+                required
+                placeholder="Contoh: S1 Biomedis & Rekayasa Hayati"
+                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs font-medium text-slate-800 outline-none shadow-2xs transition-all"
+              />
+            </div>
+
+            <!-- Kode Unik & Kode NIM -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div class="space-y-1.5">
+                <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
+                  <Hash class="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Kode Scope Prodi</span>
+                  <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  v-model="programForm.code"
+                  type="text"
+                  required
+                  placeholder="Contoh: BIO / GZ / ARS"
+                  class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs font-mono font-bold uppercase tracking-wider text-[#1E3A8A] outline-none shadow-2xs transition-all"
+                />
+                <p class="text-[10px] text-slate-400">Pengenal unik singkatan program studi.</p>
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
+                  <Award class="w-3.5 h-3.5 text-amber-600" />
+                  <span>Kode NIM (2 Digit)</span>
+                  <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  v-model="programForm.nim_code"
+                  type="text"
+                  required
+                  maxlength="2"
+                  placeholder="Contoh: 12"
+                  class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs font-mono font-bold text-center text-[#1E3A8A] outline-none shadow-2xs transition-all"
+                />
+                <p class="text-[10px] text-slate-400">2 Digit penomoran ijazah & kartu mahasiswa.</p>
+              </div>
+            </div>
+
+            <!-- Live NIM Preview Card -->
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3 shadow-2xs">
+              <div>
+                <div class="text-[10px] uppercase font-bold text-blue-700 tracking-wider font-sora">
+                  Simulasi Format Standar NIM BTH
+                </div>
+                <div class="text-[11px] text-slate-600 mt-0.5">
+                  Format: <span class="font-mono font-semibold">{YY}{NIM}{JALUR}{URUT}</span>
+                </div>
+              </div>
+              <div class="px-3 py-1.5 bg-white rounded-lg border border-blue-200 shadow-2xs flex items-center gap-1.5">
+                <span class="text-[11px] text-slate-500">Pratinjau:</span>
+                <span class="font-mono font-bold text-sm text-[#1E3A8A]">
+                  {{ nimSimulation }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Fakultas & Jenjang -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div class="space-y-1.5">
+                <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
+                  <Building2 class="w-3.5 h-3.5 text-slate-500" />
+                  <span>Fakultas Induk</span>
+                  <span class="text-rose-500">*</span>
+                </label>
+                <select
+                  v-model="programForm.faculty_code"
+                  class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-800 outline-none shadow-2xs transition-all cursor-pointer font-medium"
+                >
+                  <option v-for="f in organizationStore.faculties" :key="f.code" :value="f.code">
+                    {{ f.name }} ({{ f.code }})
+                  </option>
+                </select>
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
+                  <GraduationCap class="w-3.5 h-3.5 text-slate-500" />
+                  <span>Jenjang Pendidikan</span>
+                  <span class="text-rose-500">*</span>
+                </label>
+                <select
+                  v-model="programForm.degree"
+                  class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-800 outline-none shadow-2xs transition-all cursor-pointer font-medium"
+                >
+                  <option v-for="d in organizationStore.degrees" :key="d.code" :value="d.code">
+                    {{ d.name }} ({{ d.code }})
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Akreditasi & Estimasi UKT -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div class="space-y-1.5">
+                <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
+                  <Award class="w-3.5 h-3.5 text-slate-500" />
+                  <span>Status Akreditasi</span>
+                  <span class="text-rose-500">*</span>
+                </label>
+                <select
+                  v-model="programForm.accreditation"
+                  class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-800 outline-none shadow-2xs transition-all cursor-pointer font-medium"
+                >
+                  <option value="Unggul">Unggul</option>
+                  <option value="Baik Sekali">Baik Sekali</option>
+                  <option value="Baik">Baik</option>
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                </select>
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
+                  <DollarSign class="w-3.5 h-3.5 text-slate-500" />
+                  <span>Estimasi Biaya UKT</span>
+                  <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  v-model="programForm.ukt_estimate"
+                  type="text"
+                  placeholder="Rp 5.000.000 / semester"
+                  class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs font-semibold text-slate-800 outline-none shadow-2xs transition-all"
+                />
+              </div>
+            </div>
+
+            <!-- Modal Footer Actions -->
+            <div class="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-end gap-2.5 flex-shrink-0">
+              <button
+                type="button"
+                @click="showProgramModal = false"
+                class="w-full sm:w-auto px-4 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-xl transition-colors cursor-pointer text-center"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                class="w-full sm:w-auto px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-xl transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2"
+              >
+                <CheckCircle2 class="w-4 h-4" />
+                <span>{{ isEditingProgram ? 'Simpan Perubahan' : 'Simpan Program Studi' }}</span>
+              </button>
+            </div>
+          </form>
         </div>
+      </div>
+    </Teleport>
 
-        <form @submit.prevent="submitAddProgram" class="p-5 sm:p-6 space-y-4 flex-1 overflow-y-auto text-xs font-sans">
-          <!-- Nama Program Studi -->
-          <div class="space-y-1.5">
-            <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
-              <BookOpen class="w-3.5 h-3.5 text-blue-600" />
-              <span>Nama Lengkap Program Studi</span>
-              <span class="text-rose-500">*</span>
-            </label>
-            <input
-              v-model="newForm.name"
-              type="text"
-              required
-              placeholder="Contoh: S1 Biomedis & Rekayasa Hayati"
-              class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs font-medium text-slate-800 outline-none shadow-2xs transition-all"
-            />
+    <!-- ================================================================= -->
+    <!-- MODAL 2: TAMBAH / EDIT FAKULTAS                                  -->
+    <!-- ================================================================= -->
+    <Teleport to="body">
+      <div
+        v-if="showFacultyModal"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm modal-sharp"
+        @click.self="showFacultyModal = false"
+      >
+        <div class="relative w-full max-w-lg max-h-[92vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden my-auto transform-gpu">
+          <div class="h-1 w-full bg-[#1E3A8A] flex-shrink-0"></div>
+
+          <div class="p-5 sm:p-6 pb-4 flex items-start justify-between gap-4 border-b border-slate-100 flex-shrink-0">
+            <div class="flex items-center gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center justify-center text-[#1E3A8A] flex-shrink-0 shadow-2xs">
+                <Building2 class="w-5 h-5 text-[#1E3A8A]" />
+              </div>
+              <div>
+                <div class="text-[10px] font-bold text-blue-700 uppercase tracking-wider font-sora flex items-center gap-1.5">
+                  <span>Fakultas & Unit Akademik</span>
+                  <span class="text-slate-400 font-normal">/</span>
+                  <span class="text-slate-500 font-normal">{{ isEditingFaculty ? 'Edit Data' : 'Tambah Baru' }}</span>
+                </div>
+                <h3 class="font-sora font-bold text-slate-900 text-base sm:text-lg">
+                  {{ isEditingFaculty ? 'Edit Fakultas' : 'Tambah Fakultas Baru' }}
+                </h3>
+              </div>
+            </div>
+            <button
+              @click="showFacultyModal = false"
+              class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              aria-label="Tutup Modal"
+            >
+              <X class="w-5 h-5" />
+            </button>
           </div>
 
-          <!-- Kode Unik & Kode NIM -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <form @submit.prevent="submitFacultyForm" class="p-5 sm:p-6 space-y-4 flex-1 overflow-y-auto text-xs font-sans">
+            <!-- Nama Fakultas -->
             <div class="space-y-1.5">
               <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
-                <Hash class="w-3.5 h-3.5 text-indigo-600" />
-                <span>Kode Scope Prodi</span>
+                <Building2 class="w-3.5 h-3.5 text-blue-600" />
+                <span>Nama Lengkap Fakultas</span>
                 <span class="text-rose-500">*</span>
               </label>
               <input
-                v-model="newForm.code"
+                v-model="facultyForm.name"
                 type="text"
                 required
-                placeholder="Contoh: BIO / GZ / ARS"
-                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs font-mono font-bold uppercase tracking-wider text-[#1E3A8A] outline-none shadow-2xs transition-all"
+                placeholder="Contoh: Fakultas Kedokteran Gigi"
+                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs font-medium text-slate-800 outline-none shadow-2xs transition-all"
               />
-              <p class="text-[10px] text-slate-400">Pengenal unik singkatan program studi.</p>
             </div>
 
+            <!-- Kode Singkat Fakultas & Akreditasi -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div class="space-y-1.5">
+                <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
+                  <Hash class="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Kode Singkat Fakultas</span>
+                  <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  v-model="facultyForm.code"
+                  type="text"
+                  required
+                  placeholder="Contoh: FKG / FK"
+                  class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs font-mono font-bold uppercase tracking-wider text-[#1E3A8A] outline-none shadow-2xs transition-all"
+                />
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
+                  <Award class="w-3.5 h-3.5 text-amber-600" />
+                  <span>Akreditasi Fakultas</span>
+                  <span class="text-rose-500">*</span>
+                </label>
+                <select
+                  v-model="facultyForm.accreditation"
+                  class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-800 outline-none shadow-2xs transition-all cursor-pointer font-medium"
+                >
+                  <option value="Unggul">Unggul</option>
+                  <option value="Baik Sekali">Baik Sekali</option>
+                  <option value="Baik">Baik</option>
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Dekan & Gedung -->
             <div class="space-y-1.5">
               <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
-                <Award class="w-3.5 h-3.5 text-amber-600" />
-                <span>Kode NIM (2 Digit)</span>
-                <span class="text-rose-500">*</span>
+                <Users class="w-3.5 h-3.5 text-slate-500" />
+                <span>Pimpinan Fakultas (Dekan)</span>
               </label>
               <input
-                v-model="newForm.nim_code"
+                v-model="facultyForm.dean"
                 type="text"
-                required
-                maxlength="2"
-                placeholder="Contoh: 12"
-                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs font-mono font-bold text-center text-[#1E3A8A] outline-none shadow-2xs transition-all"
+                placeholder="Contoh: Dr. drg. Ahmad Sudrajat, Sp.Ort."
+                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-800 outline-none shadow-2xs transition-all"
               />
-              <p class="text-[10px] text-slate-400">2 Digit penomoran ijazah & kartu mahasiswa.</p>
             </div>
-          </div>
 
-          <!-- Live NIM Preview Card -->
-          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3 shadow-2xs">
-            <div>
-              <div class="text-[10px] uppercase font-bold text-blue-700 tracking-wider font-sora">
-                Simulasi Format Standar NIM BTH
-              </div>
-              <div class="text-[11px] text-slate-600 mt-0.5">
-                Format: <span class="font-mono font-semibold">{YY}{NIM}{JALUR}{URUT}</span>
-              </div>
-            </div>
-            <div class="px-3 py-1.5 bg-white rounded-lg border border-blue-200 shadow-2xs flex items-center gap-1.5">
-              <span class="text-[11px] text-slate-500">Pratinjau:</span>
-              <span class="font-mono font-bold text-sm text-[#1E3A8A]">
-                {{ nimSimulation }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Fakultas & Jenjang -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div class="space-y-1.5">
               <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
                 <Building2 class="w-3.5 h-3.5 text-slate-500" />
-                <span>Fakultas Induk</span>
-                <span class="text-rose-500">*</span>
+                <span>Lokasi Gedung / Ruang Dekanat</span>
               </label>
-              <select
-                v-model="newForm.faculty_code"
-                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-800 outline-none shadow-2xs transition-all cursor-pointer font-medium"
-              >
-                <option v-for="f in organizationStore.faculties" :key="f.code" :value="f.code">
-                  {{ f.name }} ({{ f.code }})
-                </option>
-              </select>
+              <input
+                v-model="facultyForm.building"
+                type="text"
+                placeholder="Contoh: Gedung Laboratorium Terpadu Lt. 2"
+                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-800 outline-none shadow-2xs transition-all"
+              />
             </div>
 
-            <div class="space-y-1.5">
-              <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
-                <GraduationCap class="w-3.5 h-3.5 text-slate-500" />
-                <span>Jenjang Pendidikan</span>
-                <span class="text-rose-500">*</span>
-              </label>
-              <select
-                v-model="newForm.degree"
-                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-800 outline-none shadow-2xs transition-all cursor-pointer font-medium"
+            <!-- Modal Footer Actions -->
+            <div class="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-end gap-2.5 flex-shrink-0">
+              <button
+                type="button"
+                @click="showFacultyModal = false"
+                class="w-full sm:w-auto px-4 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-xl transition-colors cursor-pointer text-center"
               >
-                <option value="S1">S1 (Sarjana)</option>
-                <option value="D3">D3 (Diploma Tiga)</option>
-                <option value="Profesi">Profesi</option>
-              </select>
+                Batal
+              </button>
+              <button
+                type="submit"
+                class="w-full sm:w-auto px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-xl transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2"
+              >
+                <CheckCircle2 class="w-4 h-4" />
+                <span>{{ isEditingFaculty ? 'Simpan Perubahan' : 'Simpan Fakultas' }}</span>
+              </button>
             </div>
+          </form>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- ================================================================= -->
+    <!-- MODAL 3: TAMBAH / EDIT JENJANG PENDIDIKAN                        -->
+    <!-- ================================================================= -->
+    <Teleport to="body">
+      <div
+        v-if="showDegreeModal"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm modal-sharp"
+        @click.self="showDegreeModal = false"
+      >
+        <div class="relative w-full max-w-lg max-h-[92vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden my-auto transform-gpu">
+          <div class="h-1 w-full bg-[#1E3A8A] flex-shrink-0"></div>
+
+          <div class="p-5 sm:p-6 pb-4 flex items-start justify-between gap-4 border-b border-slate-100 flex-shrink-0">
+            <div class="flex items-center gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center justify-center text-[#1E3A8A] flex-shrink-0 shadow-2xs">
+                <GraduationCap class="w-5 h-5 text-[#1E3A8A]" />
+              </div>
+              <div>
+                <div class="text-[10px] font-bold text-blue-700 uppercase tracking-wider font-sora flex items-center gap-1.5">
+                  <span>Jenjang Pendidikan</span>
+                  <span class="text-slate-400 font-normal">/</span>
+                  <span class="text-slate-500 font-normal">{{ isEditingDegree ? 'Edit Data' : 'Tambah Baru' }}</span>
+                </div>
+                <h3 class="font-sora font-bold text-slate-900 text-base sm:text-lg">
+                  {{ isEditingDegree ? 'Edit Jenjang Pendidikan' : 'Tambah Jenjang Pendidikan Baru' }}
+                </h3>
+              </div>
+            </div>
+            <button
+              @click="showDegreeModal = false"
+              class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              aria-label="Tutup Modal"
+            >
+              <X class="w-5 h-5" />
+            </button>
           </div>
 
-          <!-- Akreditasi & Estimasi UKT -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <form @submit.prevent="submitDegreeForm" class="p-5 sm:p-6 space-y-4 flex-1 overflow-y-auto text-xs font-sans">
+            <!-- Kode & Nama Jenjang -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div class="space-y-1.5">
+                <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
+                  <Hash class="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Kode Jenjang</span>
+                  <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  v-model="degreeForm.code"
+                  type="text"
+                  required
+                  placeholder="Contoh: D4 / S2 / Sp"
+                  class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs font-mono font-bold uppercase tracking-wider text-[#1E3A8A] outline-none shadow-2xs transition-all"
+                />
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
+                  <GraduationCap class="w-3.5 h-3.5 text-blue-600" />
+                  <span>Nama Jenjang</span>
+                  <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  v-model="degreeForm.name"
+                  type="text"
+                  required
+                  placeholder="Contoh: Sarjana Terapan"
+                  class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs font-medium text-slate-800 outline-none shadow-2xs transition-all"
+                />
+              </div>
+            </div>
+
+            <!-- Masa Studi & Gelar -->
+            <div class="space-y-1.5">
+              <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
+                <Calendar class="w-3.5 h-3.5 text-slate-500" />
+                <span>Masa Studi Standar</span>
+              </label>
+              <input
+                v-model="degreeForm.studyDuration"
+                type="text"
+                placeholder="Contoh: 8 Semester (4 Tahun)"
+                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-800 outline-none shadow-2xs transition-all"
+              />
+            </div>
+
             <div class="space-y-1.5">
               <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
                 <Award class="w-3.5 h-3.5 text-slate-500" />
-                <span>Status Akreditasi</span>
-                <span class="text-rose-500">*</span>
-              </label>
-              <select
-                v-model="newForm.accreditation"
-                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-800 outline-none shadow-2xs transition-all cursor-pointer font-medium"
-              >
-                <option value="Unggul">Unggul</option>
-                <option value="Baik Sekali">Baik Sekali</option>
-                <option value="Baik">Baik</option>
-                <option value="A">A</option>
-                <option value="B">B</option>
-              </select>
-            </div>
-
-            <div class="space-y-1.5">
-              <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
-                <DollarSign class="w-3.5 h-3.5 text-slate-500" />
-                <span>Estimasi Biaya UKT</span>
-                <span class="text-rose-500">*</span>
+                <span>Gelar Kelulusan</span>
               </label>
               <input
-                v-model="newForm.ukt_estimate"
+                v-model="degreeForm.degreeTitle"
                 type="text"
-                placeholder="Rp 5.000.000 / semester"
+                placeholder="Contoh: Sarjana Terapan Sains (S.Tr.Kes.)"
+                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-800 outline-none shadow-2xs transition-all"
+              />
+            </div>
+
+            <!-- Alokasi Kuota PMB -->
+            <div class="space-y-1.5">
+              <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
+                <Users class="w-3.5 h-3.5 text-slate-500" />
+                <span>Alokasi Total Kuota (Kursi)</span>
+              </label>
+              <input
+                v-model.number="degreeForm.totalQuota"
+                type="number"
+                min="0"
+                placeholder="Contoh: 150"
                 class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs font-semibold text-slate-800 outline-none shadow-2xs transition-all"
               />
             </div>
+
+            <!-- Modal Footer Actions -->
+            <div class="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-end gap-2.5 flex-shrink-0">
+              <button
+                type="button"
+                @click="showDegreeModal = false"
+                class="w-full sm:w-auto px-4 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-xl transition-colors cursor-pointer text-center"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                class="w-full sm:w-auto px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-xl transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2"
+              >
+                <CheckCircle2 class="w-4 h-4" />
+                <span>{{ isEditingDegree ? 'Simpan Perubahan' : 'Simpan Jenjang' }}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- ================================================================= -->
+    <!-- MODAL 4: KONFIRMASI HAPUS PERMANEN (UNIVERSAL DELETE MODAL)      -->
+    <!-- ================================================================= -->
+    <Teleport to="body">
+      <div
+        v-if="showDeleteModal"
+        class="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm modal-sharp"
+        @click.self="showDeleteModal = false"
+      >
+        <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden my-auto transform-gpu p-5 sm:p-6 space-y-4">
+          <div class="flex items-start gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 flex-shrink-0 shadow-2xs">
+              <AlertTriangle class="w-5 h-5 text-rose-600" />
+            </div>
+            <div>
+              <h3 class="font-sora font-bold text-slate-900 text-base">
+                Konfirmasi Hapus {{ deleteTarget.typeLabel }}
+              </h3>
+              <p class="text-xs text-slate-500 mt-0.5">
+                Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
           </div>
 
-          <!-- Modal Footer Actions -->
-          <div class="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-end gap-2.5 flex-shrink-0">
+          <p class="text-xs text-slate-600 font-sans leading-relaxed">
+            Apakah Anda yakin ingin menghapus {{ deleteTarget.typeLabel }}
+            <strong class="text-slate-900 font-semibold font-sora">"{{ deleteTarget.name }}"</strong>
+            ({{ deleteTarget.code }}) dari basis data akademik?
+          </p>
+
+          <div
+            v-if="deleteTarget.warningNote"
+            class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 space-y-1"
+          >
+            <div class="font-semibold flex items-center gap-1.5">
+              <AlertTriangle class="w-3.5 h-3.5 text-amber-600" />
+              <span>Perhatian Keterkaitan Data:</span>
+            </div>
+            <div>{{ deleteTarget.warningNote }}</div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-end gap-2.5">
             <button
               type="button"
-              @click="showAddModal = false"
-              class="w-full sm:w-auto px-4 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-xl transition-colors cursor-pointer text-center"
+              @click="showDeleteModal = false"
+              class="w-full sm:w-auto px-4 py-2 border border-slate-300 hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-xl transition-colors cursor-pointer text-center"
             >
               Batal
             </button>
             <button
-              type="submit"
-              class="w-full sm:w-auto px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-xl transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2"
+              type="button"
+              @click="executeDelete"
+              class="w-full sm:w-auto px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs rounded-xl transition-all cursor-pointer shadow-xs inline-flex items-center justify-center gap-1.5"
             >
-              <CheckCircle2 class="w-4 h-4" />
-              <span>Simpan Program Studi</span>
+              <Trash2 class="w-3.5 h-3.5" />
+              <span>Ya, Hapus Permanen</span>
             </button>
           </div>
-        </form>
+        </div>
       </div>
-    </div>
-  </Teleport>
+    </Teleport>
   </div>
 </template>
 
@@ -652,15 +1112,18 @@ import { useToast } from '@/composables/useToast';
 import {
   Building2,
   BookOpen,
-  PlusCircle,
   Plus,
   X,
   Award,
   Hash,
   CheckCircle2,
   DollarSign,
-  Layers,
   GraduationCap,
+  Edit,
+  Trash2,
+  AlertTriangle,
+  Calendar,
+  Users,
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -679,20 +1142,6 @@ const toast = useToast();
 const activeSubDesk = ref(props.initialSubDesk || 'programs');
 const selectedFacultyFilter = ref('ALL');
 const searchQuery = ref('');
-const showAddModal = ref(false);
-
-const degreesList = ref([
-  { code: 'D3', name: 'Diploma Tiga', studyDuration: '6 Semester (3 Tahun)', degreeTitle: 'Ahli Madya (A.Md.)', prodiCount: 2, totalQuota: 130, isActive: true },
-  { code: 'S1', name: 'Sarjana', studyDuration: '8 Semester (4 Tahun)', degreeTitle: 'Sarjana (S.Farm., S.Kom., S.Kes., S.Bns.)', prodiCount: 5, totalQuota: 475, isActive: true },
-  { code: 'Profesi', name: 'Pendidikan Profesi', studyDuration: '2 Semester (1 Tahun)', degreeTitle: 'Apoteker / Ners (Apt., Ners)', prodiCount: 1, totalQuota: 60, isActive: true },
-  { code: 'S2', name: 'Magister', studyDuration: '4 Semester (2 Tahun)', degreeTitle: 'Magister Farmasi (M.Farm.)', prodiCount: 1, totalQuota: 30, isActive: false },
-]);
-
-const facultiesList = ref([
-  { code: 'FF', name: 'Fakultas Farmasi', dean: 'Prof. Dr. apt. Budi Rahardjo, M.Si.', building: 'Gedung Rektorat & Farmasi Lt. 2', prodiCount: 2, accreditation: 'Unggul', isActive: true },
-  { code: 'FIK', name: 'Fakultas Ilmu Kesehatan', dean: 'Dr. Ns. Siti Aminah, S.Kep., M.Kep.', building: 'Gedung Florence Nightingale', prodiCount: 3, accreditation: 'Baik Sekali', isActive: true },
-  { code: 'FTB', name: 'Fakultas Teknologi & Bisnis', dean: 'Dr. Ir. Hendra Gunawan, M.T.', building: 'Gedung Laboratorium Terpadu Lt. 3', prodiCount: 2, accreditation: 'Baik', isActive: true },
-]);
 
 watch(
   () => props.initialSubDesk,
@@ -703,6 +1152,300 @@ watch(
   }
 );
 
+// =================================================================
+// 1. STATE & MODAL FORM: PROGRAM STUDI (PRODI)
+// =================================================================
+const showProgramModal = ref(false);
+const isEditingProgram = ref(false);
+const editingProgramId = ref(null);
+
+const programForm = ref({
+  name: '',
+  code: '',
+  nim_code: '',
+  faculty_code: 'FF',
+  degree: 'S1',
+  accreditation: 'Baik Sekali',
+  ukt_estimate: 'Rp 5.000.000 / semester',
+});
+
+const nimSimulation = computed(() => {
+  const code = (programForm.value.nim_code || 'XX').padStart(2, '0').slice(0, 2);
+  return `26${code}10001`;
+});
+
+const openAddProgramModal = () => {
+  isEditingProgram.value = false;
+  editingProgramId.value = null;
+  programForm.value = {
+    name: '',
+    code: '',
+    nim_code: '',
+    faculty_code: organizationStore.faculties[0]?.code || 'FF',
+    degree: organizationStore.degrees[0]?.code || 'S1',
+    accreditation: 'Baik Sekali',
+    ukt_estimate: 'Rp 5.000.000 / semester',
+  };
+  showProgramModal.value = true;
+};
+
+const openEditProgramModal = (sp) => {
+  isEditingProgram.value = true;
+  editingProgramId.value = sp.id;
+  programForm.value = {
+    name: sp.name,
+    code: sp.code,
+    nim_code: sp.nim_code,
+    faculty_code: sp.faculty_code,
+    degree: sp.degree,
+    accreditation: sp.accreditation,
+    ukt_estimate: sp.ukt_estimate,
+  };
+  showProgramModal.value = true;
+};
+
+const submitProgramForm = async () => {
+  if (!programForm.value.name || !programForm.value.code || !programForm.value.nim_code) {
+    toast.error('Mohon lengkapi seluruh kolom yang bertanda bintang (*).');
+    return;
+  }
+
+  if (isEditingProgram.value) {
+    const updated = await organizationStore.updateStudyProgram(editingProgramId.value, programForm.value);
+    toast.success(`Program studi ${updated?.name || ''} berhasil diperbarui.`);
+  } else {
+    const added = await organizationStore.addStudyProgram(programForm.value);
+    toast.success(`Program studi ${added.name} (${added.code}) berhasil ditambahkan ke katalog.`);
+  }
+
+  showProgramModal.value = false;
+};
+
+const toggleStatus = async (sp) => {
+  await organizationStore.toggleStudyProgram(sp.id);
+  toast.success(`Status ${sp.name} berhasil diubah menjadi ${sp.is_active ? 'Aktif' : 'Nonaktif'}.`);
+};
+
+const filteredPrograms = computed(() => {
+  let list = organizationStore.studyPrograms;
+
+  if (selectedFacultyFilter.value !== 'ALL') {
+    list = list.filter((sp) => sp.faculty_code === selectedFacultyFilter.value);
+  }
+
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.toLowerCase().trim();
+    list = list.filter(
+      (sp) =>
+        sp.name.toLowerCase().includes(q) ||
+        sp.code.toLowerCase().includes(q) ||
+        sp.nim_code.includes(q) ||
+        sp.faculty_name.toLowerCase().includes(q)
+    );
+  }
+
+  return list;
+});
+
+// =================================================================
+// 2. STATE & MODAL FORM: FAKULTAS AKADEMIK
+// =================================================================
+const showFacultyModal = ref(false);
+const isEditingFaculty = ref(false);
+const editingFacultyId = ref(null);
+
+const facultyForm = ref({
+  name: '',
+  code: '',
+  dean: '',
+  building: '',
+  accreditation: 'Baik Sekali',
+});
+
+const openAddFacultyModal = () => {
+  isEditingFaculty.value = false;
+  editingFacultyId.value = null;
+  facultyForm.value = {
+    name: '',
+    code: '',
+    dean: '',
+    building: 'Gedung Kampus Utama BTH',
+    accreditation: 'Baik Sekali',
+  };
+  showFacultyModal.value = true;
+};
+
+const openEditFacultyModal = (fac) => {
+  isEditingFaculty.value = true;
+  editingFacultyId.value = fac.id;
+  facultyForm.value = {
+    name: fac.name,
+    code: fac.code,
+    dean: fac.dean,
+    building: fac.building,
+    accreditation: fac.accreditation,
+  };
+  showFacultyModal.value = true;
+};
+
+const submitFacultyForm = async () => {
+  if (!facultyForm.value.name || !facultyForm.value.code) {
+    toast.error('Nama dan Kode Fakultas wajib diisi.');
+    return;
+  }
+
+  if (isEditingFaculty.value) {
+    const updated = await organizationStore.updateFaculty(editingFacultyId.value, facultyForm.value);
+    toast.success(`Fakultas ${updated?.name || ''} berhasil diperbarui.`);
+  } else {
+    const added = await organizationStore.addFaculty(facultyForm.value);
+    toast.success(`Fakultas ${added.name} (${added.code}) berhasil ditambahkan.`);
+  }
+
+  showFacultyModal.value = false;
+};
+
+const toggleFacultyStatus = async (fac) => {
+  await organizationStore.toggleFaculty(fac.id);
+  toast.success(`Status ${fac.name} berhasil diubah menjadi ${fac.is_active ? 'Aktif' : 'Nonaktif'}.`);
+};
+
+// =================================================================
+// 3. STATE & MODAL FORM: JENJANG PENDIDIKAN
+// =================================================================
+const showDegreeModal = ref(false);
+const isEditingDegree = ref(false);
+const editingDegreeId = ref(null);
+
+const degreeForm = ref({
+  name: '',
+  code: '',
+  studyDuration: '8 Semester (4 Tahun)',
+  degreeTitle: 'Sarjana',
+  totalQuota: 100,
+});
+
+const openAddDegreeModal = () => {
+  isEditingDegree.value = false;
+  editingDegreeId.value = null;
+  degreeForm.value = {
+    name: '',
+    code: '',
+    studyDuration: '8 Semester (4 Tahun)',
+    degreeTitle: 'Sarjana',
+    totalQuota: 100,
+  };
+  showDegreeModal.value = true;
+};
+
+const openEditDegreeModal = (deg) => {
+  isEditingDegree.value = true;
+  editingDegreeId.value = deg.id;
+  degreeForm.value = {
+    name: deg.name,
+    code: deg.code,
+    studyDuration: deg.studyDuration,
+    degreeTitle: deg.degreeTitle,
+    totalQuota: deg.totalQuota,
+  };
+  showDegreeModal.value = true;
+};
+
+const submitDegreeForm = async () => {
+  if (!degreeForm.value.name || !degreeForm.value.code) {
+    toast.error('Nama dan Kode Jenjang wajib diisi.');
+    return;
+  }
+
+  if (isEditingDegree.value) {
+    const updated = await organizationStore.updateDegree(editingDegreeId.value, degreeForm.value);
+    toast.success(`Jenjang ${updated?.name || ''} berhasil diperbarui.`);
+  } else {
+    const added = await organizationStore.addDegree(degreeForm.value);
+    toast.success(`Jenjang ${added.name} (${added.code}) berhasil ditambahkan.`);
+  }
+
+  showDegreeModal.value = false;
+};
+
+const toggleDegreeStatus = async (deg) => {
+  await organizationStore.toggleDegree(deg.id);
+  toast.success(`Status pendaftaran jenjang ${deg.name} berhasil diubah.`);
+};
+
+// =================================================================
+// 4. STATE & MODAL: KONFIRMASI HAPUS PERMANEN
+// =================================================================
+const showDeleteModal = ref(false);
+const deleteTarget = ref({
+  type: '', // 'program' | 'faculty' | 'degree'
+  typeLabel: '',
+  id: null,
+  name: '',
+  code: '',
+  warningNote: '',
+});
+
+const confirmDeleteProgram = (sp) => {
+  deleteTarget.value = {
+    type: 'program',
+    typeLabel: 'Program Studi',
+    id: sp.id,
+    name: sp.name,
+    code: sp.code,
+    warningNote: '',
+  };
+  showDeleteModal.value = true;
+};
+
+const confirmDeleteFaculty = (fac) => {
+  const linkedCount = organizationStore.studyPrograms.filter((p) => p.faculty_code === fac.code || p.faculty_id === fac.id).length;
+  deleteTarget.value = {
+    type: 'faculty',
+    typeLabel: 'Fakultas Akademik',
+    id: fac.id,
+    name: fac.name,
+    code: fac.code,
+    warningNote: linkedCount > 0
+      ? `Fakultas ini menaungi ${linkedCount} program studi aktif. Menghapus fakultas ini juga akan menghapus seluruh prodi terkait di dalamnya.`
+      : '',
+  };
+  showDeleteModal.value = true;
+};
+
+const confirmDeleteDegree = (deg) => {
+  const linkedCount = organizationStore.studyPrograms.filter((p) => p.degree === deg.code).length;
+  deleteTarget.value = {
+    type: 'degree',
+    typeLabel: 'Jenjang Pendidikan',
+    id: deg.id,
+    name: deg.name,
+    code: deg.code,
+    warningNote: linkedCount > 0
+      ? `Jenjang ini saat ini digunakan oleh ${linkedCount} program studi aktif.`
+      : '',
+  };
+  showDeleteModal.value = true;
+};
+
+const executeDelete = async () => {
+  if (deleteTarget.value.type === 'program') {
+    await organizationStore.deleteStudyProgram(deleteTarget.value.id);
+    toast.success(`Program studi ${deleteTarget.value.name} berhasil dihapus.`);
+  } else if (deleteTarget.value.type === 'faculty') {
+    await organizationStore.deleteFaculty(deleteTarget.value.id);
+    toast.success(`Fakultas ${deleteTarget.value.name} dan prodi terkait berhasil dihapus.`);
+  } else if (deleteTarget.value.type === 'degree') {
+    await organizationStore.deleteDegree(deleteTarget.value.id);
+    toast.success(`Jenjang ${deleteTarget.value.name} berhasil dihapus.`);
+  }
+
+  showDeleteModal.value = false;
+};
+
+// =================================================================
+// 5. RBAC PERMISSIONS LOGIC
+// =================================================================
 const isSyncingRbac = ref(false);
 const isSavingRbac = ref(false);
 const selectedRoleForRbac = ref('dekan');
@@ -812,21 +1555,6 @@ const activeRoleTitle = computed(() => {
   return found ? found.label : selectedRoleForRbac.value;
 });
 
-const newForm = ref({
-  name: '',
-  code: '',
-  nim_code: '',
-  faculty_code: 'FF',
-  degree: 'S1',
-  accreditation: 'Baik Sekali',
-  ukt_estimate: 'Rp 5.000.000 / semester',
-});
-
-const nimSimulation = computed(() => {
-  const code = (newForm.value.nim_code || 'XX').padStart(2, '0').slice(0, 2);
-  return `26${code}10001`;
-});
-
 const loadRolePermissions = async () => {
   isSyncingRbac.value = true;
   try {
@@ -849,7 +1577,6 @@ const saveRolePermissions = async () => {
     await authApi.updateRolePermissions(selectedRoleForRbac.value, assignedPermissions.value);
     toast.success(`Matriks hak akses untuk peran ${activeRoleTitle.value} berhasil diperbarui.`);
   } catch (err) {
-    // Simpan di local map jika backend offline / fallback
     defaultRolePermissionsMap[selectedRoleForRbac.value] = [...assignedPermissions.value];
     toast.success(`Hak akses peran ${activeRoleTitle.value} berhasil disimpan.`);
   } finally {
@@ -875,59 +1602,12 @@ onMounted(async () => {
 });
 
 const syncCurrentData = async () => {
-  if (activeSubDesk.value === 'programs') {
+  if (['programs', 'fakultas', 'jenjang'].includes(activeSubDesk.value)) {
     await organizationStore.syncAll();
     toast.success('Data master organisasi berhasil disinkronkan dengan database.');
   } else {
     await loadRolePermissions();
     toast.success('Matriks hak akses peran berhasil disinkronkan.');
   }
-};
-
-const filteredPrograms = computed(() => {
-  let list = organizationStore.studyPrograms;
-
-  if (selectedFacultyFilter.value !== 'ALL') {
-    list = list.filter((sp) => sp.faculty_code === selectedFacultyFilter.value);
-  }
-
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase().trim();
-    list = list.filter(
-      (sp) =>
-        sp.name.toLowerCase().includes(q) ||
-        sp.code.toLowerCase().includes(q) ||
-        sp.nim_code.includes(q) ||
-        sp.faculty_name.toLowerCase().includes(q)
-    );
-  }
-
-  return list;
-});
-
-const toggleStatus = async (sp) => {
-  await organizationStore.toggleStudyProgram(sp.id);
-  toast.success(`Status ${sp.name} berhasil diubah menjadi ${sp.is_active ? 'Aktif' : 'Nonaktif'}.`);
-};
-
-const openAddModal = () => {
-  newForm.value = {
-    name: '',
-    code: '',
-    nim_code: '',
-    faculty_code: organizationStore.faculties[0]?.code || 'FF',
-    degree: 'S1',
-    accreditation: 'Baik Sekali',
-    ukt_estimate: 'Rp 5.000.000 / semester',
-  };
-  showAddModal.value = true;
-};
-
-const submitAddProgram = async () => {
-  if (!newForm.value.name || !newForm.value.code || !newForm.value.nim_code) return;
-
-  const added = await organizationStore.addStudyProgram(newForm.value);
-  showAddModal.value = false;
-  toast.success(`Program studi ${added.name} (${added.code}) berhasil ditambahkan ke data master.`);
 };
 </script>
