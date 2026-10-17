@@ -108,6 +108,7 @@ function createInitialState(user) {
 
   const regNo = adminSeed?.id || generateRegNumber(user?.id, user?.email);
   const currentYear = new Date().getFullYear();
+  const regSuffix = String(regNo).split('-').pop() || '1001';
 
   const isFeePaid = adminSeed?.payments?.registrationFee?.status === 'paid';
   const isUktPaid = adminSeed?.payments?.uktFee?.status === 'paid';
@@ -260,24 +261,24 @@ function createInitialState(user) {
     payments: {
       registrationFee: {
         id: `INV-REG-${currentYear}-${regSuffix}`,
-        title: isUjang ? 'Pembebasan Biaya Formulir (Mitra SMK MARHAS MARGAHAYU)' : 'Biaya Formulir Pendaftaran PMB',
+        title: isFeePaid ? 'Biaya Formulir Pendaftaran PMB (Lunas)' : 'Biaya Formulir Pendaftaran PMB',
         amount: 250000,
-        status: isUjang ? 'paid' : 'pending',
-        statusLabel: isUjang ? 'Lunas (Kemitraan Guru BK)' : 'Menunggu Pembayaran',
-        paidAt: isUjang ? '15 Februari 2026 10:00 WIB' : null,
-        paymentMethod: isUjang ? 'Kemitraan Guru BK (MARHASBISA)' : 'Virtual Account BSI',
+        status: isFeePaid ? 'paid' : 'pending',
+        statusLabel: isFeePaid ? 'Lunas' : 'Menunggu Pembayaran',
+        paidAt: isFeePaid ? (adminSeed?.payments?.registrationFee?.paidAt || '15 Februari 2026 10:00 WIB') : null,
+        paymentMethod: isFeePaid ? (adminSeed?.payments?.registrationFee?.paymentMethod || 'Virtual Account BSI') : 'Virtual Account BSI',
         vaNumber: `988 2026 01 ${regSuffix}`,
       },
       uktFee: {
         id: `INV-UKT-${currentYear}-${regSuffix}`,
         title: 'Biaya Daftar Ulang & UKT Semester 1',
         amount: 0,
-        status: 'pending',
-        statusLabel: 'Menunggu Pembayaran',
+        status: isUktPaid ? 'paid' : 'pending',
+        statusLabel: isUktPaid ? 'Lunas' : 'Menunggu Pembayaran',
         dueDate: getUpcomingDateString(25, false),
         vaBsi: `988 2026 01 ${regSuffix}`,
         vaMandiri: `88908 2026 ${regSuffix}`,
-        paidAt: null,
+        paidAt: isUktPaid ? (adminSeed?.payments?.uktFee?.paidAt || '18 Februari 2026 14:00 WIB') : null,
       },
     },
     schedule: {
@@ -323,11 +324,11 @@ function createInitialState(user) {
       siakadAccess: 'Aktif setelah pelunasan UKT',
     },
     referral: {
-      code: isUjang ? 'MARHASBISA' : '',
-      picName: isUjang ? 'Kemal Ramadhan' : '',
-      schoolName: isUjang ? 'SMK MARHAS MARGAHAYU' : '',
-      appliedAt: isUjang ? '2026-02-15T08:00:00Z' : null,
-      isApplied: isUjang ? true : false,
+      code: adminSeed?.referral?.code || '',
+      picName: adminSeed?.referral?.picName || '',
+      schoolName: adminSeed?.referral?.schoolName || '',
+      appliedAt: adminSeed?.referral?.appliedAt || null,
+      isApplied: !!adminSeed?.referral?.code,
     },
     statusLogs: [
       {
