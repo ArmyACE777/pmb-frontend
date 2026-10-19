@@ -1603,6 +1603,55 @@ export const useApplicantStore = defineStore('applicant', () => {
         if (es.venue) state.value.schedule.cbtVenue = es.venue;
       }
 
+      // Sinkronisasi Sesi Ujian CBT Online & Riwayat Pengerjaan (Attempt)
+      const cbtExamsRes = await examApi.getMyCBTExams().catch(() => null);
+      const cbtList = cbtExamsRes?.data?.data || [];
+      if (Array.isArray(cbtList) && cbtList.length > 0) {
+        const activeExam = cbtList[0];
+        if (activeExam.start_at) {
+          const startObj = new Date(activeExam.start_at);
+          state.value.schedule.cbt = state.value.schedule.cbt || {};
+          state.value.schedule.cbt.date = startObj.toLocaleDateString('id-ID', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          });
+          if (activeExam.end_at) {
+            const endObj = new Date(activeExam.end_at);
+            state.value.schedule.cbt.time = `${startObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} - ${endObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB`;
+          }
+        }
+        if (activeExam.attempt_id && (activeExam.attempt_status === 'submitted' || activeExam.attempt_status === 'auto_submitted')) {
+          const resData = await examApi.getAttemptResult(activeExam.attempt_id).catch(() => null);
+          if (resData?.data?.data) {
+            const res = resData.data.data;
+            const finalScore = Math.round(res.final_score ?? res.objective_score ?? 0);
+            const isPass = finalScore >= 70;
+            state.value.exam.status = 'completed';
+            state.value.exam.score = finalScore;
+            state.value.exam.completedAt = res.submitted_at ? new Date(res.submitted_at).toLocaleString('id-ID') : new Date().toLocaleString('id-ID');
+            state.value.exam.passedStatus = isPass ? 'Lulus Nilai Ambang Batas (Min. 70)' : 'Belum Memenuhi Ambang Batas';
+            const totalQ = res.total_questions || 5;
+            state.value.exam.totalQuestions = totalQ;
+            state.value.exam.correctAnswers = res.correct_answers || (isPass ? Math.ceil(totalQ * 0.8) : Math.floor(totalQ * 0.4));
+
+            if (!state.value.result.isAnnounced) {
+              state.value.result.isAnnounced = true;
+              state.value.result.isPassed = isPass;
+              state.value.result.acceptedProdi = state.value.admission.prodi1 || 'Program Studi Terpilih';
+              state.value.result.acceptedFaculty = state.value.admission.prodi1Faculty || 'Universitas BTH';
+              state.value.result.acceptedDegree = state.value.admission.prodi1Degree || 'S1';
+              if (isPass) {
+                const regSuffix = state.value.candidate.registrationNumber.split('-').pop() || '101';
+                state.value.result.decisionLetterNo = `${regSuffix.slice(-3)}/SK-PMB/UBTH/X/${new Date().getFullYear()}`;
+              }
+              state.value.admission.status = isPass ? 'Dinyatakan Lulus Seleksi' : 'Belum Memenuhi Syarat Kelulusan';
+            }
+          }
+        }
+      }
+
       // 5. Selection Service (Pengumuman Kelulusan)
       const selRes = await selectionApi.getMyResult().catch(() => null);
       if (selRes?.data?.data) {

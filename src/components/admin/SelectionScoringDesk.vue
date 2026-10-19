@@ -361,6 +361,14 @@
                 <span>{{ exam.shuffle_questions ? 'Soal & Opsi Diacak' : 'Urutan Standar' }}</span>
               </span>
             </div>
+
+            <!-- Schedule Badge -->
+            <div v-if="exam.start_at || exam.end_at || exam.session?.start_at" class="text-[11px] text-slate-600 bg-slate-50 border border-slate-200/80 rounded-lg p-2.5 flex items-center gap-2">
+              <Calendar class="w-4 h-4 text-blue-600 flex-shrink-0" />
+              <span>
+                <strong class="text-slate-800">Jadwal Akses:</strong> {{ formatSchedule(exam.start_at || exam.session?.start_at) }} s.d. {{ formatSchedule(exam.end_at || exam.session?.end_at) }}
+              </span>
+            </div>
           </div>
 
           <!-- Card Actions -->
@@ -915,6 +923,26 @@
                 class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A]"
               ></textarea>
             </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold text-slate-800 mb-1">Jadwal Akses Mulai (Buka) *</label>
+                <input
+                  v-model="examForm.start_at"
+                  type="datetime-local"
+                  required
+                  class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A]"
+                />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-800 mb-1">Jadwal Akses Berakhir (Tutup) *</label>
+                <input
+                  v-model="examForm.end_at"
+                  type="datetime-local"
+                  required
+                  class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A]"
+                />
+              </div>
+            </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block font-semibold text-slate-800 mb-1">Durasi Pengerjaan (Menit) *</label>
@@ -1245,6 +1273,7 @@ import {
   ShieldAlert,
   Clock,
   Shuffle,
+  Calendar,
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -1620,11 +1649,29 @@ const savingExam = ref(false);
 const examForm = ref({
   title: '',
   description: '',
+  start_at: '',
+  end_at: '',
   duration_minutes: 60,
   passing_grade: 70.0,
   shuffle_questions: true,
   shuffle_options: true,
 });
+
+const formatSchedule = (dateStr) => {
+  if (!dateStr) return '-';
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }) + ' WIB';
+  } catch {
+    return String(dateStr);
+  }
+};
 
 const loadCBTExams = async () => {
   loadingExams.value = true;
@@ -1666,9 +1713,16 @@ const loadCBTExams = async () => {
 };
 
 const openExamModal = () => {
+  const now = new Date();
+  const startStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  const end = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+  const endStr = new Date(end.getTime() - end.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
   examForm.value = {
     title: 'Ujian CBT Saringan Masuk Gelombang 1',
     description: 'Tes potensi akademik, kemampuan dasar sains, dan penalaran logika PMB BTH.',
+    start_at: startStr,
+    end_at: endStr,
     duration_minutes: 60,
     passing_grade: 70.0,
     shuffle_questions: true,
@@ -1681,10 +1735,15 @@ const saveExam = async () => {
   savingExam.value = true;
   try {
     let createdExam = null;
+    const startIso = examForm.value.start_at ? new Date(examForm.value.start_at).toISOString() : new Date().toISOString();
+    const endIso = examForm.value.end_at ? new Date(examForm.value.end_at).toISOString() : new Date(Date.now() + 14 * 86400000).toISOString();
+
     try {
       const res = await examApi.createCBTExam({
         title: examForm.value.title,
         description: examForm.value.description,
+        start_at: startIso,
+        end_at: endIso,
         duration_minutes: Number(examForm.value.duration_minutes),
         passing_grade: Number(examForm.value.passing_grade),
         shuffle_questions: examForm.value.shuffle_questions,
@@ -1701,6 +1760,8 @@ const saveExam = async () => {
         id: `exam-local-${Date.now()}`,
         title: examForm.value.title,
         description: examForm.value.description,
+        start_at: startIso,
+        end_at: endIso,
         duration_minutes: Number(examForm.value.duration_minutes),
         passing_grade: Number(examForm.value.passing_grade),
         shuffle_questions: examForm.value.shuffle_questions,
