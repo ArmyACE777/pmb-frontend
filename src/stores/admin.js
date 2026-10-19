@@ -4,7 +4,7 @@ import { useApplicantStore, PRODI_METADATA } from './applicant';
 import { useAuthStore } from './auth';
 import { useReferralStore } from './referral';
 import axios from 'axios';
-import { admissionApi, financeApi, scoringApi, studentApi, nimApi } from '@/api';
+import { admissionApi, financeApi, scoringApi, studentApi, nimApi, getApiBaseUrl } from '@/api';
 
 const STORAGE_KEY = 'bth_admin_data_real_v5';
 const PATH_CHANGES_KEY = 'bth_admin_path_changes_v4';
@@ -1667,7 +1667,7 @@ export const useAdminStore = defineStore('admin', () => {
     backendSyncError.value = null;
     try {
       const token = await getAdminAuthorizationToken();
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+      const baseURL = getApiBaseUrl();
       const res = await axios.get(`${baseURL}/auth/admin/users`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         params: { per_page: 100 },

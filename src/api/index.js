@@ -1,4 +1,4 @@
-export { apiClient } from './client';
+export { apiClient, getApiBaseUrl, baseURL } from './client';
 export { organizationApi } from './organization';
 export { identityApi } from './identity';
 export { admissionApi } from './admission';

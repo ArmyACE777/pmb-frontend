@@ -1,6 +1,31 @@
-import axios from 'axios';
+/**
+ * Mendeteksi URL dasar API secara dinamis:
+ * 1. Jika VITE_API_BASE_URL disetel ke URL produksi non-localhost, gunakan itu.
+ * 2. Jika diakses di domain publik (misal pelita.pkm.asia, vercel.app, dll.),
+ *    secara dinamis mengikat ke origin domain aktif saat ini (`${origin}/api/v1`).
+ * 3. Jika di localhost / dev, gunakan VITE_API_BASE_URL atau 'http://localhost:8000/api/v1'.
+ */
+export const getApiBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+  if (typeof window !== 'undefined' && window.location) {
+    const { hostname, origin } = window.location;
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0';
+
+    if (!isLocalhost) {
+      // Jika disetel ke URL produksi publik eksplisit (bukan localhost), gunakan envUrl
+      if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+        return envUrl;
+      }
+      // Otomatis ikuti domain yang sedang aktif saat ini (misal https://pelita.pkm.asia/api/v1)
+      return `${origin}/api/v1`;
+    }
+  }
+
+  return envUrl || 'http://localhost:8000/api/v1';
+};
+
+export const baseURL = getApiBaseUrl();
 
 export const apiClient = axios.create({
   baseURL,
@@ -27,9 +52,15 @@ const processQueue = (error, token = null) => {
 
 export let lastRequestId = null;
 
-// Request Interceptor: Attach Access Token
+// Request Interceptor: Attach Access Token & Ensure Dynamic BaseURL
 apiClient.interceptors.request.use(
   (config) => {
+    if (typeof window !== 'undefined' && window.location) {
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (!isLocal && config.baseURL && (config.baseURL.includes('localhost') || config.baseURL.includes('127.0.0.1'))) {
+        config.baseURL = getApiBaseUrl();
+      }
+    }
     const token = localStorage.getItem('access_token');
     if (token && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -80,7 +111,7 @@ apiClient.interceptors.response.use(
       }
 
       try {
-        const response = await axios.post(`${baseURL}/auth/refresh`, {
+        const response = await axios.post(`${getApiBaseUrl()}/auth/refresh`, {
           refresh_token: refreshToken,
         });
 
