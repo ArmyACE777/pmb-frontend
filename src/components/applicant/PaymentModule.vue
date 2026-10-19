@@ -278,7 +278,35 @@
             <strong :class="installmentStatusColor">{{ installmentStatusLabel }}</strong>
           </div>
 
-          <div class="overflow-x-auto">
+          <!-- Mobile Cards (< md) -->
+          <div class="block md:hidden space-y-2.5">
+            <div
+              v-for="item in activeInstallmentSchedule"
+              :key="item.term"
+              class="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2"
+            >
+              <div class="flex items-center justify-between">
+                <span class="font-sora font-bold text-xs text-slate-800">
+                  Cicilan Ke-{{ item.term }} ({{ item.percentage }}%)
+                </span>
+                <span
+                  class="px-2 py-0.5 rounded text-[10px] font-bold"
+                  :class="item.isPaid ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'"
+                >
+                  {{ item.isPaid ? 'Lunas' : 'Belum Dibayar' }}
+                </span>
+              </div>
+              <div class="flex items-baseline justify-between pt-1 border-t border-slate-100 text-xs">
+                <span class="text-slate-500 text-[11px]">Jatuh Tempo: {{ item.dueDate }}</span>
+                <span class="font-mono font-bold text-slate-900 text-xs">
+                  Rp {{ item.amount?.toLocaleString('id-ID') }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desktop Table (>= md) -->
+          <div class="hidden md:block overflow-x-auto">
             <table class="w-full text-left text-xs border border-slate-200 rounded min-w-[540px]">
               <thead class="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold whitespace-nowrap">
                 <tr>

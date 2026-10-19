@@ -127,8 +127,90 @@
         </div>
       </div>
 
-      <!-- Tabel Data Kode Referal & Akun Mitra (Streamlined 5 Kolom) -->
-      <div class="overflow-x-auto">
+      <!-- Mobile Referral Cards (< md) -->
+      <div class="block md:hidden divide-y divide-slate-100">
+        <div
+          v-for="r in filteredReferrals"
+          :key="r.id"
+          class="p-4 space-y-3 hover:bg-slate-50/80 transition-colors"
+        >
+          <!-- Top: School & Referral Code -->
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <h4 class="font-sora font-bold text-slate-900 text-sm leading-snug">{{ r.schoolName || '-' }}</h4>
+              <div class="text-xs text-slate-500 mt-0.5">
+                {{ r.picName }} <span v-if="r.schoolCity">• {{ r.schoolCity }}</span>
+              </div>
+              <div class="text-[11px] text-slate-400 font-mono mt-0.5">{{ r.picPhone }}</div>
+            </div>
+
+            <div class="flex items-center gap-1">
+              <span class="font-mono font-bold text-slate-900 text-xs px-2.5 py-1 bg-blue-50 border border-blue-200/80 rounded">
+                {{ r.code }}
+              </span>
+              <button
+                type="button"
+                @click="copyCode(r.code)"
+                class="p-1 text-slate-400 hover:text-[#1E3A8A] rounded transition-colors cursor-pointer"
+                title="Salin Kode Referal"
+              >
+                <Copy class="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          <!-- Parameters: Komisi & Performa Siswa -->
+          <div class="grid grid-cols-2 gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-xs">
+            <div>
+              <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Skema Komisi</span>
+              <span class="font-semibold text-slate-800 text-xs block mt-0.5">
+                {{ r.commissionType === 'percentage' || r.commissionType === 'persen' ? `${r.commissionValue || 10}% / siswa` : `Rp ${(Number(r.commissionValue) || 50000).toLocaleString('id-ID')} / siswa` }}
+              </span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Siswa / Hak Komisi</span>
+              <div class="flex items-center gap-1 mt-0.5">
+                <span class="font-mono font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/60 text-[11px]">
+                  {{ (r.students && r.students.length > 0) ? r.students.filter(s => s.status_approve === 'SUCCESS').length : (r.verifiedCount || 0) }} Lunas
+                </span>
+                <span class="text-slate-400 text-[10px]">/</span>
+                <span class="font-mono text-slate-600 text-[11px]">
+                  {{ (r.students && r.students.length > 0) ? r.students.length : (r.registeredCount || 0) }}
+                </span>
+              </div>
+              <div class="text-[10px] font-mono text-emerald-700 font-bold mt-0.5">
+                Rp {{ getPartnerEarnedCommission(r).toLocaleString('id-ID') }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="pt-1 flex items-center justify-end gap-2">
+            <button
+              type="button"
+              @click="openCommissionModal(r)"
+              class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors cursor-pointer flex items-center gap-1"
+            >
+              <Coins class="w-3.5 h-3.5" />
+              <span>Komisi</span>
+            </button>
+            <button
+              type="button"
+              @click="openAccountModal(r)"
+              class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-[#1E3A8A] hover:bg-[#172554] text-white transition-colors cursor-pointer shadow-2xs"
+            >
+              Akun BK
+            </button>
+          </div>
+        </div>
+
+        <div v-if="filteredReferrals.length === 0" class="py-8 text-center text-slate-400 text-xs">
+          Tidak ada kode referal yang cocok dengan filter pencarian.
+        </div>
+      </div>
+
+      <!-- Desktop Table (>= md) -->
+      <div class="hidden md:block overflow-x-auto">
         <table class="w-full text-left text-xs min-w-[720px]">
           <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-sora font-semibold whitespace-nowrap">
             <tr>
@@ -274,7 +356,69 @@
           </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- Mobile Marketing Visits Cards (< md) -->
+        <div class="block md:hidden divide-y divide-slate-100">
+          <div
+            v-for="(v, idx) in marketingVisitsList"
+            :key="v.id || idx"
+            class="p-4 space-y-3 hover:bg-slate-50/80 transition-colors"
+          >
+            <!-- Top: School & Time -->
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <h4 class="font-sora font-bold text-slate-900 text-sm leading-snug">{{ v.schoolName }}</h4>
+                <div class="text-xs text-slate-500 mt-0.5">{{ v.schoolCity || 'Jawa Barat' }}</div>
+              </div>
+
+              <span class="px-2.5 py-0.5 rounded bg-slate-100 font-mono font-bold text-slate-800 text-xs border border-slate-200 whitespace-nowrap">
+                {{ v.studentAudienceCount || 0 }} Siswa
+              </span>
+            </div>
+
+            <!-- Officer & PIC -->
+            <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-100 space-y-1.5 text-xs">
+              <div class="flex justify-between items-center text-slate-700">
+                <span class="text-slate-500">Petugas:</span>
+                <span class="font-semibold">{{ v.marketingName || 'Tim Marketing PMB' }} ({{ v.visitDate }})</span>
+              </div>
+              <div class="flex justify-between items-center text-slate-700">
+                <span class="text-slate-500">PIC Sekolah:</span>
+                <span>{{ v.picMetName || '-' }} - {{ v.picMetRole || '' }}</span>
+              </div>
+              <div v-if="v.presentationTopic" class="pt-1 border-t border-slate-200/60 text-slate-800">
+                <span class="font-semibold text-slate-600 block text-[10px] uppercase font-sora">Topik:</span>
+                {{ v.presentationTopic }}
+              </div>
+            </div>
+
+            <!-- Actions: Foto & Maps -->
+            <div class="pt-1 flex items-center justify-end gap-2">
+              <a
+                v-if="v.latitude"
+                :href="`https://www.google.com/maps/search/?api=1&query=${v.latitude},${v.longitude}`"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="px-3 py-1.5 border border-slate-200 text-slate-700 rounded-lg text-xs font-medium hover:bg-slate-50 transition"
+              >
+                Buka Peta
+              </a>
+              <button
+                type="button"
+                @click="selectedPreviewVisit = v"
+                class="px-3.5 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white rounded-lg text-xs font-semibold shadow-2xs transition cursor-pointer flex items-center gap-1"
+              >
+                <span>Lihat Foto Geotag</span>
+              </button>
+            </div>
+          </div>
+
+          <div v-if="marketingVisitsList.length === 0" class="py-8 text-center text-slate-400 text-xs">
+            Belum ada laporan kunjungan marketing yang tercatat.
+          </div>
+        </div>
+
+        <!-- Desktop Table (>= md) -->
+        <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-left text-xs min-w-[720px]">
             <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-sora font-semibold whitespace-nowrap">
               <tr>

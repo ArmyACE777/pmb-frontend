@@ -347,7 +347,77 @@
         <span class="text-xs text-slate-500 font-medium">{{ pathChangesList.length }} Pengajuan</span>
       </div>
 
-      <div class="overflow-x-auto">
+      <!-- Mobile Cards (< md) -->
+      <div class="block md:hidden divide-y divide-slate-100">
+        <div
+          v-for="item in pathChangesList"
+          :key="item.id"
+          class="p-4 space-y-3 bg-white hover:bg-slate-50/50 transition-colors"
+        >
+          <!-- Candidate & Status -->
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="font-sora font-bold text-slate-900 text-xs">{{ item.candidateName }}</div>
+              <div class="text-[11px] font-mono text-slate-500">{{ item.regNo }}</div>
+            </div>
+            <span
+              class="inline-block px-2 py-0.5 text-[10px] font-bold rounded border whitespace-nowrap"
+              :class="item.status === 'approved'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : item.status === 'rejected'
+                ? 'bg-rose-50 text-rose-700 border-rose-200'
+                : 'bg-amber-50 text-amber-800 border-amber-200'"
+            >
+              {{ item.status === 'approved' ? 'Disetujui' : item.status === 'rejected' ? 'Ditolak' : 'Menunggu Verifikasi' }}
+            </span>
+          </div>
+
+          <!-- Old vs New Path / Prodi -->
+          <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Jalur & Prodi Lama:</span>
+              <div class="font-medium text-slate-700 text-xs">{{ item.oldTrack }}</div>
+              <div class="text-[11px] text-slate-500">{{ item.oldProdi }}</div>
+            </div>
+            <div class="pt-2 border-t border-slate-200/60">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-[#1E3A8A] block">Jalur & Prodi Baru:</span>
+              <div class="font-bold text-[#1E3A8A] text-xs">{{ item.newTrack }}</div>
+              <div class="text-[11px] font-medium text-slate-800">{{ item.newProdi }}</div>
+            </div>
+          </div>
+
+          <!-- Reason & Notes -->
+          <div class="text-[11px] text-slate-600 space-y-1">
+            <p class="leading-relaxed"><strong class="text-slate-700">Alasan:</strong> {{ item.reason }}</p>
+            <div v-if="item.notes || item.reviewNote" class="text-[10px] text-slate-700 bg-amber-50/60 border border-amber-200/60 rounded px-2 py-1">
+              <span class="font-semibold text-amber-800">Catatan Panitia:</span> {{ item.notes || item.reviewNote }}
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div v-if="item.status === 'pending'" class="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+            <button
+              @click="openPathChangeReviewModal(item, 'approved')"
+              class="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs rounded transition-colors text-center cursor-pointer"
+            >
+              Setujui
+            </button>
+            <button
+              @click="openPathChangeReviewModal(item, 'rejected')"
+              class="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded transition-colors text-center cursor-pointer"
+            >
+              Tolak
+            </button>
+          </div>
+        </div>
+
+        <div v-if="pathChangesList.length === 0" class="p-8 text-center text-slate-400 text-xs">
+          Tidak ada permohonan pindah jalur saat ini.
+        </div>
+      </div>
+
+      <!-- Desktop Table (>= md) -->
+      <div class="hidden md:block overflow-x-auto">
         <table class="w-full text-left text-xs text-slate-700 min-w-[860px]">
           <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-sora uppercase text-[10px] tracking-wider whitespace-nowrap">
             <tr>
@@ -437,7 +507,70 @@
         <span class="text-xs text-slate-500 font-medium">{{ withdrawalsList.length }} Pengajuan</span>
       </div>
 
-      <div class="overflow-x-auto">
+      <!-- Mobile Cards (< md) -->
+      <div class="block md:hidden divide-y divide-slate-100">
+        <div
+          v-for="item in withdrawalsList"
+          :key="item.id"
+          class="p-4 space-y-3 bg-white hover:bg-slate-50/50 transition-colors"
+        >
+          <!-- Candidate & Status -->
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="font-sora font-bold text-slate-900 text-xs">{{ item.candidateName }}</div>
+              <div class="text-[11px] font-mono text-slate-500">{{ item.regNo }} • {{ item.prodi }}</div>
+            </div>
+            <span
+              class="inline-block px-2 py-0.5 text-[10px] font-bold rounded border whitespace-nowrap"
+              :class="item.status === 'approved'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : item.status === 'rejected'
+                ? 'bg-rose-50 text-rose-700 border-rose-200'
+                : 'bg-amber-50 text-amber-800 border-amber-200'"
+            >
+              {{ item.status === 'approved' ? 'Pengunduran Diri Sah' : item.status === 'rejected' ? 'Ditolak' : 'Menunggu Verifikasi' }}
+            </span>
+          </div>
+
+          <!-- Meta badges (Category, Submitted date) -->
+          <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
+            <span class="font-medium text-slate-700 px-2 py-0.5 rounded bg-slate-100 text-[11px]">{{ item.category }}</span>
+            <span class="text-[11px] font-sans">{{ item.submittedAt }}</span>
+          </div>
+
+          <!-- Reason & Notes -->
+          <div class="text-[11px] text-slate-600 space-y-1.5 p-2.5 rounded-lg bg-slate-50 border border-slate-200/80">
+            <div class="italic leading-relaxed">"{{ item.reason }}"</div>
+            <div class="text-[10px] text-slate-400 font-mono">Kode Verifikasi: {{ item.verificationCode }}</div>
+            <div v-if="item.notes || item.reviewNote" class="text-[10px] text-slate-700 bg-amber-50/60 border border-amber-200/60 rounded px-2 py-1">
+              <span class="font-semibold text-amber-800">Catatan Panitia:</span> {{ item.notes || item.reviewNote }}
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div v-if="item.status === 'pending'" class="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+            <button
+              @click="openWithdrawalReviewModal(item, 'approved')"
+              class="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs rounded transition-colors text-center cursor-pointer"
+            >
+              Setujui
+            </button>
+            <button
+              @click="openWithdrawalReviewModal(item, 'rejected')"
+              class="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded transition-colors text-center cursor-pointer"
+            >
+              Tolak
+            </button>
+          </div>
+        </div>
+
+        <div v-if="withdrawalsList.length === 0" class="p-8 text-center text-slate-400 text-xs">
+          Tidak ada permohonan pengunduran diri saat ini.
+        </div>
+      </div>
+
+      <!-- Desktop Table (>= md) -->
+      <div class="hidden md:block overflow-x-auto">
         <table class="w-full text-left text-xs text-slate-700 min-w-[880px]">
           <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-sora uppercase text-[10px] tracking-wider whitespace-nowrap">
             <tr>

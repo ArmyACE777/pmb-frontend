@@ -466,90 +466,169 @@
           <p class="text-xs text-slate-400">Data pengerjaan akan muncul saat peserta mengklik Mulai Ujian di portal siswa.</p>
         </div>
 
-        <div v-else class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-700 min-w-[760px]">
-            <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-sora uppercase text-[10px] tracking-wider">
-              <tr>
-                <th class="py-3.5 px-4 font-bold">Peserta / No. Registrasi</th>
-                <th class="py-3.5 px-4 font-bold text-center">Status Pengerjaan</th>
-                <th class="py-3.5 px-4 font-bold text-center">Waktu Mulai</th>
-                <th class="py-3.5 px-4 font-bold text-center">Nilai CBT</th>
-                <th class="py-3.5 px-4 font-bold text-center">Terminal / IP</th>
-                <th class="py-3.5 px-4 font-bold text-right">Tindakan Pengawas</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 font-sans">
-              <tr v-for="att in attemptsList" :key="att.id" class="hover:bg-slate-50/80 transition-colors">
-                <td class="py-3.5 px-4">
-                  <div class="font-sora font-bold text-slate-900">
+        <div v-else>
+          <!-- Mobile Monitoring Cards (< md) -->
+          <div class="block md:hidden divide-y divide-slate-100">
+            <div
+              v-for="att in attemptsList"
+              :key="att.id"
+              class="p-4 space-y-3 hover:bg-slate-50/80 transition-colors"
+            >
+              <!-- Top: Candidate Name, Reg No & Status -->
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <h4 class="font-sora font-bold text-slate-900 text-sm">
                     {{ att.participant?.applicant_name || att.participant?.applicant_id || 'Peserta CBT' }}
-                  </div>
-                  <div class="font-mono text-[11px] text-[#1E3A8A]">
+                  </h4>
+                  <div class="font-mono text-xs text-[#1E3A8A] font-semibold mt-0.5">
                     {{ att.participant?.exam_card_number || att.participant?.applicant_id || att.id.slice(0, 8) }}
                   </div>
-                </td>
+                </div>
 
-                <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                  <span
-                    v-if="att.status === 'in_progress'"
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300"
-                  >
-                    <span>Sedang Mengerjakan</span>
-                  </span>
-                  <span
-                    v-else-if="att.status === 'submitted'"
-                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300"
-                  >
-                    <Check class="w-3 h-3 text-emerald-600" />
-                    <span>Selesai & Terkirim</span>
-                  </span>
-                  <span
-                    v-else
-                    class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-300"
-                  >
-                    {{ att.status }}
-                  </span>
-                </td>
+                <span
+                  v-if="att.status === 'in_progress'"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300"
+                >
+                  Sedang Mengerjakan
+                </span>
+                <span
+                  v-else-if="att.status === 'submitted'"
+                  class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300"
+                >
+                  <Check class="w-3 h-3 text-emerald-600" />
+                  <span>Selesai</span>
+                </span>
+                <span
+                  v-else
+                  class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300"
+                >
+                  {{ att.status }}
+                </span>
+              </div>
 
-                <td class="py-3.5 px-4 text-center font-mono text-[11px] text-slate-600 whitespace-nowrap">
-                  {{ formatTime(att.started_at) }}
-                </td>
-
-                <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                  <span class="font-sora font-bold text-sm text-[#1E3A8A]">
+              <!-- Middle: Stats & IP -->
+              <div class="grid grid-cols-3 gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-center text-xs">
+                <div>
+                  <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Waktu Mulai</span>
+                  <span class="font-mono text-slate-700 text-[11px] block mt-0.5">{{ formatTime(att.started_at) }}</span>
+                </div>
+                <div>
+                  <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Skor CBT</span>
+                  <span class="font-sora font-bold text-sm text-[#1E3A8A] block mt-0.5">
                     {{ att.objective_score ?? att.final_score ?? 0 }}
                   </span>
-                  <span class="text-[10px] text-slate-400"> Poin</span>
-                </td>
+                </div>
+                <div>
+                  <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">IP Terminal</span>
+                  <span class="font-mono text-slate-600 text-[10px] block mt-0.5 truncate">{{ att.ip_address || '127.0.0.1' }}</span>
+                </div>
+              </div>
 
-                <td class="py-3.5 px-4 text-center font-mono text-[11px] text-slate-500 whitespace-nowrap">
-                  <span class="px-2.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-600 whitespace-nowrap inline-block">
-                    {{ att.ip_address || '127.0.0.1' }}
-                  </span>
-                </td>
+              <!-- Actions -->
+              <div class="flex items-center justify-end gap-2 pt-1">
+                <button
+                  v-if="att.status === 'in_progress'"
+                  @click="extendAttemptTime(att)"
+                  class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#1E3A8A] rounded-lg font-semibold text-xs transition-colors cursor-pointer border border-blue-200/60"
+                >
+                  +15 Mnt
+                </button>
+                <button
+                  @click="openResetModal(att)"
+                  class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg font-semibold text-xs transition-colors cursor-pointer border border-rose-200/60"
+                >
+                  Reset Sesi
+                </button>
+              </div>
+            </div>
+          </div>
 
-                <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                  <div class="flex items-center justify-end gap-1.5">
-                    <button
+          <!-- Desktop Table (>= md) -->
+          <div class="hidden md:block overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-700 min-w-[760px]">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-sora uppercase text-[10px] tracking-wider">
+                <tr>
+                  <th class="py-3.5 px-4 font-bold">Peserta / No. Registrasi</th>
+                  <th class="py-3.5 px-4 font-bold text-center">Status Pengerjaan</th>
+                  <th class="py-3.5 px-4 font-bold text-center">Waktu Mulai</th>
+                  <th class="py-3.5 px-4 font-bold text-center">Nilai CBT</th>
+                  <th class="py-3.5 px-4 font-bold text-center">Terminal / IP</th>
+                  <th class="py-3.5 px-4 font-bold text-right">Tindakan Pengawas</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 font-sans">
+                <tr v-for="att in attemptsList" :key="att.id" class="hover:bg-slate-50/80 transition-colors">
+                  <td class="py-3.5 px-4">
+                    <div class="font-sora font-bold text-slate-900">
+                      {{ att.participant?.applicant_name || att.participant?.applicant_id || 'Peserta CBT' }}
+                    </div>
+                    <div class="font-mono text-[11px] text-[#1E3A8A]">
+                      {{ att.participant?.exam_card_number || att.participant?.applicant_id || att.id.slice(0, 8) }}
+                    </div>
+                  </td>
+
+                  <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                    <span
                       v-if="att.status === 'in_progress'"
-                      @click="extendAttemptTime(att)"
-                      class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-[#1E3A8A] rounded-lg font-semibold text-[11px] transition-colors cursor-pointer border border-blue-200/60"
-                      title="Kompensasi penambahan waktu pengerjaan 15 menit"
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300"
                     >
-                      +15 Mnt
-                    </button>
-                    <button
-                      @click="openResetModal(att)"
-                      class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg font-semibold text-[11px] transition-colors cursor-pointer border border-rose-200/60"
-                      title="Reset sesi ujian peserta"
+                      <span>Sedang Mengerjakan</span>
+                    </span>
+                    <span
+                      v-else-if="att.status === 'submitted'"
+                      class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300"
                     >
-                      Reset Sesi
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                      <Check class="w-3 h-3 text-emerald-600" />
+                      <span>Selesai & Terkirim</span>
+                    </span>
+                    <span
+                      v-else
+                      class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-300"
+                    >
+                      {{ att.status }}
+                    </span>
+                  </td>
+
+                  <td class="py-3.5 px-4 text-center font-mono text-[11px] text-slate-600 whitespace-nowrap">
+                    {{ formatTime(att.started_at) }}
+                  </td>
+
+                  <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                    <span class="font-sora font-bold text-sm text-[#1E3A8A]">
+                      {{ att.objective_score ?? att.final_score ?? 0 }}
+                    </span>
+                    <span class="text-[10px] text-slate-400"> Poin</span>
+                  </td>
+
+                  <td class="py-3.5 px-4 text-center font-mono text-[11px] text-slate-500 whitespace-nowrap">
+                    <span class="px-2.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-600 whitespace-nowrap inline-block">
+                      {{ att.ip_address || '127.0.0.1' }}
+                    </span>
+                  </td>
+
+                  <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                    <div class="flex items-center justify-end gap-1.5">
+                      <button
+                        v-if="att.status === 'in_progress'"
+                        @click="extendAttemptTime(att)"
+                        class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-[#1E3A8A] rounded-lg font-semibold text-[11px] transition-colors cursor-pointer border border-blue-200/60"
+                        title="Kompensasi penambahan waktu pengerjaan 15 menit"
+                      >
+                        +15 Mnt
+                      </button>
+                      <button
+                        @click="openResetModal(att)"
+                        class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg font-semibold text-[11px] transition-colors cursor-pointer border border-rose-200/60"
+                        title="Reset sesi ujian peserta"
+                      >
+                        Reset Sesi
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -596,7 +675,85 @@
           <span class="text-xs text-slate-400">Total {{ filteredApplicants.length }} Peserta Ditampilkan</span>
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- Mobile Selection Scoring Cards (< md) -->
+        <div class="block md:hidden divide-y divide-slate-100">
+          <div
+            v-for="applicant in filteredApplicants"
+            :key="applicant.id"
+            class="p-4 space-y-3 hover:bg-slate-50/80 transition-colors"
+          >
+            <!-- Top: Reg No & Decision Badge -->
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <span class="font-mono font-bold text-xs text-[#1E3A8A] bg-blue-50 px-2 py-0.5 rounded border border-blue-200/60 inline-block">
+                  {{ applicant.id }}
+                </span>
+                <h4 class="font-sora font-bold text-slate-900 text-sm mt-1 leading-snug">{{ applicant.fullName }}</h4>
+                <div class="text-xs text-slate-500">{{ applicant.prodi1 }}</div>
+              </div>
+
+              <span
+                v-if="applicant.selection.passedStatus === 'passed'"
+                class="inline-block px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded text-xs font-semibold whitespace-nowrap"
+              >
+                Lulus Seleksi
+              </span>
+              <span
+                v-else-if="applicant.selection.passedStatus === 'failed'"
+                class="inline-block px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200/80 rounded text-xs font-semibold whitespace-nowrap"
+              >
+                Tidak Lulus
+              </span>
+              <span
+                v-else
+                class="inline-block px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200/80 rounded text-xs font-semibold whitespace-nowrap"
+              >
+                Evaluasi Pleno
+              </span>
+            </div>
+
+            <!-- Scores Grid (CBT, Rapor, Wawancara) -->
+            <div class="grid grid-cols-3 gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-center text-xs">
+              <div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Skor CBT</span>
+                <span class="font-sora font-bold text-sm block mt-0.5" :class="applicant.selection.cbtScore >= 70 ? 'text-[#1E3A8A]' : 'text-rose-600'">
+                  {{ applicant.selection.cbtScore }}
+                </span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Rapor</span>
+                <span class="font-mono font-semibold text-slate-800 text-xs block mt-0.5">
+                  {{ applicant.averageScore }}
+                </span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Wawancara</span>
+                <span v-if="applicant.selection.interviewScore" class="font-sora font-bold text-sm text-slate-900 block mt-0.5">
+                  {{ applicant.selection.interviewScore }}
+                </span>
+                <span v-else class="text-[10px] text-slate-400 italic block mt-0.5">Belum Diuji</span>
+              </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="pt-1 flex items-center justify-end">
+              <button
+                @click="openInterviewModal(applicant)"
+                class="w-full sm:w-auto px-4 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer text-center shadow-2xs"
+              >
+                Nilai Wawancara
+              </button>
+            </div>
+          </div>
+
+          <div v-if="filteredApplicants.length === 0" class="py-10 text-center text-slate-400 p-6 space-y-2">
+            <GraduationCap class="w-8 h-8 text-slate-300 mx-auto" />
+            <p class="font-sora font-semibold text-slate-700 text-xs">Belum Ada Peserta Seleksi</p>
+          </div>
+        </div>
+
+        <!-- Desktop Table (>= md) -->
+        <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-700 min-w-[880px]">
             <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-sora uppercase text-[10px] tracking-wider whitespace-nowrap">
               <tr>

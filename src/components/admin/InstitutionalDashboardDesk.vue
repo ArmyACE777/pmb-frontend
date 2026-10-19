@@ -12,9 +12,9 @@
       </div>
 
       <!-- Level Selector Switcher Tabs -->
-      <div class="flex items-center gap-2.5 self-start sm:self-auto">
-        <span class="text-xs text-slate-500 font-medium hidden sm:inline font-sans">Cakupan Data:</span>
-        <div class="inline-flex p-1 bg-slate-100 rounded-lg border border-slate-200 text-xs font-medium font-sans">
+      <div class="flex items-center gap-2.5 self-start sm:self-auto w-full sm:w-auto overflow-x-auto no-scrollbar">
+        <span class="text-xs text-slate-500 font-medium hidden sm:inline font-sans whitespace-nowrap">Cakupan Data:</span>
+        <div class="inline-flex p-1 bg-slate-100 rounded-lg border border-slate-200 text-xs font-medium font-sans shrink-0">
           <button
             @click="currentLevel = 'university'"
             class="px-3 py-1.5 rounded transition-colors cursor-pointer whitespace-nowrap"
@@ -468,7 +468,41 @@
             <span class="text-xs text-slate-400">{{ activeProdiApplicants.length }} Pelamar Aktif</span>
           </div>
 
-          <div class="overflow-x-auto">
+          <!-- Mobile Cards (< md) -->
+          <div class="block md:hidden divide-y divide-slate-100">
+            <div
+              v-for="app in activeProdiApplicants"
+              :key="app.id"
+              class="p-3.5 space-y-2 bg-white hover:bg-slate-50/50 transition-colors"
+            >
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-[#1E3A8A] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                  {{ app.id }}
+                </span>
+                <span
+                  class="px-2 py-0.5 rounded text-[10px] font-bold"
+                  :class="app.selection.passedStatus === 'passed' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'"
+                >
+                  {{ app.selection.passedStatus === 'passed' ? 'Lulus Seleksi' : 'Evaluasi' }}
+                </span>
+              </div>
+              <div>
+                <h4 class="font-sora font-bold text-slate-900 text-xs">{{ app.fullName }}</h4>
+                <p class="text-[11px] text-slate-500 mt-0.5">{{ app.schoolName }}</p>
+              </div>
+              <div class="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
+                <span class="text-slate-500 text-[11px]">Skor CBT</span>
+                <span class="font-mono font-bold text-slate-800 text-xs">{{ app.selection.cbtScore }}</span>
+              </div>
+            </div>
+
+            <div v-if="!activeProdiApplicants.length" class="p-6 text-center text-slate-400 text-xs italic">
+              Belum ada calon mahasiswa terdaftar pada program studi ini.
+            </div>
+          </div>
+
+          <!-- Desktop Table (>= md) -->
+          <div class="hidden md:block overflow-x-auto">
             <table class="w-full min-w-[680px] text-left text-xs text-slate-700">
               <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-sora uppercase text-[10px] whitespace-nowrap">
                 <tr>

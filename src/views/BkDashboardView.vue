@@ -343,11 +343,11 @@
           <div class="bg-white border border-slate-200 rounded-xl shadow-2xs overflow-hidden">
             <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <!-- Tabs -->
-              <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg text-xs font-medium self-start sm:self-auto">
+              <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg text-xs font-medium self-start sm:self-auto overflow-x-auto no-scrollbar max-w-full">
                 <button
                   type="button"
                   @click="detailTab = 'students'"
-                  class="px-3.5 py-1.5 rounded-md transition-colors cursor-pointer"
+                  class="px-3.5 py-1.5 rounded-md transition-colors cursor-pointer whitespace-nowrap shrink-0"
                   :class="detailTab === 'students' ? 'bg-white text-slate-900 font-semibold shadow-2xs' : 'text-slate-600 hover:text-slate-900'"
                 >
                   Data Siswa Pendaftar ({{ filteredStudents.length }})
@@ -355,7 +355,7 @@
                 <button
                   type="button"
                   @click="detailTab = 'settlements'"
-                  class="px-3.5 py-1.5 rounded-md transition-colors cursor-pointer"
+                  class="px-3.5 py-1.5 rounded-md transition-colors cursor-pointer whitespace-nowrap shrink-0"
                   :class="detailTab === 'settlements' ? 'bg-white text-slate-900 font-semibold shadow-2xs' : 'text-slate-600 hover:text-slate-900'"
                 >
                   Riwayat Setoran Kampus ({{ (financialSummary.settlements || []).length }})
@@ -412,8 +412,92 @@
                 </button>
               </div>
 
-              <!-- Tabel Siswa -->
-              <div class="overflow-x-auto rounded-lg border border-slate-200">
+              <!-- Mobile Cards (< md) -->
+              <div class="block md:hidden divide-y divide-slate-100 rounded-lg border border-slate-200 overflow-hidden">
+                <div
+                  v-for="(student, index) in filteredStudents"
+                  :key="student.id || index"
+                  class="p-4 space-y-3 bg-white hover:bg-slate-50/50 transition-colors"
+                >
+                  <!-- Top Row: Student Name & Payment Status Badge -->
+                  <div class="flex items-start justify-between gap-2">
+                    <div>
+                      <div class="font-sora font-bold text-slate-900 text-xs">{{ student.name }}</div>
+                      <div class="text-[11px] text-slate-500 mt-0.5">{{ student.email }}</div>
+                    </div>
+                    <span
+                      v-if="student.status_approve === 'SUCCESS'"
+                      class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap"
+                    >
+                      Lunas
+                    </span>
+                    <span
+                      v-else-if="student.status_approve === 'pending' || student.status_approve === 'panding'"
+                      class="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200 whitespace-nowrap"
+                    >
+                      Menunggu Verifikasi
+                    </span>
+                    <span
+                      v-else-if="student.status_approve === 'REJECTED'"
+                      class="px-2 py-0.5 rounded text-[10px] font-medium bg-rose-50 text-rose-700 border border-rose-200 whitespace-nowrap"
+                    >
+                      Ditolak
+                    </span>
+                    <span
+                      v-else
+                      class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap"
+                    >
+                      Belum Bayar
+                    </span>
+                  </div>
+
+                  <!-- Details Grid -->
+                  <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80 space-y-1.5 text-xs">
+                    <div class="flex justify-between items-center text-slate-600">
+                      <span class="text-[11px]">Program Studi:</span>
+                      <strong class="text-slate-800 text-xs">{{ student.prodi || '-' }}</strong>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-600">
+                      <span class="text-[11px]">NIK / NISN:</span>
+                      <span class="font-mono text-slate-700 text-xs">{{ student.nik || student.nisn || '-' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-1 border-t border-slate-200/60">
+                      <span class="text-[11px] text-slate-600">Biaya Formulir:</span>
+                      <span class="font-mono font-bold text-slate-900 text-xs">
+                        Rp {{ formatRupiah(student.nominal || 0) }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Actions (if pending) -->
+                  <div
+                    v-if="student.status_approve === 'pending' || student.status_approve === 'panding'"
+                    class="pt-2 border-t border-slate-100 flex items-center justify-end gap-2"
+                  >
+                    <button
+                      type="button"
+                      @click="handleApprove(student)"
+                      class="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-medium transition cursor-pointer text-center"
+                    >
+                      Setujui
+                    </button>
+                    <button
+                      type="button"
+                      @click="handleReject(student)"
+                      class="flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-medium transition cursor-pointer text-center"
+                    >
+                      Tolak
+                    </button>
+                  </div>
+                </div>
+
+                <div v-if="filteredStudents.length === 0" class="p-8 text-center text-slate-500 text-xs">
+                  Belum ada siswa pendaftar yang menggunakan kode referal ini.
+                </div>
+              </div>
+
+              <!-- Tabel Siswa (>= md) -->
+              <div class="hidden md:block overflow-x-auto rounded-lg border border-slate-200">
                 <table class="w-full border-collapse text-xs">
                   <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
                     <tr>
@@ -525,8 +609,63 @@
                 </span>
               </div>
 
-              <!-- Tabel Setoran -->
-              <div class="overflow-x-auto rounded-lg border border-slate-200">
+              <!-- Mobile Cards (< md) -->
+              <div class="block md:hidden divide-y divide-slate-100 rounded-lg border border-slate-200 overflow-hidden">
+                <div
+                  v-for="(st, idx) in financialSummary.settlements"
+                  :key="st.id || idx"
+                  class="p-4 space-y-3 bg-white hover:bg-slate-50/50 transition-colors"
+                >
+                  <!-- Top Row: Reference No & Status -->
+                  <div class="flex items-start justify-between gap-2">
+                    <div>
+                      <div class="font-mono font-bold text-slate-900 text-xs">{{ st.referenceNo }}</div>
+                      <div class="text-[11px] text-slate-500 mt-0.5">{{ st.transferDate }}</div>
+                    </div>
+                    <span
+                      class="px-2 py-0.5 rounded text-[10px] font-semibold border whitespace-nowrap"
+                      :class="st.status === 'VERIFIED'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : (st.status === 'REJECTED' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-amber-50 text-amber-700 border-amber-200')"
+                    >
+                      {{ st.status === 'VERIFIED' ? 'Disetujui' : (st.status === 'REJECTED' ? 'Ditolak' : 'Menunggu Verifikasi') }}
+                    </span>
+                  </div>
+
+                  <!-- Bank & Amount Details -->
+                  <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80 space-y-1.5 text-xs">
+                    <div class="flex justify-between items-center text-slate-600">
+                      <span class="text-[11px]">Bank Pengirim:</span>
+                      <strong class="text-slate-800 text-xs">{{ st.bankName }}</strong>
+                    </div>
+                    <div class="text-[10px] text-slate-400 font-mono">Tujuan: Rek. PMB Kampus BTH</div>
+                    <div class="flex justify-between items-center pt-1 border-t border-slate-200/60">
+                      <span class="text-[11px] text-slate-600">Nominal Setoran:</span>
+                      <span class="font-mono font-bold text-slate-900 text-xs">
+                        Rp {{ formatRupiah(st.amount) }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Actions -->
+                  <div class="pt-2 border-t border-slate-100 flex items-center justify-end">
+                    <button
+                      type="button"
+                      @click="previewProofModalUrl = st.proofUrl"
+                      class="w-full py-1.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded text-xs font-medium transition cursor-pointer text-center"
+                    >
+                      Lihat Bukti Transfer
+                    </button>
+                  </div>
+                </div>
+
+                <div v-if="!financialSummary.settlements || financialSummary.settlements.length === 0" class="p-8 text-center text-slate-500 text-xs">
+                  Belum ada riwayat pengajuan setoran untuk kode ini.
+                </div>
+              </div>
+
+              <!-- Tabel Setoran (>= md) -->
+              <div class="hidden md:block overflow-x-auto rounded-lg border border-slate-200">
                 <table class="w-full border-collapse text-xs">
                   <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
                     <tr>

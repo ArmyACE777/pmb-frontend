@@ -303,6 +303,96 @@
       </div>
     </div>
 
+    <!-- Mobile Enrolment Cards (< md) -->
+    <div class="md:hidden space-y-3">
+      <div
+        v-for="applicant in filteredApplicants"
+        :key="applicant.id"
+        class="bg-white rounded-xl border border-slate-200 p-4 shadow-xs space-y-3"
+      >
+        <!-- Header: No Reg & Status Badges -->
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <span class="font-mono font-bold text-xs text-[#1E3A8A] bg-blue-50 px-2 py-0.5 rounded border border-blue-200/60 inline-block">
+              {{ applicant.id }}
+            </span>
+          </div>
+          <div class="flex flex-wrap items-center justify-end gap-1.5">
+            <span
+              class="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+              :class="applicant.selection.passedStatus === 'passed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600'"
+            >
+              {{ applicant.selection.passedStatus === 'passed' ? 'Lulus' : 'Evaluasi' }}
+            </span>
+            <span
+              class="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+              :class="applicant.payments.uktFee.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'"
+            >
+              {{ applicant.payments.uktFee.status === 'paid' ? 'Lunas UKT' : 'Belum Lunas' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Candidate Info -->
+        <div>
+          <h4 class="font-sora font-bold text-slate-900 text-sm leading-snug">{{ applicant.fullName }}</h4>
+          <p class="text-xs text-slate-500 mt-0.5">{{ applicant.prodi1 }}</p>
+        </div>
+
+        <!-- Academic Metadata: NIM & Gugus -->
+        <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200/80 grid grid-cols-2 gap-2 text-xs">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase font-bold block font-sora">NIM Mahasiswa</span>
+            <span v-if="applicant.onboarding.nim" class="font-mono font-bold text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded inline-block mt-0.5">
+              {{ applicant.onboarding.nim }}
+            </span>
+            <span v-else-if="applicant.selection.passedStatus === 'passed' && applicant.payments.uktFee.status === 'paid'" class="text-[11px] text-blue-600 font-medium inline-flex items-center gap-1 mt-0.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping"></span>
+              <span>Siap Terbit</span>
+            </span>
+            <span v-else class="text-[11px] text-slate-400 italic block mt-0.5">Menunggu UKT</span>
+          </div>
+
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase font-bold block font-sora">Gugus PKKMB 2026</span>
+            <span v-if="applicant.onboarding.pkkmbGroup" class="text-xs text-slate-800 font-medium block mt-0.5 truncate" :title="applicant.onboarding.pkkmbGroup">
+              {{ applicant.onboarding.pkkmbGroup }}
+            </span>
+            <span v-else class="text-[11px] text-slate-400 italic block mt-0.5">Diplot saat Lunas</span>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-end">
+          <button
+            v-if="applicant.onboarding.nim"
+            @click="openEnrolModal(applicant)"
+            class="w-full sm:w-auto px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer text-center shadow-2xs"
+          >
+            Lihat / Koreksi Data
+          </button>
+          <button
+            v-else-if="applicant.selection.passedStatus === 'passed' && applicant.payments.uktFee.status === 'paid'"
+            @click="generateApplicantNimDirectly(applicant)"
+            class="w-full sm:w-auto px-3.5 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer text-center shadow-2xs"
+          >
+            Terbitkan NIM Sekarang
+          </button>
+          <span
+            v-else
+            class="text-[11px] text-slate-400 italic"
+          >
+            Menunggu Pelunasan UKT
+          </span>
+        </div>
+      </div>
+
+      <div v-if="filteredApplicants.length === 0" class="py-10 bg-white rounded-xl border border-slate-200 text-center text-slate-400 p-6 space-y-2">
+        <p class="font-sora font-semibold text-slate-700 text-sm">Belum Ada Mahasiswa Terdaftar</p>
+        <p class="text-xs text-slate-400">Belum ada calon mahasiswa yang melunasi UKT atau diterbitkan NIM.</p>
+      </div>
+    </div>
+
     <!-- Modal Generate NIM & Gugus -->
     <Teleport to="body">
       <div

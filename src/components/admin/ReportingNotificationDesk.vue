@@ -12,11 +12,11 @@
       </div>
 
       <!-- Navigation Tabs Between Reporting vs Broadcasting vs Ledger -->
-      <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-sora font-semibold">
+      <div class="flex sm:inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-sora font-semibold overflow-x-auto no-scrollbar max-w-full">
         <button
           v-if="canAccessSubTab('reporting')"
           @click="activeSubTab = 'reporting'"
-          class="px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+          class="px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
           :class="activeSubTab === 'reporting' ? 'bg-[#1E3A8A] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -28,7 +28,7 @@
         <button
           v-if="canAccessSubTab('broadcast')"
           @click="activeSubTab = 'broadcast'"
-          class="px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+          class="px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
           :class="activeSubTab === 'broadcast' ? 'bg-[#1E3A8A] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,7 +40,7 @@
         <button
           v-if="canAccessSubTab('ledger')"
           @click="activeSubTab = 'ledger'"
-          class="px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+          class="px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
           :class="activeSubTab === 'ledger' ? 'bg-[#1E3A8A] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -203,7 +203,76 @@
           </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- Mobile Cards (< md) -->
+        <div class="block md:hidden divide-y divide-slate-100">
+          <div
+            v-for="a in filteredReportApplicants"
+            :key="a.id"
+            class="p-4 space-y-3 bg-white hover:bg-slate-50/50 transition-colors"
+          >
+            <!-- Card Header: Reg ID & Formulir badge -->
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-mono text-xs font-bold text-[#1E3A8A] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                {{ a.id }}
+              </span>
+              <span
+                class="px-2 py-0.5 rounded text-[10px] font-bold"
+                :class="a.payments.registrationFee.status === 'paid' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'"
+              >
+                Formulir: {{ a.payments.registrationFee.status === 'paid' ? 'Lunas' : 'Belum' }}
+              </span>
+            </div>
+
+            <!-- Candidate Name & Prodi -->
+            <div>
+              <h4 class="font-sora font-bold text-slate-900 text-sm leading-snug">{{ a.fullName }}</h4>
+              <p class="text-xs text-slate-600 mt-0.5 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <span>{{ a.prodi1 }}</span>
+              </p>
+            </div>
+
+            <!-- Parameters Grid (Skor CBT, Status LoA, UKT Smt 1) -->
+            <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-center">
+              <div class="bg-slate-50 p-2 rounded-lg">
+                <div class="text-[10px] text-slate-400 font-medium">Skor CBT</div>
+                <div class="font-mono font-bold text-slate-800 text-xs mt-0.5">{{ a.selection.cbtScore }}</div>
+              </div>
+              <div class="bg-slate-50 p-2 rounded-lg">
+                <div class="text-[10px] text-slate-400 font-medium">Status LoA</div>
+                <div class="mt-0.5">
+                  <span
+                    class="px-1.5 py-0.5 rounded text-[10px] font-bold"
+                    :class="a.selection.passedStatus === 'passed' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'"
+                  >
+                    {{ a.selection.passedStatus === 'passed' ? 'Lulus' : 'Evaluasi' }}
+                  </span>
+                </div>
+              </div>
+              <div class="bg-slate-50 p-2 rounded-lg">
+                <div class="text-[10px] text-slate-400 font-medium">UKT Smt 1</div>
+                <div class="mt-0.5">
+                  <span
+                    class="px-1.5 py-0.5 rounded text-[10px] font-bold"
+                    :class="a.payments.uktFee.status === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'"
+                  >
+                    {{ a.payments.uktFee.status === 'paid' ? 'Lunas' : 'Menunggu' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty state if no records -->
+          <div v-if="filteredReportApplicants.length === 0" class="p-8 text-center text-slate-400 text-xs">
+            Tidak ada calon mahasiswa yang cocok dengan filter program studi.
+          </div>
+        </div>
+
+        <!-- Desktop Table (>= md) -->
+        <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-700 min-w-[860px]">
             <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-sora uppercase text-[10px] whitespace-nowrap">
               <tr>
@@ -449,7 +518,48 @@
           <span class="text-xs text-emerald-600 font-mono font-semibold">Tersinkronisasi Otomatis</span>
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- Mobile Cards (< md) -->
+        <div class="block md:hidden divide-y divide-slate-100">
+          <div
+            v-for="trx in completedLedgerRows"
+            :key="trx.id"
+            class="p-4 space-y-2.5 bg-white hover:bg-slate-50/50 transition-colors"
+          >
+            <!-- Top row: Time & Bank badge -->
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-500 text-[11px] flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {{ trx.time }}
+              </span>
+              <span class="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-[#1E3A8A] border border-blue-100">
+                {{ trx.bank }}
+              </span>
+            </div>
+
+            <!-- Invoice & VA Number -->
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-xs font-semibold text-slate-700">{{ trx.invoice }}</span>
+              <span class="text-[10px] text-slate-500 font-medium px-2 py-0.5 rounded bg-slate-100">{{ trx.type }}</span>
+            </div>
+
+            <!-- Student Name & Amount -->
+            <div class="flex items-baseline justify-between pt-1 border-t border-slate-100">
+              <span class="font-sora font-bold text-slate-900 text-xs">{{ trx.name }}</span>
+              <span class="font-mono font-bold text-emerald-700 text-sm">
+                Rp {{ trx.amount.toLocaleString('id-ID') }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="completedLedgerRows.length === 0" class="p-8 text-center text-slate-400 text-xs">
+            Belum ada data transaksi buku besar.
+          </div>
+        </div>
+
+        <!-- Desktop Table (>= md) -->
+        <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-700 min-w-[850px]">
             <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-sora uppercase text-[10px] whitespace-nowrap">
               <tr>

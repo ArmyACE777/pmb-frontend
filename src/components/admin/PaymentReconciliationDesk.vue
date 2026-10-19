@@ -450,7 +450,70 @@
           </span>
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- Mobile Responsive Refund Cards (< md) -->
+        <div class="block md:hidden divide-y divide-slate-100">
+          <div
+            v-for="item in refundList"
+            :key="item.id"
+            class="p-4 space-y-3 hover:bg-slate-50/80 transition-colors"
+          >
+            <!-- Top: Candidate Name, Reg No & Status -->
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <span class="font-mono font-bold text-xs text-[#1E3A8A] bg-blue-50 px-2 py-0.5 rounded border border-blue-200/60 inline-block">
+                  {{ item.regNo }}
+                </span>
+                <h4 class="font-sora font-bold text-slate-900 text-sm mt-1 leading-snug">{{ item.candidateName }}</h4>
+                <div class="text-xs text-slate-500">{{ item.prodi }}</div>
+              </div>
+
+              <span
+                class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap"
+                :class="item.status === 'approved'
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : item.status === 'rejected'
+                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                  : 'bg-amber-50 text-amber-800 border border-amber-200'"
+              >
+                {{ item.status === 'approved' ? 'Disetujui' : item.status === 'rejected' ? 'Ditolak' : 'Menunggu' }}
+              </span>
+            </div>
+
+            <!-- Reason & Category -->
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-100 space-y-1.5 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] text-slate-400 font-bold uppercase font-sora">Kategori</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-white text-slate-700 border border-slate-200">
+                  {{ item.category }}
+                </span>
+              </div>
+              <div class="text-slate-700 italic leading-relaxed pt-1">
+                "{{ item.reason }}"
+              </div>
+            </div>
+
+            <!-- Action -->
+            <div class="pt-1 flex items-center justify-end">
+              <button
+                v-if="item.status === 'pending'"
+                @click="openRefundModal(item)"
+                class="w-full sm:w-auto px-4 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer text-center shadow-2xs"
+              >
+                Konfirmasi Refund
+              </button>
+              <span v-else class="text-xs text-slate-400 font-medium">
+                Diproses: {{ item.processedAt || 'Selesai' }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="refundList.length === 0" class="py-10 text-center text-slate-400 text-xs">
+            Tidak ada permohonan pengembalian dana saat ini.
+          </div>
+        </div>
+
+        <!-- Desktop Table (>= md) -->
+        <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-700 min-w-[900px]">
             <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-sora uppercase text-[10px] tracking-wider whitespace-nowrap">
               <tr>
@@ -530,7 +593,84 @@
           </span>
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- Mobile Responsive Installment Cards (< md) -->
+        <div class="block md:hidden divide-y divide-slate-100">
+          <div
+            v-for="item in installmentList"
+            :key="item.id"
+            class="p-4 space-y-3 hover:bg-slate-50/80 transition-colors"
+          >
+            <!-- Top: Name, Reg No & Status -->
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <span class="font-mono font-bold text-xs text-[#1E3A8A] bg-blue-50 px-2 py-0.5 rounded border border-blue-200/60 inline-block">
+                  {{ item.regNo }}
+                </span>
+                <h4 class="font-sora font-bold text-slate-900 text-sm mt-1 leading-snug">{{ item.candidateName }}</h4>
+                <div class="text-xs text-slate-500">{{ item.prodi }}</div>
+              </div>
+
+              <span
+                class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap"
+                :class="item.status === 'approved'
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : item.status === 'rejected'
+                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                  : 'bg-amber-50 text-amber-800 border border-amber-200'"
+              >
+                {{ item.status === 'approved' ? 'Disetujui' : item.status === 'rejected' ? 'Ditolak' : 'Menunggu' }}
+              </span>
+            </div>
+
+            <!-- Parameters: Total UKT & Termin -->
+            <div class="grid grid-cols-2 gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-xs">
+              <div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Total UKT Sem. 1</span>
+                <span class="font-mono font-bold text-slate-900 text-xs block mt-0.5">
+                  Rp {{ item.totalAmount.toLocaleString('id-ID') }}
+                </span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Skema Cicilan</span>
+                <span class="font-semibold text-slate-800 text-xs block mt-0.5">{{ item.numTerms }} Kali Termin</span>
+                <span class="text-[10px] text-slate-500">Termin 1: Rp {{ Math.round(item.totalAmount / item.numTerms).toLocaleString('id-ID') }}</span>
+              </div>
+            </div>
+
+            <div class="text-xs text-slate-600 bg-slate-50/50 p-2.5 rounded-lg border border-slate-100">
+              <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora mb-0.5">Alasan</span>
+              {{ item.reason }}
+            </div>
+
+            <!-- Actions -->
+            <div class="pt-1 flex items-center justify-end gap-2">
+              <template v-if="item.status === 'pending'">
+                <button
+                  @click="handleReviewInstallment(item, 'approved')"
+                  class="px-3.5 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-medium text-xs rounded-lg transition-colors cursor-pointer shadow-2xs"
+                >
+                  Setujui
+                </button>
+                <button
+                  @click="handleReviewInstallment(item, 'rejected')"
+                  class="px-3.5 py-1.5 border border-slate-200 hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-lg transition-colors cursor-pointer"
+                >
+                  Tolak
+                </button>
+              </template>
+              <span v-else class="text-xs text-slate-400 font-medium">
+                Selesai Diproses
+              </span>
+            </div>
+          </div>
+
+          <div v-if="installmentList.length === 0" class="py-10 text-center text-slate-400 text-xs">
+            Tidak ada permohonan skema cicilan saat ini.
+          </div>
+        </div>
+
+        <!-- Desktop Table (>= md) -->
+        <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-700 min-w-[920px]">
             <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-sora uppercase text-[10px] tracking-wider whitespace-nowrap">
               <tr>

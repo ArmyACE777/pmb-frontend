@@ -119,7 +119,80 @@
           <p class="text-xs text-slate-500 mt-0.5">Klasifikasi program pendidikan diploma, sarjana, magister, dan profesi Universitas BTH</p>
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- Mobile Jenjang Cards (< md) -->
+        <div class="block md:hidden divide-y divide-slate-100">
+          <div
+            v-for="deg in organizationStore.degreesWithCount"
+            :key="deg.id || deg.code"
+            class="p-4 space-y-3 hover:bg-slate-50/80 transition-colors"
+          >
+            <!-- Top: Code, Title & Status -->
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <span class="font-mono font-bold text-xs px-2 py-0.5 bg-blue-50 text-[#1E3A8A] rounded border border-blue-200/60 inline-block">
+                  {{ deg.code }}
+                </span>
+                <h4 class="font-sora font-bold text-slate-900 text-sm mt-1 leading-snug">{{ deg.name }}</h4>
+                <div class="text-xs text-slate-500 font-medium">{{ deg.degreeTitle }}</div>
+              </div>
+
+              <span
+                class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap"
+                :class="deg.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'"
+              >
+                {{ deg.is_active ? 'Buka' : 'Persiapan' }}
+              </span>
+            </div>
+
+            <!-- Details: Durasi, Jumlah Prodi, Kuota -->
+            <div class="grid grid-cols-3 gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-center text-xs">
+              <div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Masa Studi</span>
+                <span class="font-medium text-slate-800 text-[11px] block mt-0.5">{{ deg.studyDuration }}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Prodi</span>
+                <span class="font-mono font-bold text-slate-800 text-xs block mt-0.5">{{ deg.prodiCount }} Prodi</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Alokasi</span>
+                <span class="font-mono font-bold text-[#1E3A8A] text-xs block mt-0.5">{{ deg.totalQuota }} Kursi</span>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="pt-1 flex items-center justify-end gap-2">
+              <button
+                @click="toggleDegreeStatus(deg)"
+                class="px-2.5 py-1 text-xs font-medium rounded border transition-colors cursor-pointer shadow-2xs"
+                :class="deg.is_active
+                  ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                  : 'bg-white hover:bg-slate-50 text-[#1E3A8A] border-slate-200'"
+              >
+                {{ deg.is_active ? 'Tutup' : 'Buka' }}
+              </button>
+              <button
+                @click="openEditDegreeModal(deg)"
+                class="px-2.5 py-1 text-xs font-medium rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer shadow-2xs inline-flex items-center gap-1"
+                title="Edit Jenjang"
+              >
+                <Edit class="w-3 h-3 text-slate-500" />
+                <span>Edit</span>
+              </button>
+              <button
+                @click="confirmDeleteDegree(deg)"
+                class="px-2.5 py-1 text-xs font-medium rounded border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 transition-colors cursor-pointer shadow-2xs inline-flex items-center gap-1"
+                title="Hapus Jenjang"
+              >
+                <Trash2 class="w-3 h-3 text-rose-500" />
+                <span>Hapus</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Desktop Table (>= md) -->
+        <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-left text-xs min-w-[760px]">
             <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-sora font-semibold whitespace-nowrap">
               <tr>
@@ -201,7 +274,80 @@
           <p class="text-xs text-slate-500 mt-0.5">Daftar fakultas pengampu program studi di lingkungan Universitas Bakti Tunas Husada</p>
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- Mobile Fakultas Cards (< md) -->
+        <div class="block md:hidden divide-y divide-slate-100">
+          <div
+            v-for="fac in organizationStore.facultiesWithCount"
+            :key="fac.id || fac.code"
+            class="p-4 space-y-3 hover:bg-slate-50/80 transition-colors"
+          >
+            <!-- Top: Code, Name & Status -->
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <span class="font-mono font-bold text-xs px-2 py-0.5 bg-slate-100 text-slate-800 rounded inline-block">
+                  {{ fac.code }}
+                </span>
+                <h4 class="font-sora font-bold text-slate-900 text-sm mt-1 leading-snug">{{ fac.name }}</h4>
+                <div class="text-xs text-slate-600">Dekan: {{ fac.dean }}</div>
+              </div>
+
+              <span
+                class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap"
+                :class="fac.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'"
+              >
+                {{ fac.is_active ? 'Aktif' : 'Nonaktif' }}
+              </span>
+            </div>
+
+            <!-- Details: Akreditasi, Lokasi, Jumlah Prodi -->
+            <div class="grid grid-cols-3 gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-center text-xs">
+              <div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Akreditasi</span>
+                <span class="font-bold text-[#1E3A8A] text-xs block mt-0.5">{{ fac.accreditation }}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Gedung</span>
+                <span class="text-slate-600 text-[11px] block mt-0.5 truncate">{{ fac.building }}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Jumlah Prodi</span>
+                <span class="font-mono font-bold text-slate-800 text-xs block mt-0.5">{{ fac.prodiCount }} Prodi</span>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="pt-1 flex items-center justify-end gap-2">
+              <button
+                @click="toggleFacultyStatus(fac)"
+                class="px-2.5 py-1 text-xs font-medium rounded border transition-colors cursor-pointer shadow-2xs"
+                :class="fac.is_active
+                  ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                  : 'bg-white hover:bg-slate-50 text-[#1E3A8A] border-slate-200'"
+              >
+                {{ fac.is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+              </button>
+              <button
+                @click="openEditFacultyModal(fac)"
+                class="px-2.5 py-1 text-xs font-medium rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer shadow-2xs inline-flex items-center gap-1"
+                title="Edit Fakultas"
+              >
+                <Edit class="w-3 h-3 text-slate-500" />
+                <span>Edit</span>
+              </button>
+              <button
+                @click="confirmDeleteFaculty(fac)"
+                class="px-2.5 py-1 text-xs font-medium rounded border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 transition-colors cursor-pointer shadow-2xs inline-flex items-center gap-1"
+                title="Hapus Fakultas"
+              >
+                <Trash2 class="w-3 h-3 text-rose-500" />
+                <span>Hapus</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Desktop Table (>= md) -->
+        <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-left text-xs min-w-[850px]">
             <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-sora font-semibold whitespace-nowrap">
               <tr>
@@ -343,8 +489,87 @@
           </div>
         </div>
 
-        <!-- Table Container -->
-        <div class="overflow-x-auto">
+        <!-- Mobile Program Studi Cards (< md) -->
+        <div class="block md:hidden divide-y divide-slate-100">
+          <div
+            v-for="sp in filteredPrograms"
+            :key="sp.id"
+            class="p-4 space-y-3 hover:bg-slate-50/80 transition-colors"
+          >
+            <!-- Top: Code, Name, Degree & Status -->
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="font-mono font-bold text-xs text-slate-800">{{ sp.code }}</span>
+                  <span class="text-slate-300">•</span>
+                  <span class="font-mono text-xs text-slate-500">NIM: {{ sp.nim_code }}</span>
+                </div>
+                <h4 class="font-sora font-bold text-slate-900 text-sm mt-1 leading-snug">{{ sp.name }}</h4>
+                <div class="text-xs text-slate-500">{{ sp.faculty_name }}</div>
+              </div>
+
+              <div class="flex flex-col items-end gap-1">
+                <span
+                  class="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                  :class="sp.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'"
+                >
+                  {{ sp.is_active ? 'Aktif' : 'Nonaktif' }}
+                </span>
+                <span class="text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-[#1E3A8A] rounded border border-blue-200/60">
+                  {{ sp.degree }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Details: Akreditasi & UKT Estimate -->
+            <div class="grid grid-cols-2 gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-xs">
+              <div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Akreditasi</span>
+                <span class="font-bold text-[#1E3A8A] text-xs block mt-0.5">{{ sp.accreditation }}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Estimasi UKT</span>
+                <span class="font-mono font-semibold text-slate-800 text-xs block mt-0.5 truncate">{{ sp.ukt_estimate }}</span>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="pt-1 flex items-center justify-end gap-2">
+              <button
+                @click="toggleStatus(sp)"
+                class="px-2.5 py-1 text-xs font-medium rounded border transition-colors cursor-pointer shadow-2xs"
+                :class="sp.is_active
+                  ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                  : 'bg-white hover:bg-slate-50 text-[#1E3A8A] border-slate-200'"
+              >
+                {{ sp.is_active ? 'Tutup' : 'Buka' }}
+              </button>
+              <button
+                @click="openEditProgramModal(sp)"
+                class="px-2.5 py-1 text-xs font-medium rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer shadow-2xs inline-flex items-center gap-1"
+                title="Edit Program Studi"
+              >
+                <Edit class="w-3 h-3 text-slate-500" />
+                <span>Edit</span>
+              </button>
+              <button
+                @click="confirmDeleteProgram(sp)"
+                class="px-2.5 py-1 text-xs font-medium rounded border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 transition-colors cursor-pointer shadow-2xs inline-flex items-center gap-1"
+                title="Hapus Program Studi"
+              >
+                <Trash2 class="w-3 h-3 text-rose-500" />
+                <span>Hapus</span>
+              </button>
+            </div>
+          </div>
+
+          <div v-if="filteredPrograms.length === 0" class="py-8 text-center text-slate-400 text-xs">
+            Tidak ada program studi yang cocok dengan filter atau kata kunci pencarian.
+          </div>
+        </div>
+
+        <!-- Desktop Table (>= md) -->
+        <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-left text-xs min-w-[980px]">
             <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-sora font-semibold whitespace-nowrap">
               <tr>

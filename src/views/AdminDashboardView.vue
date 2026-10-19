@@ -525,6 +525,14 @@
                 >
                   Program Studi
                 </button>
+                <button
+                  v-if="currentRole === 'superadmin' || currentRole === 'dekan'"
+                  @click="selectMasterData('rbac')"
+                  class="w-full text-left px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-50"
+                  :class="activeDesk === 'master-data' && activeMasterSubDesk === 'rbac' ? 'font-bold text-[#1E3A8A] bg-blue-50' : ''"
+                >
+                  Matriks Hak Akses (RBAC)
+                </button>
               </div>
             </div>
           </div>

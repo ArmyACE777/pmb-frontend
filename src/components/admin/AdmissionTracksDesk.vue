@@ -90,8 +90,93 @@
         </div>
       </div>
 
-      <!-- Tabel Data Jalur -->
-      <div class="overflow-x-auto">
+      <!-- Mobile Track Cards (< md) -->
+      <div class="block md:hidden divide-y divide-slate-100">
+        <div
+          v-for="t in filteredTracks"
+          :key="t.id"
+          class="p-4 space-y-3 hover:bg-slate-50/80 transition-colors"
+        >
+          <!-- Top: Code, Name, Fee & Status -->
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="font-mono font-bold text-xs px-2 py-0.5 bg-slate-100 text-slate-800 rounded inline-block">
+                {{ t.code }}
+              </span>
+              <h4 class="font-sora font-bold text-slate-900 text-sm mt-1 leading-snug">{{ t.name }}</h4>
+              <div class="text-[11px] text-slate-500 line-clamp-1 mt-0.5">{{ t.description }}</div>
+            </div>
+
+            <span
+              class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap"
+              :class="t.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'"
+            >
+              {{ t.isActive ? 'Buka' : 'Tutup' }}
+            </span>
+          </div>
+
+          <!-- Parameters: Biaya, Kuota, Mekanisme -->
+          <div class="grid grid-cols-3 gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-center text-xs">
+            <div>
+              <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Biaya</span>
+              <span class="font-mono font-bold text-slate-800 text-[11px] block mt-0.5">
+                {{ t.fee === 0 ? 'Gratis' : `Rp ${t.fee.toLocaleString('id-ID')}` }}
+              </span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Kuota</span>
+              <span class="font-mono font-bold text-[#1E3A8A] text-xs block mt-0.5">{{ t.quota }}</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Seleksi</span>
+              <span class="font-medium text-slate-700 text-[10px] block mt-0.5 truncate">{{ t.selectionMethod }}</span>
+            </div>
+          </div>
+
+          <!-- Periode & WA Group -->
+          <div class="flex items-center justify-between text-xs text-slate-600 pt-1">
+            <span class="font-mono text-[11px] text-slate-500">{{ t.period }}</span>
+            <a
+              v-if="t.whatsappGroupUrl"
+              :href="t.whatsappGroupUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200 hover:bg-emerald-100 transition-colors"
+            >
+              <span>Grup WA</span>
+            </a>
+            <span v-else class="text-[11px] text-slate-400">Belum ada grup</span>
+          </div>
+
+          <!-- Actions -->
+          <div class="pt-1 flex items-center justify-end gap-2">
+            <button
+              type="button"
+              @click="toggleTrackStatus(t)"
+              class="px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors cursor-pointer shadow-2xs"
+              :class="t.isActive
+                ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'"
+            >
+              {{ t.isActive ? 'Tutup Pendaftaran' : 'Buka Pendaftaran' }}
+            </button>
+            <button
+              type="button"
+              @click="editTrack(t)"
+              class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-[#1E3A8A] hover:bg-[#172554] text-white transition-colors cursor-pointer shadow-2xs"
+            >
+              Edit
+            </button>
+          </div>
+        </div>
+
+        <div v-if="filteredTracks.length === 0" class="py-8 text-center text-slate-400 text-xs">
+          Tidak ada jalur pendaftaran yang cocok dengan filter pencarian.
+        </div>
+      </div>
+
+      <!-- Desktop Data Table (>= md) -->
+      <div class="hidden md:block overflow-x-auto">
         <table class="w-full text-left text-xs min-w-[950px]">
           <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-sora font-semibold whitespace-nowrap">
             <tr>
