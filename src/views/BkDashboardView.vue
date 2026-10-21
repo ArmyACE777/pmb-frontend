@@ -23,13 +23,26 @@
           </div>
         </div>
 
-        <!-- Profil Sisi Kanan (Akun Login & Dropdown) -->
-        <div class="relative">
+        <!-- Profil & Panduan Sisi Kanan -->
+        <div class="flex items-center gap-2.5 sm:gap-3.5">
+          <!-- Panduan Mitra Guru BK Button -->
           <button
             type="button"
-            @click="isProfileDropdownOpen = !isProfileDropdownOpen"
-            class="flex items-center gap-3 text-gray-700 hover:text-gray-900 focus:outline-none transition p-1.5 rounded-xl hover:bg-gray-50 cursor-pointer"
+            @click="showBkGuideModal = true"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer shadow-2xs"
+            title="Buku Panduan Kemitraan Guru BK & Sekolah"
           >
+            <School class="w-3.5 h-3.5 text-emerald-700" />
+            <span class="hidden sm:inline">Panduan Kemitraan</span>
+          </button>
+
+          <!-- Dropdown Akun Profil -->
+          <div class="relative">
+            <button
+              type="button"
+              @click="isProfileDropdownOpen = !isProfileDropdownOpen"
+              class="flex items-center gap-3 text-gray-700 hover:text-gray-900 focus:outline-none transition p-1.5 rounded-xl hover:bg-gray-50 cursor-pointer"
+            >
             <div class="hidden sm:flex flex-col text-right">
               <span class="text-xs font-semibold text-gray-800">{{ currentUserDisplayName }}</span>
               <span class="text-[11px] text-gray-500 font-mono">{{ currentUserDisplayEmail }}</span>
@@ -87,7 +100,8 @@
           </div>
         </div>
       </div>
-    </header>
+    </div>
+  </header>
 
     <!-- ========================================================================= -->
     <!-- 2. KONTEN UTAMA SESUAI ALUR (DAFTAR PENGELOLAAN & DETAIL REFERAL)          -->
@@ -931,16 +945,20 @@
         </div>
       </div>
     </Teleport>
+    <!-- Modal Panduan Kemitraan Guru BK & Sekolah -->
+    <BkGuideModal v-model="showBkGuideModal" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRouter, useRoute, RouterLink } from 'vue-router';
+import { School } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
 import { useReferralStore } from '@/stores/referral';
 import { useCmsStore } from '@/stores/cms';
 import { useToast } from '@/composables/useToast';
+import BkGuideModal from '@/components/guides/BkGuideModal.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -954,6 +972,7 @@ const detailTab = ref('students'); // 'students' | 'settlements'
 const selectedReferalCode = ref('');
 const searchKeyword = ref('');
 const isProfileDropdownOpen = ref(false);
+const showBkGuideModal = ref(false);
 
 // Objek referal yang dipilih (Reaktif langsung dari Pinia store tanpa circular dependency)
 const selectedReferal = computed(() => {

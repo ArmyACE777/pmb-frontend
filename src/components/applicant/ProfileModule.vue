@@ -44,8 +44,9 @@
     <form @submit.prevent="saveProfile" class="space-y-6">
       <!-- 1. Identitas Pribadi -->
       <div id="section-pribadi" class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-100 shadow-sm scroll-mt-24">
-        <div class="text-xs font-sora font-bold text-[#1E3A8A] uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
-          1. Identitas Pribadi
+        <div class="text-xs font-sora font-bold text-[#1E3A8A] uppercase tracking-wider mb-4 pb-2 border-b border-slate-100 flex items-center justify-between">
+          <span>1. Identitas Pribadi</span>
+          <span class="text-[11px] text-slate-400 font-sans font-normal normal-case">Kolom dengan tanda (<span class="text-rose-500 font-bold">*</span>) wajib diisi</span>
         </div>
 
         <!-- Pasfoto Profil Mahasiswa (Terhubung dari Dokumen) -->
@@ -93,19 +94,23 @@
 
           <!-- Nama Lengkap -->
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Nama Lengkap (Sesuai KTP/Ijazah)</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Nama Lengkap (Sesuai KTP/Ijazah) <span class="text-rose-500">*</span>
+            </label>
             <input
               v-model="form.fullName"
               type="text"
               required
-              placeholder="Contoh: Muhammad Izza Pratama"
+              placeholder="Nama lengkap sesuai e-KTP / ijazah"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             />
           </div>
 
           <!-- Jenis Kelamin -->
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Jenis Kelamin</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Jenis Kelamin <span class="text-rose-500">*</span>
+            </label>
             <select
               v-model="form.gender"
               required
@@ -119,19 +124,23 @@
 
           <!-- Tempat Lahir -->
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Tempat Lahir</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Tempat Lahir <span class="text-rose-500">*</span>
+            </label>
             <input
               v-model="form.birthPlace"
               type="text"
               required
-              placeholder="Contoh: Tasikmalaya"
+              placeholder="Kota / Kabupaten tempat lahir"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             />
           </div>
 
           <!-- Tanggal Lahir -->
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Tanggal Lahir</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Tanggal Lahir <span class="text-rose-500">*</span>
+            </label>
             <input
               v-model="form.birthDate"
               type="date"
@@ -142,7 +151,9 @@
 
           <!-- Jenis Program -->
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Jenis Program Perkuliahan</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Jenis Program Perkuliahan <span class="text-rose-500">*</span>
+            </label>
             <select
               v-model="form.programType"
               required
@@ -157,9 +168,12 @@
 
           <!-- Agama -->
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Agama</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Agama <span class="text-rose-500">*</span>
+            </label>
             <select
               v-model="form.religion"
+              required
               class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             >
               <option value="">-- Pilih Agama --</option>
@@ -175,45 +189,93 @@
 
           <!-- NIK -->
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Nomor Induk Kependudukan (NIK)</label>
-            <input
-              v-model="form.nik"
-              type="text"
-              maxlength="16"
-              placeholder="16 Digit NIK KTP"
-              class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-mono"
-            />
+            <div class="flex items-center justify-between mb-1">
+              <label class="block font-medium text-slate-700">
+                Nomor Induk Kependudukan (NIK) <span class="text-rose-500">*</span>
+              </label>
+              <span
+                v-if="form.nik"
+                class="text-[11px] font-mono"
+                :class="nikValidation.status === 'valid' ? 'text-emerald-600 font-semibold' : nikValidation.status === 'duplicate' ? 'text-rose-600 font-bold' : 'text-slate-400'"
+              >
+                {{ form.nik.length }}/16 digit
+              </span>
+            </div>
+            <div class="relative">
+              <input
+                :value="form.nik"
+                @input="onNikInput"
+                type="text"
+                maxlength="16"
+                required
+                placeholder="Contoh: 327801XXXXXXXXXX (16 digit)"
+                :class="[
+                  'w-full px-3.5 py-2.5 bg-white border rounded-xl outline-none font-mono text-slate-800 transition-all',
+                  nikValidation.status === 'duplicate'
+                    ? 'border-rose-500 focus:border-rose-600 focus:ring-2 focus:ring-rose-100 bg-rose-50/30 text-rose-900 pr-10'
+                    : nikValidation.status === 'valid'
+                    ? 'border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 pr-10'
+                    : 'border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100'
+                ]"
+              />
+              <div v-if="nikValidation.status === 'valid'" class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-emerald-600">
+                <CheckCircle2 class="w-4 h-4" />
+              </div>
+              <div v-else-if="nikValidation.status === 'duplicate'" class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-rose-600">
+                <AlertCircle class="w-4 h-4" />
+              </div>
+            </div>
+            <!-- Notifikasi Validasi Real-time NIK -->
+            <p v-if="nikValidation.status === 'duplicate'" class="text-[11px] text-rose-600 font-semibold mt-1.5 flex items-center gap-1.5 animate-fadeIn">
+              <AlertCircle class="w-3.5 h-3.5 shrink-0 text-rose-600" />
+              <span>{{ nikValidation.message }}</span>
+            </p>
+            <p v-else-if="nikValidation.status === 'valid'" class="text-[11px] text-emerald-600 font-medium mt-1.5 flex items-center gap-1.5 animate-fadeIn">
+              <CheckCircle2 class="w-3.5 h-3.5 shrink-0 text-emerald-600" />
+              <span>{{ nikValidation.message }}</span>
+            </p>
+            <p v-else-if="nikValidation.status === 'incomplete'" class="text-[11px] text-amber-600 mt-1.5 flex items-center gap-1.5">
+              <Info class="w-3.5 h-3.5 shrink-0 text-amber-500" />
+              <span>Nomor KTP harus terdiri dari tepat 16 digit angka.</span>
+            </p>
           </div>
 
           <!-- No. KK -->
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Nomor Kartu Keluarga (No. KK)</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Nomor Kartu Keluarga (No. KK)
+            </label>
             <input
               v-model="form.familyCardNumber"
               type="text"
               maxlength="16"
-              placeholder="16 Digit Nomor KK"
+              placeholder="Contoh: 327801XXXXXXXXXX (16 digit)"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-mono"
             />
           </div>
 
           <!-- NISN -->
           <div>
-            <label class="block font-medium text-slate-700 mb-1">NISN (Nomor Induk Siswa Nasional)</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              NISN (Nomor Induk Siswa Nasional)
+            </label>
             <input
               v-model="form.nisn"
               type="text"
               maxlength="10"
-              placeholder="10 Digit NISN"
+              placeholder="Contoh: 0056789123 (10 digit)"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-mono"
             />
           </div>
 
           <!-- Kewarganegaraan -->
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Kewarganegaraan</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Kewarganegaraan <span class="text-rose-500 font-semibold">*</span>
+            </label>
             <select
               v-model="form.citizenship"
+              required
               class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             >
               <option value="IDN">Indonesia (IDN)</option>
@@ -225,9 +287,12 @@
 
           <!-- Ukuran Jas Almamater -->
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Ukuran Jas Almamater</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Ukuran Jas Almamater <span class="text-rose-500 font-semibold">*</span>
+            </label>
             <select
               v-model="form.almamaterSize"
+              required
               class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans font-semibold"
             >
               <option value="S">S (Small)</option>
@@ -249,7 +314,9 @@
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
           <div class="sm:col-span-2 lg:col-span-4">
-            <label class="block font-medium text-slate-700 mb-1">Alamat Lengkap (Jalan, No. Rumah, Blok)</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Alamat Lengkap (Jalan, No. Rumah, Blok) <span class="text-rose-500">*</span>
+            </label>
             <input
               v-model="form.address"
               type="text"
@@ -259,78 +326,92 @@
             />
           </div>
           <div>
-            <label class="block font-medium text-slate-700 mb-1">RT / RW</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              RT / RW
+            </label>
             <div class="flex items-center gap-2">
               <input
                 v-model="form.rt"
                 type="text"
-                placeholder="RT"
+                placeholder="No. RT"
                 class="w-1/2 px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-[#1E3A8A]"
               />
               <span class="text-slate-400">/</span>
               <input
                 v-model="form.rw"
                 type="text"
-                placeholder="RW"
+                placeholder="No. RW"
                 class="w-1/2 px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-[#1E3A8A]"
               />
             </div>
           </div>
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Desa / Kelurahan</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Desa / Kelurahan
+            </label>
             <input
               v-model="form.subDistrict"
               type="text"
-              placeholder="Contoh: Kahuripan"
+              placeholder="Nama desa atau kelurahan"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] rounded-xl outline-none text-slate-800 font-sans"
             />
           </div>
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Kota / Kabupaten</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Kota / Kabupaten <span class="text-rose-500 font-semibold">*</span>
+            </label>
             <input
               v-model="form.city"
               type="text"
               required
-              placeholder="Contoh: Kota Tasikmalaya"
+              placeholder="Nama kota atau kabupaten domisili"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             />
           </div>
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Provinsi</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Provinsi <span class="text-rose-500 font-semibold">*</span>
+            </label>
             <input
               v-model="form.province"
               type="text"
               required
-              placeholder="Contoh: Jawa Barat"
+              placeholder="Nama provinsi domisili"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             />
           </div>
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Kodepos</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Kodepos
+            </label>
             <input
               v-model="form.postalCode"
               type="text"
-              placeholder="46115"
+              placeholder="Contoh: 46115"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] rounded-xl outline-none text-slate-800 font-mono"
             />
           </div>
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Nomor WhatsApp Aktif</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Nomor WhatsApp Aktif <span class="text-rose-500 font-semibold">*</span>
+            </label>
             <input
               v-model="form.phone"
               type="tel"
               required
-              placeholder="081234567890"
+              placeholder="Contoh: 081234567890"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-mono"
             />
           </div>
           <div class="sm:col-span-2">
-            <label class="block font-medium text-slate-700 mb-1">Alamat Email Aktif</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Alamat Email Aktif <span class="text-rose-500 font-semibold">*</span>
+            </label>
             <input
               v-model="form.email"
               type="email"
               required
-              placeholder="email.aktif@gmail.com"
+              placeholder="nama.aktif@gmail.com"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             />
           </div>
@@ -345,7 +426,9 @@
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
           <div class="sm:col-span-2">
-            <label class="block font-medium text-slate-700 mb-1">Nama Asal Sekolah (SMA/SMK/MA/Sederajat)</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Nama Asal Sekolah (SMA/SMK/MA/Sederajat) <span class="text-rose-500">*</span>
+            </label>
             <input
               v-model="form.schoolName"
               type="text"
@@ -357,7 +440,9 @@
 
           <!-- Pendidikan Terakhir -->
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Pendidikan Terakhir</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Pendidikan Terakhir <span class="text-rose-500">*</span>
+            </label>
             <select
               v-model="form.lastEducation"
               required
@@ -374,7 +459,9 @@
 
           <!-- ID Jenis Institusi -->
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Jenis Institusi Sekolah Asal</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Jenis Institusi Sekolah Asal <span class="text-rose-500">*</span>
+            </label>
             <select
               v-model="form.institutionType"
               required
@@ -389,7 +476,9 @@
           </div>
 
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Jurusan Asal Sekolah</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Jurusan Asal Sekolah <span class="text-rose-500">*</span>
+            </label>
             <input
               v-model="form.schoolMajor"
               type="text"
@@ -400,32 +489,38 @@
           </div>
 
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Tahun Lulus</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Tahun Lulus <span class="text-rose-500">*</span>
+            </label>
             <input
               v-model="form.graduationYear"
               type="text"
               required
-              placeholder="2025"
+              placeholder="Contoh: 2026"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl outline-none text-slate-800 font-sans"
             />
           </div>
 
           <div>
-            <label class="block font-medium text-slate-700 mb-1">NPSN Sekolah Asal</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              NPSN Sekolah Asal
+            </label>
             <input
               v-model="form.npsn"
               type="text"
-              placeholder="8 Digit NPSN"
+              placeholder="Contoh: 20268912 (8 digit)"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] rounded-xl outline-none text-slate-800 font-mono"
             />
           </div>
 
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Nilai Rata-rata UAN / Rapor</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Nilai Rata-rata UAN / Rapor
+            </label>
             <input
               v-model="form.unScore"
               type="text"
-              placeholder="Contoh: 87.50"
+              placeholder="Contoh: 85.50 (skala 0 - 100)"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] rounded-xl outline-none text-slate-800 font-mono"
             />
           </div>
@@ -444,21 +539,26 @@
           <div class="text-xs font-bold text-slate-800 font-sora">A. Data Ayah Kandung</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
             <div>
-              <label class="block font-medium text-slate-700 mb-1">Nama Ayah</label>
+              <label class="block font-medium text-slate-700 mb-1">
+                Nama Ayah <span class="text-rose-500">*</span>
+              </label>
               <input
                 v-model="form.fatherName"
                 type="text"
                 required
+                placeholder="Nama lengkap ayah kandung (tanpa gelar)"
                 class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-[#1E3A8A]"
               />
             </div>
             <div>
-              <label class="block font-medium text-slate-700 mb-1">Pekerjaan Ayah</label>
+              <label class="block font-medium text-slate-700 mb-1">
+                Pekerjaan Ayah <span v-if="form.fatherLifeStatus !== '2'" class="text-rose-500 font-semibold">*</span>
+              </label>
               <input
                 v-model="form.fatherJob"
                 type="text"
-                required
-                placeholder="PNS / Wiraswasta / Karyawan"
+                :required="form.fatherLifeStatus !== '2'"
+                :placeholder="form.fatherLifeStatus === '2' ? 'Almarhum' : 'Contoh: Wiraswasta / PNS / Karyawan Swasta'"
                 class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-[#1E3A8A]"
               />
             </div>
@@ -477,7 +577,9 @@
               </select>
             </div>
             <div>
-              <label class="block font-medium text-slate-700 mb-1">Status Hidup Ayah</label>
+              <label class="block font-medium text-slate-700 mb-1">
+                Status Hidup Ayah <span class="text-rose-500 font-semibold">*</span>
+              </label>
               <select
                 v-model="form.fatherLifeStatus"
                 class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-[#1E3A8A]"
@@ -494,21 +596,26 @@
           <div class="text-xs font-bold text-slate-800 font-sora">B. Data Ibu Kandung</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
             <div>
-              <label class="block font-medium text-slate-700 mb-1">Nama Ibu Kandung</label>
+              <label class="block font-medium text-slate-700 mb-1">
+                Nama Ibu Kandung <span class="text-rose-500 font-semibold">*</span>
+              </label>
               <input
                 v-model="form.motherName"
                 type="text"
                 required
+                placeholder="Nama lengkap ibu kandung (sesuai Kartu Keluarga)"
                 class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-[#1E3A8A]"
               />
             </div>
             <div>
-              <label class="block font-medium text-slate-700 mb-1">Pekerjaan Ibu</label>
+              <label class="block font-medium text-slate-700 mb-1">
+                Pekerjaan Ibu <span v-if="form.motherLifeStatus !== '2'" class="text-rose-500 font-semibold">*</span>
+              </label>
               <input
                 v-model="form.motherJob"
                 type="text"
-                required
-                placeholder="Ibu Rumah Tangga / PNS / Guru"
+                :required="form.motherLifeStatus !== '2'"
+                :placeholder="form.motherLifeStatus === '2' ? 'Almarhumah' : 'Contoh: Ibu Rumah Tangga / Guru / Wiraswasta'"
                 class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-[#1E3A8A]"
               />
             </div>
@@ -527,7 +634,9 @@
               </select>
             </div>
             <div>
-              <label class="block font-medium text-slate-700 mb-1">Status Hidup Ibu</label>
+              <label class="block font-medium text-slate-700 mb-1">
+                Status Hidup Ibu <span class="text-rose-500 font-semibold">*</span>
+              </label>
               <select
                 v-model="form.motherLifeStatus"
                 class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 outline-none focus:border-[#1E3A8A]"
@@ -542,7 +651,9 @@
         <!-- Sub: Informasi Tambahan (Pesantren, KIP Kuliah, Kontak Darurat) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Penghasilan Orang Tua / Bulan</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Penghasilan Orang Tua / Bulan
+            </label>
             <select
               v-model="form.parentIncome"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] rounded-xl outline-none text-slate-800 font-sans"
@@ -578,12 +689,14 @@
           </div>
 
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Kontak Darurat Keluarga</label>
+            <label class="block font-medium text-slate-700 mb-1">
+              Kontak Darurat Keluarga <span class="text-rose-500">*</span>
+            </label>
             <input
               v-model="form.emergencyContact"
               type="text"
               required
-              placeholder="08xxxxxxxxxx (Nama & Hubungan)"
+              placeholder="Contoh: 081223344556 (Bpk. Rahmat - Paman/Wali)"
               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-[#1E3A8A] rounded-xl outline-none text-slate-800 font-sans"
             />
           </div>
@@ -613,8 +726,8 @@
         <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
           <button
             type="submit"
-            :disabled="isSaving"
-            class="w-full sm:w-auto rounded-xl px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70"
+            :disabled="isSaving || nikValidation.status === 'duplicate'"
+            class="w-full sm:w-auto rounded-xl px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Loader2 v-if="isSaving" class="animate-spin h-3.5 w-3.5 text-slate-600" />
             <span>{{ isSaving ? 'Menyimpan...' : 'Simpan Data Biodata' }}</span>
@@ -623,7 +736,8 @@
           <button
             type="button"
             @click="goToAdmission"
-            class="w-full sm:w-auto rounded-xl px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
+            :disabled="nikValidation.status === 'duplicate'"
+            class="w-full sm:w-auto rounded-xl px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span>Lanjut: Jalur Pendaftaran</span>
             <ArrowRight class="w-3.5 h-3.5" />
@@ -1140,7 +1254,41 @@ const toast = useToast();
 const form = reactive({ ...applicantStore.state.candidate });
 const isSaving = ref(false);
 
+const onNikInput = (e) => {
+  const digits = (e.target?.value || '').replace(/\D/g, '').slice(0, 16);
+  form.nik = digits;
+};
+
+const nikValidation = computed(() => {
+  const val = String(form.nik || '').trim().replace(/\D/g, '');
+  if (!val) {
+    return { status: 'empty', message: '' };
+  }
+  if (val.length < 16) {
+    return {
+      status: 'incomplete',
+      message: `${val.length}/16 digit (masukkan 16 digit lengkap)`,
+    };
+  }
+  const dup = applicantStore.checkNikDuplication(val);
+  if (dup.isDuplicate) {
+    return {
+      status: 'duplicate',
+      message: `NIK ini sudah terdaftar pada akun lain (${dup.conflictName || 'Pendaftar lain'}). Satu NIK hanya dapat digunakan untuk satu akun pendaftar.`,
+      conflictName: dup.conflictName,
+    };
+  }
+  return {
+    status: 'valid',
+    message: 'NIK valid & belum pernah terdaftar di sistem.',
+  };
+});
+
 const goToAdmission = () => {
+  if (nikValidation.value.status === 'duplicate') {
+    toast.error(`NIK ${form.nik} sudah digunakan oleh akun lain (${nikValidation.value.conflictName || 'Pendaftar lain'}). Mohon gunakan NIK Anda sendiri sebelum melanjutkan.`);
+    return;
+  }
   emit('switch-tab', 'admission');
   applicantStore.setActiveTab('admission');
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2264,7 +2412,15 @@ const applyOcrToForm = () => {
   if (!ocrData.value?.fields) return;
 
   const f = ocrData.value.fields;
-  if (f.nik?.value) form.nik = f.nik.value;
+  if (f.nik?.value) {
+    const cleanOcrNik = String(f.nik.value).trim().replace(/\D/g, '').slice(0, 16);
+    const dupCheck = applicantStore.checkNikDuplication(cleanOcrNik);
+    if (dupCheck.isDuplicate) {
+      toast.error(`NIK pada e-KTP (${cleanOcrNik}) sudah terdaftar pada akun lain (${dupCheck.conflictName || 'Pendaftar lain'}). Formulir tidak dapat diisi dengan NIK yang sama.`);
+      return;
+    }
+    form.nik = cleanOcrNik;
+  }
   if (f.nama?.value) form.fullName = f.nama.value;
   if (f.tempat_lahir?.value) form.birthPlace = f.tempat_lahir.value;
   if (f.tanggal_lahir?.value) form.birthDate = f.tanggal_lahir.value;
@@ -2304,7 +2460,14 @@ const applyOcrToForm = () => {
   }
 
   // Simpan hasil ke applicantStore
-  applicantStore.updateProfile(form);
+  try {
+    applicantStore.updateProfile(form);
+  } catch (storeErr) {
+    if (storeErr.message && storeErr.message.startsWith('DUPLICATE_NIK:')) {
+      toast.error(storeErr.message.replace('DUPLICATE_NIK: ', ''));
+      return;
+    }
+  }
 
   // Otomatis tautkan pindaian e-KTP ke berkas dokumen persyaratan (doc-2) jika belum diunggah
   if (currentOcrFile.value) {
@@ -2328,10 +2491,24 @@ const applyOcrToForm = () => {
 };
 
 const saveProfile = async () => {
+  const cleanNik = String(form.nik || '').trim().replace(/\D/g, '');
+  if (!cleanNik) {
+    toast.error('Nomor Induk Kependudukan (NIK) wajib diisi.');
+    return;
+  }
+  if (cleanNik.length !== 16) {
+    toast.error('NIK tidak valid. NIK wajib terdiri dari tepat 16 digit angka.');
+    return;
+  }
+
+  const dupCheck = applicantStore.checkNikDuplication(cleanNik);
+  if (dupCheck.isDuplicate) {
+    toast.error(`Penyimpanan ditolak: NIK ${cleanNik} sudah terdaftar pada akun lain (${dupCheck.conflictName || 'Pendaftar lain'}). Duplikasi akun dicegah.`);
+    return;
+  }
+
   isSaving.value = true;
   try {
-    applicantStore.updateProfile(form);
-
     // Sinkronisasi data ke microservices backend (Auth, Identity, Admission)
     const hasAuthToken = authStore.isAuthenticated && (authStore.accessToken || authStore.token);
     if (hasAuthToken) {
@@ -2342,16 +2519,25 @@ const saveProfile = async () => {
       }).catch(() => null);
 
       // 2. Identity service profile (NIK, tempat/tgl lahir, gender, agama)
-      await identityApi.updateProfile({
-        full_name: form.fullName,
-        nik: form.nik,
-        birth_place: form.birthPlace,
-        birth_date: form.birthDate,
-        gender: form.gender === 'Laki-laki' ? 'L' : 'P',
-        religion: form.religion || 'Islam',
-        nationality: 'WNI',
-        phone: form.phone || '',
-      }).catch(() => null);
+      try {
+        await identityApi.updateProfile({
+          full_name: form.fullName,
+          nik: cleanNik,
+          birth_place: form.birthPlace,
+          birth_date: form.birthDate,
+          gender: form.gender === 'Laki-laki' ? 'L' : 'P',
+          religion: form.religion || 'Islam',
+          nationality: 'WNI',
+          phone: form.phone || '',
+        });
+      } catch (idErr) {
+        if (idErr.response?.data?.error_code === 'DUPLICATE_NIK' || idErr.response?.status === 409) {
+          toast.error(idErr.response?.data?.message || 'NIK sudah terdaftar pada akun calon mahasiswa lain di sistem.');
+          isSaving.value = false;
+          return;
+        }
+        console.warn('Identity service update warning:', idErr);
+      }
 
       // 3. Identity service address
       await identityApi.updateAddress({
@@ -2384,8 +2570,13 @@ const saveProfile = async () => {
       }
     }
 
+    applicantStore.updateProfile({ ...form, nik: cleanNik });
     toast.success('Formulir biodata calon mahasiswa berhasil disimpan.');
   } catch (err) {
+    if (err.message && err.message.startsWith('DUPLICATE_NIK:')) {
+      toast.error(err.message.replace('DUPLICATE_NIK: ', ''));
+      return;
+    }
     console.warn('Gagal update profile ke backend:', err);
     toast.info('Biodata tersimpan di penyimpanan browser lokal.');
   } finally {

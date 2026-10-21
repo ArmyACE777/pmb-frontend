@@ -55,6 +55,9 @@ export const DEFAULT_CMS_DATA = {
     brochurePdfUrl: 'https://pmb.bth.ac.id/brosur-pmb-2026.pdf',
     cbtServerUrl: 'https://cbt.universitas-bth.ac.id',
     virtualTourUrl: 'https://universitas-bth.ac.id/virtual-tour',
+    interviewMeetUrl: 'https://meet.google.com/pmb-ubth-2026',
+    interviewZoomId: '894 2026 1001',
+    interviewZoomPasscode: 'BTH2026',
   },
   faqs: [
     {
@@ -102,13 +105,6 @@ export const DEFAULT_CMS_DATA = {
       fee: 250000,
       wave: 'Gelombang 1',
       description: 'Bebas tes tulis CBT bagi siswa berprestasi peringkat 1-10 paralel sekolah atau nilai rata-rata rapor min 82.',
-    },
-    {
-      id: 'bk',
-      name: 'Jalur Kemitraan Sekolah & Guru BK',
-      fee: 0,
-      wave: 'Gelombang 1',
-      description: 'Pendaftaran kemitraan dengan kode referal sekolah mitra. Bebas biaya formulir pendaftaran Rp 0.',
     },
     {
       id: 'kip',
@@ -226,8 +222,12 @@ export const useCmsStore = defineStore('cms', () => {
   const getRegistrationFee = (trackName) => {
     if (!trackName) return 250000;
     const lower = String(trackName).toLowerCase();
-    if (lower.includes('bk') || lower.includes('kemitraan') || lower.includes('kip')) {
+    if (lower.includes('kip') || lower.includes('beasiswa')) {
       return 0;
+    }
+    // Jalur kemitraan / BK memiliki nominal normal Rp 250.000 kecuali jika kode referal aktif
+    if (lower.includes('bk') || lower.includes('kemitraan') || lower.includes('mitra')) {
+      return 250000;
     }
     const found = (tracks.value || []).find(
       (t) => t.name?.toLowerCase() === lower || t.id === lower

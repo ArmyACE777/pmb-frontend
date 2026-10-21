@@ -192,24 +192,34 @@
             <span
               class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold whitespace-nowrap"
               :class="{
-                'bg-emerald-50 text-emerald-700 border border-emerald-200': applicant.verifiedDocsCount === 5,
-                'bg-amber-50 text-amber-700 border border-amber-200': applicant.verifiedDocsCount > 0 && applicant.verifiedDocsCount < 5,
+                'bg-emerald-50 text-emerald-700 border border-emerald-200': applicant.verifiedDocsCount === (applicant.documents?.length || 5),
+                'bg-amber-50 text-amber-700 border border-amber-200': applicant.verifiedDocsCount > 0 && applicant.verifiedDocsCount < (applicant.documents?.length || 5),
                 'bg-slate-100 text-slate-600 border border-slate-200': applicant.verifiedDocsCount === 0
               }"
             >
-              {{ applicant.verifiedDocsCount }}/{{ applicant.documents.length }} Sah
+              {{ applicant.verifiedDocsCount }}/{{ applicant.documents?.length || 5 }} Sah
             </span>
 
-            <button
-              @click="openVerifyDesk(applicant)"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#1E3A8A] border border-slate-200 font-sora font-semibold text-xs rounded-lg transition-all shadow-2xs cursor-pointer active:scale-95"
-            >
-              <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              <span>Inspeksi Berkas</span>
-            </button>
+            <div class="flex items-center gap-1.5">
+              <button
+                @click="openVerifyDesk(applicant)"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#1E3A8A] border border-slate-200 font-sora font-semibold text-xs rounded-lg transition-all shadow-2xs cursor-pointer active:scale-95"
+              >
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span>Inspeksi Berkas</span>
+              </button>
+
+              <button
+                @click="confirmDeleteApplicant(applicant)"
+                class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg transition-colors cursor-pointer shadow-2xs"
+                title="Hapus Akun Mahasiswa"
+              >
+                <Trash2 class="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -261,12 +271,12 @@
                 <span
                   class="inline-flex items-center justify-center px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold whitespace-nowrap"
                   :class="{
-                    'bg-emerald-50 text-emerald-700 border border-emerald-200': applicant.verifiedDocsCount === 5,
-                    'bg-amber-50 text-amber-700 border border-amber-200': applicant.verifiedDocsCount > 0 && applicant.verifiedDocsCount < 5,
+                    'bg-emerald-50 text-emerald-700 border border-emerald-200': applicant.verifiedDocsCount === (applicant.documents?.length || 5),
+                    'bg-amber-50 text-amber-700 border border-amber-200': applicant.verifiedDocsCount > 0 && applicant.verifiedDocsCount < (applicant.documents?.length || 5),
                     'bg-slate-100 text-slate-600 border border-slate-200': applicant.verifiedDocsCount === 0
                   }"
                 >
-                  {{ applicant.verifiedDocsCount }}/{{ applicant.documents.length }} Sah
+                  {{ applicant.verifiedDocsCount }}/{{ applicant.documents?.length || 5 }} Sah
                 </span>
               </td>
 
@@ -300,17 +310,27 @@
 
               <!-- Action Button: Ramping, Presisi, 1 Baris Penuh -->
               <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                <button
-                  @click="openVerifyDesk(applicant)"
-                  class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#1E3A8A] border border-slate-200 hover:border-slate-300 font-sora font-semibold text-xs rounded-lg transition-all shadow-2xs cursor-pointer active:scale-95"
-                  title="Buka lembar inspeksi dokumen pendaftar"
-                >
-                  <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#1E3A8A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                  <span>Inspeksi Berkas</span>
-                </button>
+                <div class="inline-flex items-center gap-1.5 justify-end">
+                  <button
+                    @click="openVerifyDesk(applicant)"
+                    class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#1E3A8A] border border-slate-200 hover:border-slate-300 font-sora font-semibold text-xs rounded-lg transition-all shadow-2xs cursor-pointer active:scale-95"
+                    title="Buka lembar inspeksi dokumen pendaftar"
+                  >
+                    <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#1E3A8A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <span>Inspeksi Berkas</span>
+                  </button>
+
+                  <button
+                    @click="confirmDeleteApplicant(applicant)"
+                    class="p-1.5 text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 hover:border-rose-300 rounded-lg transition-colors cursor-pointer shadow-2xs"
+                    title="Hapus Akun Mahasiswa"
+                  >
+                    <Trash2 class="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </td>
             </tr>
             <tr v-if="filteredApplicants.length === 0">
@@ -674,7 +694,7 @@
                     'bg-slate-50 text-slate-600 border border-slate-200': activeApplicant.documentStatus === 'unuploaded'
                   }"
                 >
-                  <span>{{ activeApplicant.documentStatus === 'verified' ? '5/5 Berkas Sah' : activeApplicant.verifiedDocsCount + '/5 Berkas Sah' }}</span>
+                  <span>{{ activeApplicant.documentStatus === 'verified' ? (activeApplicant.documents?.length || 5) + '/' + (activeApplicant.documents?.length || 5) + ' Berkas Sah' : (activeApplicant.verifiedDocsCount || 0) + '/' + (activeApplicant.documents?.length || 5) + ' Berkas Sah' }}</span>
                 </span>
               </div>
               <div class="text-[11px] sm:text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-x-2 sm:gap-x-3 gap-y-0.5 font-sans">
@@ -686,16 +706,27 @@
               </div>
             </div>
 
-            <!-- Tombol Tutup -->
-            <button
-              @click="closeVerifyDesk"
-              class="w-8 h-8 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-800 flex items-center justify-center text-lg transition-all cursor-pointer flex-shrink-0"
-              title="Tutup (Esc)"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <button
+                @click="confirmDeleteApplicant(activeApplicant)"
+                class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                title="Hapus Akun Mahasiswa"
+              >
+                <Trash2 class="w-3.5 h-3.5" />
+                <span class="hidden sm:inline">Hapus Akun</span>
+              </button>
+
+              <!-- Tombol Tutup -->
+              <button
+                @click="closeVerifyDesk"
+                class="w-8 h-8 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-800 flex items-center justify-center text-lg transition-all cursor-pointer flex-shrink-0"
+                title="Tutup (Esc)"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           <!-- BODY: Two-Panel Professional Layout (Stacked on Mobile, 2-Panel on Desktop) -->
@@ -1137,13 +1168,22 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- Modal Konfirmasi Hapus Akun Mahasiswa -->
+    <DeleteStudentModal
+      v-model="showDeleteModal"
+      :student="studentToDelete"
+      @deleted="handleStudentDeleted"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
+import { Trash2 } from 'lucide-vue-next';
 import { useAdminStore } from '@/stores/admin';
 import { useToast } from '@/composables/useToast';
+import DeleteStudentModal from '@/components/admin/DeleteStudentModal.vue';
 
 const props = defineProps({
   currentRole: {
@@ -1161,6 +1201,21 @@ const selectedDoc = ref(null);
 const isRevisionOpen = ref(false);
 const revisionNote = ref('');
 
+// Delete Student State
+const showDeleteModal = ref(false);
+const studentToDelete = ref(null);
+
+const confirmDeleteApplicant = (applicant) => {
+  studentToDelete.value = applicant;
+  showDeleteModal.value = true;
+};
+
+const handleStudentDeleted = (student) => {
+  if (activeApplicant.value && student && activeApplicant.value.id === student.id) {
+    closeVerifyDesk();
+  }
+};
+
 const quickReasons = [
   'Pindaian dokumen buram / tidak terbaca jelas.',
   'Bagian nilai rapor atau nomor identitas terpotong.',
@@ -1177,6 +1232,15 @@ const getShortDocTitle = (id) => {
     case 'doc-3': return 'Kartu Keluarga';
     case 'doc-4': return 'Pasfoto 4x6';
     case 'doc-5': return 'Surat Sehat';
+    case 'doc-rapor': return 'Buku Rapor';
+    case 'doc-rekomendasi': return 'Rekomendasi';
+    case 'doc-sertif': return 'Piagam / Sertif';
+    case 'doc-portofolio': return 'Portofolio';
+    case 'doc-kip': return 'Kartu KIP/SKTM';
+    case 'doc-simkip': return 'Bukti SIM KIP';
+    case 'doc-rumah': return 'Foto Rumah';
+    case 'doc-transkrip': return 'Transkrip Nilai';
+    case 'doc-pindah': return 'Surat Pindah';
     default: return 'Dokumen';
   }
 };

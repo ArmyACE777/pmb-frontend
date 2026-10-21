@@ -58,6 +58,15 @@ export const admissionApi = {
     return apiClient.get('/admission/applications/me/dashboard');
   },
 
+  // CR-011: Orientasi & Konfirmasi Grup WhatsApp Calon Mahasiswa
+  async getOnboarding() {
+    return apiClient.get('/admission/me/onboarding');
+  },
+
+  async confirmOnboarding(key = 'wa_group_camaba') {
+    return apiClient.post(`/admission/me/onboarding/${key}/confirm`);
+  },
+
   // CR-002: Riwayat Multi-Pendaftaran, Eligibility, & Pembatalan
   async getMyHistory() {
     return apiClient.get('/admission/applications/me/history');

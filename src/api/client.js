@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 /**
  * Mendeteksi URL dasar API secara dinamis:
  * 1. Jika VITE_API_BASE_URL disetel ke URL produksi non-localhost, gunakan itu.
@@ -62,7 +64,21 @@ apiClient.interceptors.request.use(
       }
     }
     const token = localStorage.getItem('access_token');
-    if (token && !config.headers.Authorization) {
+    const isPublicAuthEndpoint =
+      config.url?.includes('/auth/login') ||
+      config.url?.includes('/auth/register') ||
+      config.url?.includes('/auth/verify') ||
+      config.url?.includes('/auth/resend-otp') ||
+      config.url?.includes('/auth/forgot-password') ||
+      config.url?.includes('/auth/reset-password');
+
+    // Hanya lampirkan token jika itu JWT asli bertanda tangan (bukan token sesi sintetis lokal seperti bk_token_ / mkt_token_ / mock_)
+    const isSyntheticToken = token && (
+      token.startsWith('bk_token_') ||
+      token.startsWith('mkt_token_') ||
+      token.startsWith('mock_')
+    );
+    if (token && !isSyntheticToken && !config.headers.Authorization && !isPublicAuthEndpoint) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -85,6 +101,23 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config;
     const errorCode = error.response?.data?.error_code;
 
+    const currentToken = localStorage.getItem('access_token') || '';
+    const isPartnerOrMockSession =
+      currentToken.startsWith('bk_token_') ||
+      currentToken.startsWith('mkt_token_') ||
+      currentToken.startsWith('mock_') ||
+      !!localStorage.getItem('bth_bk_session') ||
+      !!localStorage.getItem('bth_marketing_session');
+
+    const isExemptPath =
+      typeof window !== 'undefined' &&
+      (['/login', '/register', '/verify-otp', '/forgot-password', '/reset-password', '/bk', '/marketing'].includes(window.location.pathname) ||
+        window.location.pathname.startsWith('/bk') ||
+        window.location.pathname.startsWith('/marketing') ||
+        window.location.pathname.startsWith('/forgot-password') ||
+        window.location.pathname.startsWith('/reset-password') ||
+        window.location.pathname.startsWith('/verify-otp'));
+
     // Handle 401 TOKEN_EXPIRED
     if (error.response?.status === 401 && errorCode === 'TOKEN_EXPIRED' && !originalRequest._retry) {
       if (isRefreshing) {
@@ -103,10 +136,12 @@ apiClient.interceptors.response.use(
 
       const refreshToken = localStorage.getItem('refresh_token');
       if (!refreshToken) {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+        if (!isPartnerOrMockSession && !isExemptPath) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        }
         return Promise.reject(error);
       }
 
@@ -131,10 +166,12 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshErr) {
         processQueue(refreshErr, null);
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+        if (!isPartnerOrMockSession && !isExemptPath) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshErr);
       } finally {
         isRefreshing = false;
@@ -142,11 +179,25 @@ apiClient.interceptors.response.use(
     }
 
     // Handle 401 TOKEN_REVOKED, TOKEN_INVALID, or invalid session on authenticated endpoints
-    const isAuthEndpoint = originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/register');
+    const isAuthEndpoint =
+      originalRequest.url?.includes('/auth/login') ||
+      originalRequest.url?.includes('/auth/register') ||
+      originalRequest.url?.includes('/auth/verify') ||
+      originalRequest.url?.includes('/auth/resend-otp') ||
+      originalRequest.url?.includes('/auth/forgot-password') ||
+      originalRequest.url?.includes('/auth/reset-password');
     const isAdminEndpoint = originalRequest.url?.includes('/auth/admin');
     const isRevokedToken = ['TOKEN_REVOKED', 'TOKEN_INVALID', 'TOKEN_MISSING'].includes(errorCode);
 
-    if (error.response?.status === 401 && !isAuthEndpoint && !isAdminEndpoint && isRevokedToken && errorCode !== 'GATEWAY_SIGNATURE_INVALID') {
+    if (
+      error.response?.status === 401 &&
+      !isAuthEndpoint &&
+      !isAdminEndpoint &&
+      !isPartnerOrMockSession &&
+      !isExemptPath &&
+      isRevokedToken &&
+      errorCode !== 'GATEWAY_SIGNATURE_INVALID'
+    ) {
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       localStorage.removeItem('user');

@@ -29,6 +29,17 @@
 
             <!-- Right: User Identity & Actions -->
             <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+              <!-- Panduan PMB Button -->
+              <button
+                type="button"
+                @click="showGuideModal = true"
+                class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-semibold text-[#1E3A8A] bg-blue-50/80 hover:bg-blue-100 border border-blue-200/90 transition-all cursor-pointer shadow-2xs hover:shadow-xs flex-shrink-0"
+                title="Buku Panduan Pendaftaran PMB Mahasiswa Baru"
+              >
+                <BookOpen class="w-3.5 h-3.5 text-[#1E3A8A]" />
+                <span class="hidden sm:inline">Panduan PMB</span>
+              </button>
+
               <!-- Notifications Bell -->
               <div class="relative">
                 <button
@@ -128,8 +139,16 @@
                     </div>
                   </div>
 
-                  <!-- Action Links: Pusat Bantuan & Logout -->
+                  <!-- Action Links: Panduan, Pusat Bantuan & Logout -->
                   <div class="py-1 space-y-1">
+                    <button
+                      @click="showGuideModal = true; showProfileMenu = false"
+                      class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-2.5 transition-colors cursor-pointer"
+                    >
+                      <BookOpen class="w-4 h-4 text-[#1E3A8A]" />
+                      <span>Buku Panduan Pendaftaran</span>
+                    </button>
+
                     <button
                       @click="showHelpdeskModal = true; showProfileMenu = false"
                       class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-2.5 transition-colors cursor-pointer"
@@ -471,6 +490,9 @@
       </div>
     </Teleport>
 
+    <!-- Modal Panduan Pendaftaran PMB Resmi BTH -->
+    <ApplicantGuideModal v-model="showGuideModal" />
+
     <!-- Main Content Body -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8 relative z-10">
       <slot />
@@ -508,7 +530,8 @@ import {
   HelpCircle,
   Bell,
   Shield,
-  Lock
+  Lock,
+  BookOpen
 } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
@@ -517,6 +540,7 @@ import { useApplicantStore } from '@/stores/applicant';
 import { useCmsStore } from '@/stores/cms';
 import { useToast } from '@/composables/useToast';
 import DashboardBackground from '@/components/common/DashboardBackground.vue';
+import ApplicantGuideModal from '@/components/guides/ApplicantGuideModal.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -531,6 +555,7 @@ const showMobileNav = ref(false);
 const showRegistrationDropdown = ref(false);
 const mobileRegistrationOpen = ref(true);
 const showHelpdeskModal = ref(false);
+const showGuideModal = ref(false);
 const readNotificationIndices = ref(new Set());
 
 const toggleMobileNav = () => {

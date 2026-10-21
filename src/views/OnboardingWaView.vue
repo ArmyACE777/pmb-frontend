@@ -60,6 +60,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useApplicantStore } from '@/stores/applicant';
 import { useCmsStore } from '@/stores/cms';
 import { useToast } from '@/composables/useToast';
+import { admissionApi } from '@/api/admission';
 
 const router = useRouter();
 const route = useRoute();
@@ -85,13 +86,26 @@ const whatsappGroupUrl = computed(() => {
   } catch (e) {
     console.warn('Gagal memuat URL grup WhatsApp:', e);
   }
-  return cmsStore.links.onboardingWaGroup || cmsStore.links.officialWaGroup || 'https://chat.whatsapp.com/BTH-MabaOnboarding2026';
+  return cmsStore.links.onboardingWaGroup || cmsStore.links.officialWaGroup || 'https://chat.whatsapp.com/pmb-camaba';
 });
 
-onMounted(() => {
+onMounted(async () => {
   const userEmail = authStore.currentUser?.email || localStorage.getItem('bth_auth_user_email') || 'applicant';
   const needsOnboarding = localStorage.getItem(`bth_needs_onboarding_${userEmail}`) === 'true';
   const hasJoined = localStorage.getItem(`bth_wa_group_joined_${userEmail}`) === 'true';
+
+  // Periksa status onboarding dari backend jika user terautentikasi
+  if (authStore.isAuthenticated) {
+    try {
+      const res = await admissionApi.getOnboarding();
+      if (res?.data?.data?.next === 'dashboard') {
+        router.replace('/dashboard');
+        return;
+      }
+    } catch (e) {
+      // Abaikan bila backend offline
+    }
+  }
 
   // Jika bukan pendaftar baru yang butuh onboarding atau sudah pernah bergabung, langsung ke dashboard
   if (!needsOnboarding || hasJoined) {
@@ -99,17 +113,26 @@ onMounted(() => {
   }
 });
 
-const handleJoinAndProceed = () => {
+const handleJoinAndProceed = async () => {
   const userEmail = authStore.currentUser?.email || localStorage.getItem('bth_auth_user_email') || 'applicant';
   localStorage.setItem(`bth_wa_group_joined_${userEmail}`, 'true');
   localStorage.removeItem(`bth_needs_onboarding_${userEmail}`);
 
-  // Buka tautan WhatsApp grup di tab baru
+  // 1. Konfirmasi langkah onboarding resmi ke database backend (CR-011)
+  if (authStore.isAuthenticated) {
+    try {
+      await admissionApi.confirmOnboarding('wa_group_camaba');
+    } catch (e) {
+      console.warn('Backend onboarding confirm notice:', e?.message);
+    }
+  }
+
+  // 2. Buka tautan WhatsApp grup di tab baru
   window.open(whatsappGroupUrl.value, '_blank', 'noopener,noreferrer');
 
   toast.success('Membuka grup WhatsApp... Selamat datang di portal pendaftaran!');
 
-  // Otomatis arahkan ke dashboard pendaftar
+  // 3. Otomatis arahkan ke dashboard pendaftar
   router.push('/dashboard');
 };
 </script>

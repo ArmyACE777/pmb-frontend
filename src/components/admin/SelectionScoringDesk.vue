@@ -352,6 +352,10 @@
                 <Clock class="w-3.5 h-3.5 text-slate-400" />
                 <span>{{ exam.duration_minutes || 60 }} Menit</span>
               </span>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200/70 text-indigo-700 font-semibold">
+                <BookOpen class="w-3.5 h-3.5 text-indigo-500" />
+                <span>{{ exam.question_count || exam.total_questions || 30 }} Butir Soal</span>
+              </span>
               <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200/70 text-[#1E3A8A] font-semibold">
                 <Award class="w-3.5 h-3.5 text-blue-500" />
                 <span>Passing Grade: {{ exam.passing_grade || 70 }}</span>
@@ -359,6 +363,18 @@
               <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 font-medium">
                 <Shuffle class="w-3.5 h-3.5 text-slate-400" />
                 <span>{{ exam.shuffle_questions ? 'Soal & Opsi Diacak' : 'Urutan Standar' }}</span>
+              </span>
+            </div>
+
+            <!-- Bank Composition Badges -->
+            <div v-if="exam.rules && exam.rules.length > 0" class="flex flex-wrap items-center gap-1.5 pt-0.5">
+              <span class="text-[10px] text-slate-400 font-medium">Bank Soal:</span>
+              <span
+                v-for="r in exam.rules"
+                :key="r.bank_id"
+                class="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[10px] text-slate-700 font-medium"
+              >
+                {{ getBankName(r.bank_id) }}: <strong>{{ r.count }} Soal</strong>
               </span>
             </div>
 
@@ -372,7 +388,7 @@
           </div>
 
           <!-- Card Actions -->
-          <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+          <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
             <button
               @click="switchMonitoringToExam(exam)"
               class="text-xs font-semibold text-[#1E3A8A] hover:underline flex items-center gap-1 cursor-pointer"
@@ -381,18 +397,29 @@
               <span>Pengawasan Peserta</span>
             </button>
 
-            <button
-              v-if="exam.status !== 'published'"
-              @click="publishExam(exam)"
-              class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-2xs cursor-pointer"
-            >
-              <Send class="w-3.5 h-3.5" />
-              <span>Publikasikan Ujian</span>
-            </button>
-            <span v-else class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
-              <CheckCircle2 class="w-3.5 h-3.5" />
-              <span>Sesi Terbuka untuk Peserta</span>
-            </span>
+            <div class="flex items-center gap-2">
+              <button
+                @click="openExamModal(exam)"
+                class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border border-slate-200"
+                title="Edit Paket & Sesi Ujian"
+              >
+                <Edit2 class="w-3.5 h-3.5 text-slate-600" />
+                <span>Edit Paket</span>
+              </button>
+
+              <button
+                v-if="exam.status !== 'published'"
+                @click="publishExam(exam)"
+                class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-2xs cursor-pointer"
+              >
+                <Send class="w-3.5 h-3.5" />
+                <span>Publikasikan Ujian</span>
+              </button>
+              <span v-else class="text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
+                <CheckCircle2 class="w-3.5 h-3.5" />
+                <span>Sesi Terbuka</span>
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -478,10 +505,13 @@
               <div class="flex items-start justify-between gap-2">
                 <div>
                   <h4 class="font-sora font-bold text-slate-900 text-sm">
-                    {{ att.participant?.applicant_name || att.participant?.applicant_id || 'Peserta CBT' }}
+                    {{ att.participant_name || att.participant?.applicant_name || 'Peserta CBT' }}
                   </h4>
                   <div class="font-mono text-xs text-[#1E3A8A] font-semibold mt-0.5">
-                    {{ att.participant?.exam_card_number || att.participant?.applicant_id || att.id.slice(0, 8) }}
+                    {{ att.registration_number || att.participant?.participant_number || att.participant?.exam_card_number || att.participant?.applicant_id || att.id.slice(0, 8) }}
+                  </div>
+                  <div v-if="att.study_program" class="text-[11px] text-slate-500 mt-0.5">
+                    {{ att.study_program }}
                   </div>
                 </div>
 
@@ -560,10 +590,13 @@
                 <tr v-for="att in attemptsList" :key="att.id" class="hover:bg-slate-50/80 transition-colors">
                   <td class="py-3.5 px-4">
                     <div class="font-sora font-bold text-slate-900">
-                      {{ att.participant?.applicant_name || att.participant?.applicant_id || 'Peserta CBT' }}
+                      {{ att.participant_name || att.participant?.applicant_name || 'Peserta CBT' }}
                     </div>
                     <div class="font-mono text-[11px] text-[#1E3A8A]">
-                      {{ att.participant?.exam_card_number || att.participant?.applicant_id || att.id.slice(0, 8) }}
+                      {{ att.registration_number || att.participant?.participant_number || att.participant?.exam_card_number || att.participant?.applicant_id || att.id.slice(0, 8) }}
+                    </div>
+                    <div v-if="att.study_program" class="text-[10px] text-slate-500">
+                      {{ att.study_program }}
                     </div>
                   </td>
 
@@ -650,7 +683,7 @@
           <Search class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
         </div>
 
-        <!-- Status Filter Tabs -->
+        <!-- Status Filter Tabs & Sync Button -->
         <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 md:pb-0 text-xs -mx-1 px-1">
           <button
             v-for="filter in filters"
@@ -662,6 +695,14 @@
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
           >
             {{ filter.label }}
+          </button>
+          <button
+            @click="refreshScoringData"
+            class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold flex items-center gap-1.5 cursor-pointer whitespace-nowrap border border-slate-200"
+            title="Sinkronisasi Nilai CBT & Rekapitulasi Terbaru"
+          >
+            <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': syncingScoring }" />
+            <span>Sinkron Nilai</span>
           </button>
         </div>
       </div>
@@ -1047,108 +1088,166 @@
       </div>
     </Teleport>
 
-    <!-- Modal 3: Buat Paket Ujian CBT Baru -->
+    <!-- Modal 3: Buat / Edit Paket Ujian CBT -->
     <Teleport to="body">
       <div
         v-if="showExamModal"
         class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
         @click.self="showExamModal = false"
       >
-        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
-          <div class="p-5 border-b border-slate-100 flex items-center justify-between">
-            <h3 class="font-sora font-bold text-slate-900 text-base">Buat Paket Ujian CBT Baru</h3>
-            <button @click="showExamModal = false" class="text-slate-400 hover:text-slate-700">
+        <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[90vh] flex flex-col">
+          <!-- Modal Header (Fixed) -->
+          <div class="p-5 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+            <h3 class="font-sora font-bold text-slate-900 text-base">
+              {{ editingExam ? 'Edit Paket & Sesi Ujian CBT' : 'Buat Paket Ujian CBT Baru' }}
+            </h3>
+            <button @click="showExamModal = false" class="text-slate-400 hover:text-slate-700 cursor-pointer">
               <X class="w-5 h-5" />
             </button>
           </div>
-          <form @submit.prevent="saveExam" class="p-5 space-y-3.5 text-xs font-sans">
-            <div>
-              <label class="block font-semibold text-slate-800 mb-1">Judul Paket Ujian *</label>
-              <input
-                v-model="examForm.title"
-                required
-                placeholder="Contoh: Ujian CBT Seleksi Mandiri Gelombang 1"
-                class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A]"
-              />
-            </div>
-            <div>
-              <label class="block font-semibold text-slate-800 mb-1">Deskripsi Ringkas</label>
-              <textarea
-                v-model="examForm.description"
-                rows="2"
-                placeholder="Petunjuk pengerjaan dan materi ujian..."
-                class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A]"
-              ></textarea>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+          <!-- Form with scrollable body and fixed footer -->
+          <form @submit.prevent="saveExam" class="flex flex-col flex-1 overflow-hidden">
+            <div class="p-5 space-y-3.5 text-xs font-sans overflow-y-auto flex-1">
               <div>
-                <label class="block font-semibold text-slate-800 mb-1">Jadwal Akses Mulai (Buka) *</label>
+                <label class="block font-semibold text-slate-800 mb-1">Judul Paket Ujian *</label>
                 <input
-                  v-model="examForm.start_at"
-                  type="datetime-local"
+                  v-model="examForm.title"
                   required
+                  placeholder="Contoh: Ujian CBT Seleksi Mandiri Gelombang 1"
                   class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A]"
                 />
               </div>
               <div>
-                <label class="block font-semibold text-slate-800 mb-1">Jadwal Akses Berakhir (Tutup) *</label>
-                <input
-                  v-model="examForm.end_at"
-                  type="datetime-local"
-                  required
+                <label class="block font-semibold text-slate-800 mb-1">Deskripsi Ringkas</label>
+                <textarea
+                  v-model="examForm.description"
+                  rows="2"
+                  placeholder="Petunjuk pengerjaan dan materi ujian..."
                   class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A]"
-                />
+                ></textarea>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-semibold text-slate-800 mb-1">Jadwal Akses Mulai (Buka) *</label>
+                  <input
+                    v-model="examForm.start_at"
+                    type="datetime-local"
+                    required
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A]"
+                  />
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-800 mb-1">Jadwal Akses Berakhir (Tutup) *</label>
+                  <input
+                    v-model="examForm.end_at"
+                    type="datetime-local"
+                    required
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A]"
+                  />
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-semibold text-slate-800 mb-1">Durasi Pengerjaan (Menit) *</label>
+                  <input
+                    v-model.number="examForm.duration_minutes"
+                    type="number"
+                    min="15"
+                    required
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A]"
+                  />
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-800 mb-1">Passing Grade (0-100) *</label>
+                  <input
+                    v-model.number="examForm.passing_grade"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    required
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A]"
+                  />
+                </div>
+              </div>
+
+              <!-- Komposisi Bank Soal -->
+              <div class="space-y-2 pt-2 border-t border-slate-100">
+                <div class="flex items-center justify-between">
+                  <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
+                    <BookOpen class="w-3.5 h-3.5 text-[#1E3A8A]" />
+                    <span>Pilih Bank Soal & Jumlah Butir *</span>
+                  </label>
+                  <span class="text-[11px] font-semibold text-[#1E3A8A] bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                    Total: {{ totalSelectedQuestions }} Butir Soal
+                  </span>
+                </div>
+                <p class="text-[11px] text-slate-400">Pilih bank soal yang ingin diujikan dan atur berapa butir pertanyaan yang diambil:</p>
+
+                <div class="space-y-1.5 max-h-44 overflow-y-auto border border-slate-200 rounded-xl p-2.5 bg-slate-50/70">
+                  <div
+                    v-for="bank in questionBanks"
+                    :key="bank.id"
+                    class="flex items-center justify-between gap-2 p-2 bg-white rounded-lg border transition-colors"
+                    :class="examForm.selected_bank_ids.includes(bank.id) ? 'border-blue-300 bg-blue-50/30' : 'border-slate-200'"
+                  >
+                    <label class="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
+                      <input
+                        type="checkbox"
+                        :value="bank.id"
+                        v-model="examForm.selected_bank_ids"
+                        class="rounded text-[#1E3A8A]"
+                      />
+                      <div class="min-w-0">
+                        <div class="font-semibold text-slate-800 text-xs truncate">{{ bank.name }}</div>
+                        <div class="text-[10px] text-slate-400">{{ bank.total_questions || 0 }} butir soal tersedia</div>
+                      </div>
+                    </label>
+
+                    <div v-if="examForm.selected_bank_ids.includes(bank.id)" class="flex items-center gap-1.5 flex-shrink-0">
+                      <span class="text-[10px] text-slate-500 font-medium">Ambil:</span>
+                      <input
+                        type="number"
+                        min="1"
+                        :max="bank.total_questions || 100"
+                        v-model.number="examForm.bank_counts[bank.id]"
+                        class="w-14 px-2 py-1 text-xs border border-slate-300 rounded font-bold text-center outline-none focus:border-[#1E3A8A] bg-white"
+                      />
+                      <span class="text-[10px] text-slate-500">butir</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-2 pt-2 border-t border-slate-100">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" v-model="examForm.shuffle_questions" class="rounded text-[#1E3A8A]" />
+                  <span class="font-medium text-slate-700">Acak urutan butir soal untuk setiap peserta</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" v-model="examForm.shuffle_options" class="rounded text-[#1E3A8A]" />
+                  <span class="font-medium text-slate-700">Acak urutan pilihan ganda (A-E)</span>
+                </label>
               </div>
             </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block font-semibold text-slate-800 mb-1">Durasi Pengerjaan (Menit) *</label>
-                <input
-                  v-model.number="examForm.duration_minutes"
-                  type="number"
-                  min="15"
-                  required
-                  class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A]"
-                />
-              </div>
-              <div>
-                <label class="block font-semibold text-slate-800 mb-1">Passing Grade (0-100) *</label>
-                <input
-                  v-model.number="examForm.passing_grade"
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  required
-                  class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A]"
-                />
-              </div>
-            </div>
-            <div class="space-y-2 pt-2 border-t border-slate-100">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" v-model="examForm.shuffle_questions" class="rounded text-[#1E3A8A]" />
-                <span class="font-medium text-slate-700">Acak urutan butir soal untuk setiap peserta</span>
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" v-model="examForm.shuffle_options" class="rounded text-[#1E3A8A]" />
-                <span class="font-medium text-slate-700">Acak urutan pilihan ganda (A-E)</span>
-              </label>
-            </div>
-            <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+
+            <!-- Modal Footer (Fixed at bottom) -->
+            <div class="p-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50 flex-shrink-0">
               <button
                 type="button"
                 @click="showExamModal = false"
-                class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 cursor-pointer"
+                class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-100 cursor-pointer font-medium transition-colors"
               >
                 Batal
               </button>
               <button
                 type="submit"
                 :disabled="savingExam"
-                class="px-4 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold rounded-lg shadow-xs cursor-pointer flex items-center gap-1.5"
+                class="px-4 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold rounded-lg shadow-xs cursor-pointer flex items-center gap-1.5 transition-colors"
               >
                 <RefreshCw v-if="savingExam" class="w-3.5 h-3.5 animate-spin" />
-                <span>Simpan & Publikasikan</span>
+                <span>{{ editingExam ? 'Simpan Perubahan' : 'Simpan & Publikasikan' }}</span>
               </button>
             </div>
           </form>
@@ -1400,7 +1499,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useAdminStore } from '@/stores/admin';
 import { examApi } from '@/api/exam';
 import { useToast } from '@/composables/useToast';
@@ -1802,6 +1901,7 @@ const FALLBACK_CBT_EXAMS = [
 const cbtExamsList = ref([]);
 const loadingExams = ref(false);
 const showExamModal = ref(false);
+const editingExam = ref(null);
 const savingExam = ref(false);
 const examForm = ref({
   title: '',
@@ -1812,7 +1912,28 @@ const examForm = ref({
   passing_grade: 70.0,
   shuffle_questions: true,
   shuffle_options: true,
+  selected_bank_ids: [],
+  bank_counts: {},
 });
+
+const totalSelectedQuestions = computed(() => {
+  if (!examForm.value.selected_bank_ids || examForm.value.selected_bank_ids.length === 0) return 0;
+  return examForm.value.selected_bank_ids.reduce((sum, bId) => {
+    return sum + (Number(examForm.value.bank_counts?.[bId]) || 0);
+  }, 0);
+});
+
+const getBankName = (bankId) => {
+  const b = questionBanks.value.find((item) => String(item.id) === String(bankId));
+  return b ? b.name : 'Bank Soal';
+};
+
+const toLocalDatetimeInputValue = (dateInput) => {
+  if (!dateInput) return '';
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return '';
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+};
 
 const formatSchedule = (dateStr) => {
   if (!dateStr) return '-';
@@ -1869,71 +1990,153 @@ const loadCBTExams = async () => {
   }
 };
 
-const openExamModal = () => {
-  const now = new Date();
-  const startStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-  const end = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
-  const endStr = new Date(end.getTime() - end.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+const openExamModal = (exam = null) => {
+  if (exam) {
+    editingExam.value = exam;
+    const startStr = toLocalDatetimeInputValue(exam.start_at || exam.session?.start_at);
+    const endStr = toLocalDatetimeInputValue(exam.end_at || exam.session?.end_at);
 
-  examForm.value = {
-    title: 'Ujian CBT Saringan Masuk Gelombang 1',
-    description: 'Tes potensi akademik, kemampuan dasar sains, dan penalaran logika PMB BTH.',
-    start_at: startStr,
-    end_at: endStr,
-    duration_minutes: 60,
-    passing_grade: 70.0,
-    shuffle_questions: true,
-    shuffle_options: true,
-  };
+    const selectedIds = [];
+    const counts = {};
+
+    if (Array.isArray(exam.rules) && exam.rules.length > 0) {
+      exam.rules.forEach((r) => {
+        selectedIds.push(r.bank_id);
+        counts[r.bank_id] = r.count;
+      });
+    } else if (Array.isArray(exam.selected_bank_ids) && exam.selected_bank_ids.length > 0) {
+      exam.selected_bank_ids.forEach((id) => {
+        selectedIds.push(id);
+        counts[id] = exam.bank_counts?.[id] || 15;
+      });
+    } else {
+      questionBanks.value.forEach((b) => {
+        selectedIds.push(b.id);
+        counts[b.id] = b.total_questions || 15;
+      });
+    }
+
+    examForm.value = {
+      title: exam.title || '',
+      description: exam.description || '',
+      start_at: startStr,
+      end_at: endStr,
+      duration_minutes: exam.duration_minutes || 60,
+      passing_grade: exam.passing_grade !== undefined ? exam.passing_grade : 70.0,
+      shuffle_questions: exam.shuffle_questions !== undefined ? exam.shuffle_questions : true,
+      shuffle_options: exam.shuffle_options !== undefined ? exam.shuffle_options : true,
+      selected_bank_ids: selectedIds,
+      bank_counts: counts,
+    };
+  } else {
+    editingExam.value = null;
+    const now = new Date();
+    const startStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    const end = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+    const endStr = new Date(end.getTime() - end.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+    const selectedIds = [];
+    const counts = {};
+    questionBanks.value.forEach((b) => {
+      selectedIds.push(b.id);
+      counts[b.id] = b.total_questions || 15;
+    });
+
+    examForm.value = {
+      title: 'Ujian CBT Saringan Masuk Gelombang 1',
+      description: 'Tes potensi akademik, kemampuan dasar sains, dan penalaran logika PMB BTH.',
+      start_at: startStr,
+      end_at: endStr,
+      duration_minutes: 60,
+      passing_grade: 70.0,
+      shuffle_questions: true,
+      shuffle_options: true,
+      selected_bank_ids: selectedIds,
+      bank_counts: counts,
+    };
+  }
   showExamModal.value = true;
 };
 
 const saveExam = async () => {
   savingExam.value = true;
   try {
-    let createdExam = null;
     const startIso = examForm.value.start_at ? new Date(examForm.value.start_at).toISOString() : new Date().toISOString();
     const endIso = examForm.value.end_at ? new Date(examForm.value.end_at).toISOString() : new Date(Date.now() + 14 * 86400000).toISOString();
 
-    try {
-      const res = await examApi.createCBTExam({
-        title: examForm.value.title,
-        description: examForm.value.description,
-        start_at: startIso,
-        end_at: endIso,
-        duration_minutes: Number(examForm.value.duration_minutes),
-        passing_grade: Number(examForm.value.passing_grade),
-        shuffle_questions: examForm.value.shuffle_questions,
-        shuffle_options: examForm.value.shuffle_options,
-        status: 'draft',
-      });
-      createdExam = res.data?.data || res.data;
-      if (createdExam?.id) {
-        await examApi.publishCBTExam(createdExam.id);
+    const rules = (examForm.value.selected_bank_ids || []).map((bId) => ({
+      bank_id: bId,
+      count: Number(examForm.value.bank_counts?.[bId]) || 10,
+    }));
+    const totalQ = rules.reduce((acc, r) => acc + r.count, 0) || Number(examForm.value.duration_minutes) || 30;
+
+    const payload = {
+      title: examForm.value.title,
+      description: examForm.value.description,
+      start_at: startIso,
+      end_at: endIso,
+      duration_minutes: Number(examForm.value.duration_minutes),
+      passing_grade: Number(examForm.value.passing_grade),
+      shuffle_questions: examForm.value.shuffle_questions,
+      shuffle_options: examForm.value.shuffle_options,
+      rules: rules,
+      question_count: totalQ,
+      total_questions: totalQ,
+      selected_bank_ids: examForm.value.selected_bank_ids,
+      bank_counts: examForm.value.bank_counts,
+    };
+
+    if (editingExam.value) {
+      const examId = editingExam.value.id;
+      try {
+        await examApi.updateCBTExam(examId, payload);
+      } catch (apiErr) {
+        console.warn('Exam API Notice (updateCBTExam offline fallback):', apiErr?.message);
       }
-    } catch (apiErr) {
-      console.warn('Exam API Notice (createCBTExam offline fallback):', apiErr?.message);
-      createdExam = {
-        id: `exam-local-${Date.now()}`,
-        title: examForm.value.title,
-        description: examForm.value.description,
-        start_at: startIso,
-        end_at: endIso,
-        duration_minutes: Number(examForm.value.duration_minutes),
-        passing_grade: Number(examForm.value.passing_grade),
-        shuffle_questions: examForm.value.shuffle_questions,
-        shuffle_options: examForm.value.shuffle_options,
-        status: 'published',
-        created_at: new Date().toISOString(),
-      };
-      cbtExamsList.value.unshift(createdExam);
+
+      // Update in local state & localStorage
+      const idx = cbtExamsList.value.findIndex(e => e.id === examId);
+      if (idx !== -1) {
+        cbtExamsList.value[idx] = {
+          ...cbtExamsList.value[idx],
+          ...payload,
+          session: {
+            ...(cbtExamsList.value[idx].session || {}),
+            start_at: startIso,
+            end_at: endIso,
+          },
+        };
+      }
       try { localStorage.setItem('bth_cbt_exams_list', JSON.stringify(cbtExamsList.value)); } catch (e) {}
+      showToast(`Paket ujian "${examForm.value.title}" berhasil diperbarui.`);
+    } else {
+      let createdExam = null;
+      try {
+        const res = await examApi.createCBTExam({
+          ...payload,
+          status: 'draft',
+        });
+        createdExam = res.data?.data || res.data;
+        if (createdExam?.id) {
+          await examApi.publishCBTExam(createdExam.id);
+        }
+      } catch (apiErr) {
+        console.warn('Exam API Notice (createCBTExam offline fallback):', apiErr?.message);
+        createdExam = {
+          id: `exam-local-${Date.now()}`,
+          ...payload,
+          status: 'published',
+          created_at: new Date().toISOString(),
+        };
+        cbtExamsList.value.unshift(createdExam);
+        try { localStorage.setItem('bth_cbt_exams_list', JSON.stringify(cbtExamsList.value)); } catch (e) {}
+      }
+      showToast(`Paket ujian "${examForm.value.title}" berhasil dibuat dan dipublikasikan.`);
     }
-    showToast(`Paket ujian "${examForm.value.title}" berhasil dibuat dan dipublikasikan.`);
     showExamModal.value = false;
     await loadCBTExams();
   } catch (err) {
-    showError('Gagal membuat paket ujian: ' + (err.response?.data?.message || err.message));
+    showError((editingExam.value ? 'Gagal memperbarui' : 'Gagal membuat') + ' paket ujian: ' + (err.response?.data?.message || err.message));
   } finally {
     savingExam.value = false;
   }
@@ -1987,51 +2190,151 @@ const loadMonitoringAttempts = async () => {
     if (cbtExamsList.value.length > 0) {
       selectedExamIdForMonitoring.value = cbtExamsList.value[0].id;
     } else {
-      return;
+      await loadCBTExams();
     }
   }
+
   loadingAttempts.value = true;
-  try {
-    const res = await examApi.getExamAttempts(selectedExamIdForMonitoring.value);
-    const data = res.data?.data || res.data;
-    if (Array.isArray(data) && data.length > 0) {
-      attemptsList.value = data;
+  let backendAttempts = [];
 
-      // Auto sync candidate score into admin applicants store
-      attemptsList.value.forEach((att) => {
-        if (att.participant && att.status === 'submitted' && att.objective_score != null) {
-          const applicant = adminStore.applicants.find(
-            (app) => app.id === att.participant.applicant_id || app.fullName === att.participant.applicant_name
-          );
-          if (applicant && applicant.selection) {
-            applicant.selection.cbtScore = Math.round(att.objective_score);
-          }
-        }
-      });
-      return;
+  if (selectedExamIdForMonitoring.value) {
+    try {
+      const res = await examApi.getExamAttempts(selectedExamIdForMonitoring.value);
+      const data = res.data?.data || res.data;
+      if (Array.isArray(data)) {
+        backendAttempts = data;
+      }
+    } catch (err) {
+      console.warn('Exam API Notice (getExamAttempts offline fallback):', err?.message);
     }
-  } catch (err) {
-    console.warn('Exam API Notice (getExamAttempts offline fallback):', err?.message);
-    if (err.response && err.response.status !== 0) {
-      showError('Gagal memuat pengerjaan peserta: ' + (err.response?.data?.message || err.message));
-    }
-  } finally {
-    loadingAttempts.value = false;
   }
 
-  // Simulasi monitoring realistis dari data pendaftar aktif jika offline
-  attemptsList.value = adminStore.applicants.slice(0, 5).map((app, idx) => ({
-    id: `att-mock-${idx}`,
-    participant: {
-      applicant_id: app.id,
-      applicant_name: app.fullName,
-      registration_number: app.registrationNumber,
-    },
-    status: app.selection?.cbtScore ? 'submitted' : (idx === 0 ? 'in_progress' : 'submitted'),
-    objective_score: app.selection?.cbtScore || (idx === 0 ? null : 82),
-    started_at: new Date(Date.now() - 3600000).toISOString(),
-    submitted_at: app.selection?.cbtScore ? new Date().toISOString() : null,
-  }));
+  // 1. Ambil pengerjaan sesi ujian lokal dari localStorage
+  let localAttempts = [];
+  try {
+    const raw = localStorage.getItem('bth_cbt_session_attempts');
+    if (raw) {
+      localAttempts = JSON.parse(raw);
+    }
+  } catch (e) {}
+
+  // 2. Helper pencocokan peserta dengan daftar calon mahasiswa di adminStore
+  const findApplicant = (userId, appId, participantNo, name) => {
+    return adminStore.applicants.find((app) => {
+      if (userId && (app.backendUserId === userId || app.userId === userId || app.id === userId)) return true;
+      if (appId && (app.id === appId || app.applicationId === appId)) return true;
+      if (participantNo && (app.registrationNumber === participantNo || app.id === participantNo)) return true;
+      if (name && app.fullName && app.fullName.toLowerCase() === name.toLowerCase()) return true;
+      return false;
+    });
+  };
+
+  const combinedMap = new Map();
+
+  // Tambahkan pengerjaan dari backend dan perkaya informasi peserta
+  backendAttempts.forEach((att) => {
+    const userId = att.user_id || att.participant?.user_id;
+    const appId = att.participant?.application_id;
+    const partNo = att.participant?.participant_number;
+    const app = findApplicant(userId, appId, partNo, att.participant?.applicant_name);
+
+    const enriched = {
+      ...att,
+      user_id: userId,
+      participant_name: app?.fullName || att.participant?.applicant_name || (userId ? `Peserta (${userId.slice(0, 8)})` : 'Peserta CBT'),
+      registration_number: app?.registrationNumber || partNo || att.participant?.exam_card_number || att.participant?.applicant_id || (att.id ? att.id.slice(0, 8) : '-'),
+      study_program: app?.prodi1 || '',
+      objective_score: att.objective_score ?? att.final_score ?? 0,
+      status: att.status || 'submitted',
+    };
+
+    // Sinkronisasi nilai CBT ke adminStore.applicants
+    if (app && app.selection && enriched.status === 'submitted') {
+      const score = Math.round(enriched.objective_score);
+      if (score > 0 || app.selection.cbtScore == null || app.selection.cbtScore === 0) {
+        app.selection.cbtScore = score;
+        if (score >= 70 && (!app.selection.passedStatus || app.selection.passedStatus === 'evaluating')) {
+          app.selection.passedStatus = 'passed';
+        }
+      }
+    }
+
+    combinedMap.set(att.id || userId, enriched);
+  });
+
+  // Tambahkan / gabungkan pengerjaan sesi lokal
+  localAttempts.forEach((local) => {
+    const key = local.id || local.user_id;
+    const app = findApplicant(local.user_id, local.applicant_id, local.registration_number, local.applicant_name);
+    const existing = combinedMap.get(key);
+
+    const enriched = {
+      ...(existing || {}),
+      ...local,
+      participant_name: local.applicant_name || app?.fullName || existing?.participant_name || 'Peserta CBT',
+      registration_number: local.registration_number || app?.registrationNumber || existing?.registration_number || '-',
+      study_program: local.prodi || app?.prodi1 || existing?.study_program || '',
+      objective_score: local.objective_score ?? local.final_score ?? existing?.objective_score ?? 0,
+      status: local.status || existing?.status || 'submitted',
+    };
+
+    if (app && app.selection && enriched.status === 'submitted') {
+      const score = Math.round(enriched.objective_score);
+      if (score > 0) {
+        app.selection.cbtScore = score;
+        if (score >= 70) {
+          app.selection.passedStatus = 'passed';
+        }
+      }
+    }
+
+    combinedMap.set(key, enriched);
+  });
+
+  // Tambahkan peserta terdaftar di adminStore yang memiliki nilai CBT atau status ujian
+  adminStore.applicants.forEach((app, idx) => {
+    const alreadyExists = Array.from(combinedMap.values()).some(
+      (item) =>
+        (app.backendUserId && item.user_id === app.backendUserId) ||
+        (app.id && (item.id === app.id || item.registration_number === app.registrationNumber)) ||
+        (app.fullName && item.participant_name === app.fullName)
+    );
+
+    if (!alreadyExists && (app.selection?.cbtScore != null || app.selection?.method === 'CBT' || app.status === 'ready_for_exam')) {
+      const isCompleted = app.selection?.cbtScore != null && app.selection?.cbtScore > 0;
+      combinedMap.set(app.id, {
+        id: `att-app-${app.id}`,
+        user_id: app.backendUserId || app.id,
+        participant_name: app.fullName,
+        registration_number: app.registrationNumber || app.id,
+        study_program: app.prodi1 || '',
+        status: isCompleted ? 'submitted' : 'in_progress',
+        objective_score: app.selection?.cbtScore || 0,
+        started_at: new Date(Date.now() - 3600000).toISOString(),
+        submitted_at: isCompleted ? new Date().toISOString() : null,
+      });
+    }
+  });
+
+  // Fallback simulasi pendaftar jika riwayat masih kosong
+  if (combinedMap.size === 0) {
+    adminStore.applicants.forEach((app, idx) => {
+      combinedMap.set(app.id, {
+        id: `att-mock-${idx}`,
+        user_id: app.backendUserId || app.id,
+        participant_name: app.fullName,
+        registration_number: app.registrationNumber || app.id,
+        study_program: app.prodi1 || '',
+        status: app.selection?.cbtScore ? 'submitted' : (idx === 0 ? 'in_progress' : 'submitted'),
+        objective_score: app.selection?.cbtScore || (idx === 0 ? null : 82),
+        started_at: new Date(Date.now() - 3600000).toISOString(),
+        submitted_at: app.selection?.cbtScore ? new Date().toISOString() : null,
+      });
+    });
+  }
+
+  attemptsList.value = Array.from(combinedMap.values());
+  loadingAttempts.value = false;
 };
 
 const extendAttemptTime = async (attempt) => {
@@ -2173,9 +2476,58 @@ const saveInterview = () => {
   activeApplicant.value = null;
 };
 
+// Sync Penilaian & Kelulusan
+const syncingScoring = ref(false);
+const refreshScoringData = async () => {
+  syncingScoring.value = true;
+  try {
+    if (adminStore.syncAllLocalApplicants) {
+      adminStore.syncAllLocalApplicants();
+    }
+    if (adminStore.fetchBackendApplicants) {
+      await adminStore.fetchBackendApplicants().catch(() => null);
+    }
+    showToast('Data penilaian dan status kelulusan berhasil disinkronkan.');
+  } finally {
+    syncingScoring.value = false;
+  }
+};
+
+// Pantau perpindahan tab untuk sinkronisasi otomatis
+watch(activeCbtTab, async (newTab) => {
+  if (newTab === 'monitoring') {
+    await loadMonitoringAttempts();
+  } else if (newTab === 'scoring') {
+    if (adminStore.syncAllLocalApplicants) {
+      adminStore.syncAllLocalApplicants();
+    }
+    if (adminStore.fetchBackendApplicants) {
+      await adminStore.fetchBackendApplicants().catch(() => null);
+    }
+  }
+});
+
+// Listener pengerjaan CBT dari siswa secara realtime (event lokal & cross-tab)
+const handleAttemptUpdated = (event) => {
+  console.log('CBT attempt updated event received:', event?.detail);
+  loadMonitoringAttempts();
+  if (adminStore.syncAllLocalApplicants) {
+    adminStore.syncAllLocalApplicants();
+  }
+};
+
 // Initial Data Load
 onMounted(async () => {
+  window.addEventListener('bth_cbt_attempt_updated', handleAttemptUpdated);
   await Promise.all([loadQuestionBanks(), loadCBTExams()]);
+  await loadMonitoringAttempts();
+  if (adminStore.syncAllLocalApplicants) {
+    adminStore.syncAllLocalApplicants();
+  }
+});
+
+onUnmounted(() => {
+  window.removeEventListener('bth_cbt_attempt_updated', handleAttemptUpdated);
 });
 </script>
 

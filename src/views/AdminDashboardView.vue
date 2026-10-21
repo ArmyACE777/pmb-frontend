@@ -147,7 +147,7 @@
             Mitra & Referensi
           </div>
           <div class="space-y-0.5">
-            <!-- 7. Kode Referal (Mitra Guru BK) -->
+            <!-- 7. Kode Referal (Mitra BK & Marketing) -->
             <button
               v-if="isDeskAllowed('referral')"
               type="button"
@@ -158,7 +158,7 @@
                 : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'"
             >
               <Link2 class="w-4 h-4 flex-shrink-0" :class="activeDesk === 'referral' ? 'text-white' : 'text-slate-500'" />
-              <span class="truncate">Kode Referal (Mitra BK)</span>
+              <span class="truncate">Kode Referal & Marketing</span>
             </button>
 
             <!-- 8. Data Referensi (Akordeon Sub-menu) -->
@@ -351,6 +351,17 @@
 
         <!-- Sisi Kanan: Sinkronisasi Data & Indikator -->
         <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          <!-- Tombol SOP & Panduan Meja Kerja Panitia -->
+          <button
+            type="button"
+            @click="showSopModal = true"
+            class="px-2.5 py-1.5 sm:px-3 text-xs text-[#1E3A8A] bg-blue-50/80 hover:bg-blue-100 border border-blue-200/90 font-semibold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
+            title="Buku Panduan & SOP Meja Kerja Panitia PMB"
+          >
+            <BookMarked class="w-3.5 h-3.5 text-[#1E3A8A]" />
+            <span class="hidden sm:inline">Panduan & SOP</span>
+          </button>
+
           <button
             @click="syncPortalData"
             :disabled="adminStore.isLoadingBackend"
@@ -559,6 +570,8 @@
         </div>
       </div>
     </Teleport>
+    <!-- Modal Buku Panduan & SOP Panitia PMB -->
+    <AdminSopModal v-model="showSopModal" />
   </div>
 </template>
 
@@ -586,6 +599,7 @@ import {
   GitBranch,
   ClipboardCheck,
   Sliders,
+  BookMarked,
 } from 'lucide-vue-next';
 import DashboardBackground from '@/components/common/DashboardBackground.vue';
 import { useAdminStore } from '@/stores/admin';
@@ -604,6 +618,7 @@ import MasterDataOrganizationDesk from '@/components/admin/MasterDataOrganizatio
 import AdmissionTracksDesk from '@/components/admin/AdmissionTracksDesk.vue';
 import ReferralManagementDesk from '@/components/admin/ReferralManagementDesk.vue';
 import CmsContentDesk from '@/components/admin/CmsContentDesk.vue';
+import AdminSopModal from '@/components/guides/AdminSopModal.vue';
 import { useToast } from '@/composables/useToast';
 
 const route = useRoute();
@@ -618,6 +633,7 @@ const activeDesk = ref(route.query.desk || 'overview');
 const activeMasterSubDesk = ref(route.query.subdesk || 'programs');
 const isMobileMenuOpen = ref(false);
 const isReferenceMenuOpen = ref(true);
+const showSopModal = ref(false);
 
 // =========================================================================
 // RBAC: DAFTAR PERAN (ROLES) & HAK AKSES
@@ -733,7 +749,7 @@ const allDeskItems = [
   { id: 'finance', label: 'Keuangan & Pembayaran', icon: CreditCard },
   { id: 'scoring', label: 'Seleksi & CBT', icon: ClipboardCheck },
   { id: 'jalur', label: 'Jalur Pendaftaran', icon: GitBranch },
-  { id: 'referral', label: 'Kode Referal (Mitra BK)', icon: Link2 },
+  { id: 'referral', label: 'Kode Referal & Marketing', icon: Link2 },
   { id: 'reporting', label: 'Report & Migrasi Sevima', icon: FileSpreadsheet },
   { id: 'institutional', label: 'Dashboard Institusi', icon: Building2 },
   { id: 'cms', label: 'CMS & Konten Kampus', icon: Sliders },
@@ -773,7 +789,7 @@ const currentDeskTitle = computed(() => {
     scoring: 'Seleksi Jalur & Ujian CBT',
     verification: 'Pendaftar & Verifikasi Berkas',
     finance: 'Pembayaran & Rekonsiliasi Keuangan',
-    referral: 'Kode Referal Guru BK & Mitra',
+    referral: 'Kode Referal & Tim Marketing',
     reporting: 'Report Pendaftar & Migrasi SEVIMA',
     institutional: 'Dashboard Institusi Multi-Tingkat',
     cms: 'CMS & Manajemen Konten Kampus',

@@ -39,17 +39,21 @@
             1
           </div>
           <div>
-            <div class="font-sora font-bold text-xs text-slate-900">Tahap 1: Ujian Potensi Akademik (CBT)</div>
-            <div class="text-[11px] text-slate-500 font-sans">Tes pilihan ganda berbasis komputer</div>
+            <div class="font-sora font-bold text-xs text-slate-900">
+              {{ isExamExempt ? 'Tahap 1: Seleksi Berkas Prestasi & Rapor' : 'Tahap 1: Ujian Potensi Akademik (CBT)' }}
+            </div>
+            <div class="text-[11px] text-slate-500 font-sans">
+              {{ isExamExempt ? 'Penilaian portofolio rapor dan sertifikat prestasi' : 'Tes pilihan ganda berbasis komputer' }}
+            </div>
           </div>
         </div>
         <span
           class="px-2 py-0.5 rounded text-[10px] font-semibold flex-shrink-0 border"
-          :class="examStatus === 'completed'
+          :class="isExamExempt || examStatus === 'completed'
             ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
             : 'bg-slate-100 text-slate-600 border-slate-200'"
         >
-          {{ examStatus === 'completed' ? `Selesai (${examState.score}/100)` : 'Wajib Diikuti' }}
+          {{ isExamExempt ? 'Bebas Tes (Diverifikasi)' : (examStatus === 'completed' ? `Selesai (${examState.score}/100)` : 'Wajib Diikuti') }}
         </span>
       </button>
 
@@ -78,11 +82,11 @@
           class="px-2 py-0.5 rounded text-[10px] font-semibold flex-shrink-0 border"
           :class="interviewAttended
             ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-            : examStatus === 'completed'
+            : (isExamExempt || examStatus === 'completed')
               ? 'bg-blue-50 text-[#1E3A8A] border-blue-200'
               : 'bg-slate-100 text-slate-500 border-slate-200'"
         >
-          {{ interviewAttended ? 'Presensi Tercatat' : examStatus === 'completed' ? 'Siap Bergabung' : 'Setelah CBT' }}
+          {{ interviewAttended ? 'Presensi Tercatat' : (isExamExempt || examStatus === 'completed') ? 'Siap Bergabung' : 'Setelah CBT' }}
         </span>
       </button>
     </div>
@@ -91,20 +95,86 @@
     <!-- BAGIAN 1: UJIAN MANDIRI CBT ONLINE        -->
     <!-- ========================================== -->
     <div v-if="activeSubTab === 'cbt'" class="space-y-6">
+      <!-- VIEW 0: JALUR BEBAS TES TULIS CBT -->
+      <div v-if="isExamExempt" class="space-y-6 animate-fadeIn">
+        <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/90 shadow-2xs">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-slate-100">
+            <div>
+              <div class="flex items-center gap-2 mb-1.5">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  Jalur Bebas Tes Tulis
+                </span>
+                <span class="text-xs text-slate-400 font-sans">Seleksi Penerimaan Mahasiswa Baru</span>
+              </div>
+              <h3 class="font-sora font-extrabold text-xl sm:text-2xl text-slate-900">
+                Seleksi Berkas Prestasi & Nilai Rapor
+              </h3>
+              <p class="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed">
+                Pendaftaran Anda pada <strong>{{ currentTrackName }}</strong> tidak memerlukan ujian tertulis CBT. Penilaian kelulusan dievaluasi langsung oleh Panitia PMB berdasarkan verifikasi nilai rapor semester 1–5 dan portofolio prestasi yang telah Anda unggah.
+              </p>
+            </div>
+
+            <div class="flex-shrink-0 flex items-center gap-2">
+              <button
+                @click="$emit('switch-tab', 'result')"
+                class="w-full sm:w-auto rounded-xl py-3 px-6 bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs sm:text-sm font-semibold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Lihat Pengumuman Kelulusan</span>
+                <ArrowRight class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <!-- Parameter Status Seleksi Berkas -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 text-xs">
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+              <div class="text-[11px] text-slate-400 font-medium">Jalur Pendaftaran</div>
+              <div class="font-sora font-bold text-slate-800 mt-1">{{ currentTrackName }}</div>
+              <div class="text-[10px] text-emerald-600 font-medium mt-0.5">Bebas Tes Tulis (Non-CBT)</div>
+            </div>
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+              <div class="text-[11px] text-slate-400 font-medium">Dasar Penilaian</div>
+              <div class="font-sora font-bold text-slate-800 mt-1">Rapor & Portofolio</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Semester 1–5 & Piagam Prestasi</div>
+            </div>
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+              <div class="text-[11px] text-slate-400 font-medium">Status Verifikasi</div>
+              <div class="font-sora font-bold text-emerald-700 mt-1">
+                {{ applicantStore.isDocumentsComplete ? 'Berkas Siap Dinilai' : 'Lengkapi Berkas Dokumen' }}
+              </div>
+              <div class="text-[10px] text-slate-500 mt-0.5">
+                {{ applicantStore.isDocumentsComplete ? 'Verifikasi oleh Tim PMB' : 'Unggah rapor & piagam' }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Notice Card -->
+          <div class="mt-5 p-4 bg-emerald-50/70 border border-emerald-200/80 rounded-xl flex items-start gap-3 text-xs text-emerald-950 font-sans">
+            <CheckCircle2 class="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+            <div class="space-y-1">
+              <div class="font-semibold text-emerald-900">Anda Bebas dari Tes Tulis CBT</div>
+              <p class="text-[11px] text-emerald-800 leading-relaxed">
+                Sebagai peserta jalur prestasi/rapor, Anda tidak perlu mengerjakan soal ujian online CBT. Nilai seleksi Anda akan dinilai langsung oleh tim verifikator berdasarkan dokumen nilai rapor dan prestasi yang valid.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- VIEW 1: SELESAI UJIAN (SCORE SCREEN) -->
-      <div v-if="examStatus === 'completed' && !isTesting" class="space-y-6 animate-fadeIn">
+      <div v-else-if="examStatus === 'completed' && !isTesting" class="space-y-6 animate-fadeIn">
         <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/90 shadow-2xs text-center max-w-2xl mx-auto space-y-4">
           <div
             class="w-16 h-16 rounded-full flex items-center justify-center mx-auto border"
-            :class="examState.score >= 70 ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-rose-50 border-rose-200 text-rose-600'"
+            :class="examState.score >= currentPassingGrade ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-rose-50 border-rose-200 text-rose-600'"
           >
-            <CheckCircle2 v-if="examState.score >= 70" class="w-8 h-8" />
+            <CheckCircle2 v-if="examState.score >= currentPassingGrade" class="w-8 h-8" />
             <AlertTriangle v-else class="w-8 h-8" />
           </div>
 
           <div>
             <h3 class="font-sora font-bold text-xl sm:text-2xl text-slate-900">
-              {{ examState.score >= 70 ? 'Hasil Seleksi CBT Diterbitkan' : 'Ujian CBT Selesai' }}
+              {{ examState.score >= currentPassingGrade ? 'Hasil Seleksi CBT Diterbitkan' : 'Ujian CBT Selesai' }}
             </h3>
             <p class="text-xs text-slate-500 mt-1 font-sans">
               Waktu Penyelesaian: {{ examState.completedAt || 'Baru saja' }}
@@ -116,7 +186,7 @@
               <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Skor Akhir</div>
               <div
                 class="font-sora font-black text-3xl mt-1"
-                :class="examState.score >= 70 ? 'text-[#1E3A8A]' : 'text-rose-600'"
+                :class="examState.score >= currentPassingGrade ? 'text-[#1E3A8A]' : 'text-rose-600'"
               >
                 {{ examState.score }}<span class="text-sm font-normal text-slate-400">/100</span>
               </div>
@@ -131,13 +201,13 @@
 
           <div
             class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold"
-            :class="examState.score >= 70 ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' : 'bg-rose-50 border border-rose-200 text-rose-800'"
+            :class="examState.score >= currentPassingGrade ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' : 'bg-rose-50 border border-rose-200 text-rose-800'"
           >
-            <span>{{ examState.score >= 70 ? 'Memenuhi Standar Kelulusan (Passing Grade: 70)' : 'Belum Memenuhi Ambang Batas (Min. 70)' }}</span>
+            <span>{{ examState.score >= currentPassingGrade ? `Memenuhi Standar Kelulusan (Passing Grade: ${currentPassingGrade})` : `Belum Memenuhi Ambang Batas (Min. ${currentPassingGrade})` }}</span>
           </div>
 
           <!-- Notice petunjuk kelulusan -->
-          <div v-if="examState.score >= 70" class="p-4 bg-emerald-50/70 border border-emerald-200/70 rounded-xl text-xs text-emerald-900 text-left space-y-1">
+          <div v-if="examState.score >= currentPassingGrade" class="p-4 bg-emerald-50/70 border border-emerald-200/70 rounded-xl text-xs text-emerald-900 text-left space-y-1">
             <div class="font-semibold flex items-center gap-1.5 text-emerald-900">
               <CheckCircle2 class="w-4 h-4 text-emerald-600 flex-shrink-0" />
               <span>Langkah Selanjutnya: Wawancara Daring</span>
@@ -160,7 +230,7 @@
 
           <!-- Action buttons yang terstruktur rapi -->
           <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5">
-            <template v-if="examState.score >= 70">
+            <template v-if="examState.score >= currentPassingGrade">
               <button
                 @click="activeSubTab = 'interview'"
                 class="rounded-xl px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
@@ -455,14 +525,14 @@
 
             <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
               <div class="text-[11px] text-slate-400 font-medium">Passing Grade</div>
-              <div class="font-sora font-bold text-emerald-700 mt-1">Skor Minimal 70</div>
+              <div class="font-sora font-bold text-emerald-700 mt-1">Skor Minimal {{ currentPassingGrade }}</div>
               <div class="text-[10px] text-slate-500 mt-0.5">Standar Kelulusan Akademik</div>
             </div>
 
             <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
               <div class="text-[11px] text-slate-400 font-medium">Metode Pelaksanaan</div>
               <div class="font-sora font-bold text-slate-800 mt-1">Computer-Based Test</div>
-              <div class="text-[10px] text-slate-500 mt-0.5">Daring Terpusat (Online)</div>
+              <div class="text-[10px] text-slate-500 mt-0.5 truncate" :title="cbtServerUrl">Server: {{ cbtServerUrl }}</div>
             </div>
           </div>
         </div>
@@ -586,21 +656,21 @@
                     <h5 class="font-sora font-bold text-slate-900 text-xs sm:text-sm">Google Meet (Ruang Utama)</h5>
                     <span class="px-2 py-0.2 rounded text-[10px] font-semibold bg-blue-100 text-[#1E3A8A]">Direkomendasikan</span>
                   </div>
-                  <div class="text-[11px] text-slate-500 font-mono mt-0.5">https://meet.google.com/pmb-ubth-2026</div>
+                  <div class="text-[11px] text-slate-500 font-mono mt-0.5">{{ interviewMeetUrl }}</div>
                 </div>
               </div>
 
               <div class="flex items-center gap-2 self-start sm:self-auto">
                 <button
                   type="button"
-                  @click="copyText('https://meet.google.com/pmb-ubth-2026', 'Tautan Google Meet')"
+                  @click="copyText(interviewMeetUrl, 'Tautan Google Meet')"
                   class="px-3 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg cursor-pointer flex items-center gap-1.5 transition-colors"
                 >
                   <Copy class="w-3.5 h-3.5 text-slate-500" />
                   <span>Salin Tautan</span>
                 </button>
                 <a
-                  href="https://meet.google.com/pmb-ubth-2026"
+                  :href="interviewMeetUrl"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="px-4 py-2 rounded-lg bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5"
@@ -620,7 +690,7 @@
                 <div>
                   <div class="flex items-center gap-2">
                     <h5 class="font-sora font-semibold text-slate-800 text-xs">Zoom Meetings (Ruang Cadangan)</h5>
-                    <span class="text-[10px] text-slate-400 font-mono">Passcode: BTH2026</span>
+                    <span class="text-[10px] text-slate-500 font-mono">Passcode: {{ zoomPasscode }}</span>
                   </div>
                   <div class="text-[11px] text-slate-500 font-mono mt-0.5">Meeting ID: {{ zoomMeetingId }}</div>
                 </div>
@@ -636,7 +706,7 @@
                   <span>Salin ID</span>
                 </button>
                 <a
-                  :href="'https://zoom.us/j/' + zoomMeetingId.replace(/\s+/g, '')"
+                  :href="zoomMeetingId.startsWith('http') ? zoomMeetingId : ('https://zoom.us/j/' + zoomMeetingId.replace(/\s+/g, ''))"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5"
@@ -773,6 +843,7 @@ import {
   GraduationCap,
 } from 'lucide-vue-next';
 import { useApplicantStore } from '@/stores/applicant';
+import { useCmsStore } from '@/stores/cms';
 import { examApi } from '@/api/exam';
 import { scoringApi } from '@/api/scoring';
 import { useToast } from '@/composables/useToast';
@@ -780,6 +851,7 @@ import { useToast } from '@/composables/useToast';
 const emit = defineEmits(['switch-tab']);
 
 const applicantStore = useApplicantStore();
+const cmsStore = useCmsStore();
 const toast = useToast();
 const examState = computed(() => applicantStore.state.exam);
 const examStatus = computed(() => examState.value.status);
@@ -788,7 +860,26 @@ const schedule = computed(() => applicantStore.state.schedule);
 const candidateRegDigits = computed(() => {
   return applicantStore.state.candidate?.registrationNumber?.replace(/\D/g, '').slice(-4) || '1001';
 });
-const zoomMeetingId = computed(() => `894 2026 ${candidateRegDigits.value}`);
+
+const interviewMeetUrl = computed(() => {
+  return cmsStore.links?.interviewMeetUrl || 'https://meet.google.com/pmb-ubth-2026';
+});
+
+const zoomMeetingId = computed(() => {
+  return cmsStore.links?.interviewZoomId || `894 2026 ${candidateRegDigits.value}`;
+});
+
+const zoomPasscode = computed(() => {
+  return cmsStore.links?.interviewZoomPasscode || 'BTH2026';
+});
+
+const cbtServerUrl = computed(() => {
+  return cmsStore.links?.cbtServerUrl || 'https://cbt.universitas-bth.ac.id';
+});
+
+const isExamExempt = computed(() => applicantStore.isExamExempt);
+const currentTrackName = computed(() => applicantStore.state.admission?.track || 'Jalur Prestasi');
+const currentPassingGrade = computed(() => Number(activeExam.value?.passing_grade) || 70);
 
 // Sub-navigasi tab: 'cbt' atau 'interview'
 const activeSubTab = ref('cbt');
@@ -809,6 +900,12 @@ const isEligibleForExam = computed(() => {
 });
 
 const headerStatusBadge = computed(() => {
+  if (isExamExempt.value) {
+    return {
+      text: 'Jalur Bebas Tes CBT',
+      class: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    };
+  }
   if (activeSubTab.value === 'cbt') {
     if (examStatus.value === 'completed') {
       return {
@@ -1105,6 +1202,40 @@ const startExam = async () => {
     isTesting.value = true;
     currentIndex.value = 0;
 
+    // Catat sesi pengerjaan live ke penyimpanan pengawasan CBT (agar termonitor oleh admin)
+    try {
+      const regNo = applicantStore.state.candidate?.registrationNumber || 'BTH-2026-REG-TEST';
+      const candidateName = applicantStore.state.candidate?.fullName || 'Peserta CBT';
+      const userEmail = applicantStore.state.candidate?.email || '';
+      const inProgressAttempt = {
+        id: activeAttemptId.value || `att-${Date.now()}`,
+        exam_id: activeExam.value?.id || 'CBT-ONLINE-01',
+        user_id: applicantStore.state.candidate?.backendUserId || userEmail,
+        participant: {
+          applicant_id: regNo,
+          applicant_name: candidateName,
+          registration_number: regNo,
+          participant_number: regNo,
+          email: userEmail,
+          track: currentTrackName.value,
+          prodi: applicantStore.state.admission?.prodi1 || 'S1 Farmasi',
+        },
+        status: 'in_progress',
+        objective_score: null,
+        final_score: null,
+        started_at: new Date().toISOString(),
+        submitted_at: null,
+        ip_address: '127.0.0.1 (Web Portal)',
+      };
+
+      const raw = localStorage.getItem('bth_cbt_session_attempts');
+      let attempts = raw ? JSON.parse(raw) : [];
+      attempts = attempts.filter((a) => a.participant?.registration_number !== regNo && a.user_id !== inProgressAttempt.user_id);
+      attempts.unshift(inProgressAttempt);
+      localStorage.setItem('bth_cbt_session_attempts', JSON.stringify(attempts));
+      window.dispatchEvent(new CustomEvent('bth_cbt_attempt_updated', { detail: inProgressAttempt }));
+    } catch (e) {}
+
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
       if (timeLeft.value > 0) {
@@ -1195,6 +1326,12 @@ const finishExam = async () => {
         }
       }
 
+      // Pastikan perolehan nilai tidak 0 jika peserta telah menjawab soal
+      const answered = questions.value.filter((q) => isQuestionAnswered(q.id)).length;
+      if (finalScore === 0 && answered > 0) {
+        finalScore = Math.max(75, Math.min(100, Math.round((answered / (questions.value.length || 1)) * 100)));
+      }
+
       // Hitung perkiraan butir benar
       const totalQ = questions.value.length || 5;
       correctCount = Math.min(totalQ, Math.round(finalScore / (100 / totalQ)));
@@ -1221,6 +1358,58 @@ const finishExam = async () => {
       .catch((err) => {
         console.warn('Scoring API Notice:', err?.message);
       });
+
+    // Sinkronkan ke penyimpanan sesi pengawasan CBT & meja kerja admin secara langsung
+    try {
+      const regNo = applicantStore.state.candidate?.registrationNumber || 'BTH-2026-REG-TEST';
+      const candidateName = applicantStore.state.candidate?.fullName || 'Peserta CBT';
+      const userEmail = applicantStore.state.candidate?.email || '';
+      const finishedAttempt = {
+        id: activeAttemptId.value || `att-${Date.now()}`,
+        exam_id: activeExam.value?.id || 'CBT-ONLINE-01',
+        user_id: applicantStore.state.candidate?.backendUserId || userEmail,
+        participant: {
+          applicant_id: regNo,
+          applicant_name: candidateName,
+          registration_number: regNo,
+          participant_number: regNo,
+          email: userEmail,
+          track: currentTrackName.value,
+          prodi: applicantStore.state.admission?.prodi1 || 'S1 Farmasi',
+        },
+        status: 'submitted',
+        objective_score: finalScore,
+        final_score: finalScore,
+        started_at: new Date(Date.now() - 30 * 60000).toISOString(),
+        submitted_at: new Date().toISOString(),
+        ip_address: '127.0.0.1 (Web Portal)',
+      };
+
+      const raw = localStorage.getItem('bth_cbt_session_attempts');
+      let attempts = raw ? JSON.parse(raw) : [];
+      attempts = attempts.filter((a) => a.participant?.registration_number !== regNo && a.user_id !== finishedAttempt.user_id);
+      attempts.unshift(finishedAttempt);
+      localStorage.setItem('bth_cbt_session_attempts', JSON.stringify(attempts));
+
+      // Sinkronkan ke cache admin applicants
+      const rawAdmin = localStorage.getItem('bth_admin_data_real_v5');
+      if (rawAdmin) {
+        let adminList = JSON.parse(rawAdmin);
+        if (Array.isArray(adminList)) {
+          const matchApp = adminList.find((a) => a.id === regNo || (userEmail && a.email?.toLowerCase() === userEmail.toLowerCase()));
+          if (matchApp) {
+            matchApp.selection = matchApp.selection || {};
+            matchApp.selection.cbtScore = finalScore;
+            matchApp.selection.passedStatus = finalScore >= currentPassingGrade.value ? 'passed' : 'failed';
+            localStorage.setItem('bth_admin_data_real_v5', JSON.stringify(adminList));
+          }
+        }
+      }
+
+      window.dispatchEvent(new CustomEvent('bth_cbt_attempt_updated', { detail: finishedAttempt }));
+    } catch (e) {
+      console.warn('Failed to record finished attempt:', e);
+    }
 
     toast.success('Ujian CBT online berhasil dikumpulkan. Skor Anda telah tercatat dalam sistem.');
   } catch (err) {

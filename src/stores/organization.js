@@ -13,16 +13,14 @@ const DEFAULT_FACULTIES = [
     name: 'Fakultas Farmasi',
     dean: 'Prof. Dr. apt. Budi Rahardjo, M.Si.',
     building: 'Gedung Rektorat & Farmasi Lt. 2',
-    accreditation: 'Unggul',
     is_active: true,
   },
   {
     id: 2,
     code: 'FIK',
-    name: 'Fakultas Ilmu Kesehatan',
+    name: 'Fakultas Kesehatan',
     dean: 'Dr. Ns. Siti Aminah, S.Kep., M.Kep.',
     building: 'Gedung Florence Nightingale',
-    accreditation: 'Baik Sekali',
     is_active: true,
   },
   {
@@ -31,7 +29,6 @@ const DEFAULT_FACULTIES = [
     name: 'Fakultas Teknologi & Bisnis',
     dean: 'Dr. Ir. Hendra Gunawan, M.T.',
     building: 'Gedung Laboratorium Terpadu Lt. 3',
-    accreditation: 'Baik',
     is_active: true,
   },
 ];
@@ -43,7 +40,7 @@ const DEFAULT_DEGREES = [
     name: 'Diploma Tiga',
     studyDuration: '6 Semester (3 Tahun)',
     degreeTitle: 'Ahli Madya (A.Md.)',
-    totalQuota: 130,
+    totalQuota: 180,
     is_active: true,
   },
   {
@@ -51,8 +48,8 @@ const DEFAULT_DEGREES = [
     code: 'S1',
     name: 'Sarjana',
     studyDuration: '8 Semester (4 Tahun)',
-    degreeTitle: 'Sarjana (S.Farm., S.Kom., S.Kes., S.Bns.)',
-    totalQuota: 475,
+    degreeTitle: 'Sarjana (S.Farm., S.Kom., S.Kes., S.Gz., S.Bns., S.T.P.)',
+    totalQuota: 650,
     is_active: true,
   },
   {
@@ -60,8 +57,8 @@ const DEFAULT_DEGREES = [
     code: 'Profesi',
     name: 'Pendidikan Profesi',
     studyDuration: '2 Semester (1 Tahun)',
-    degreeTitle: 'Apoteker / Ners (Apt., Ners)',
-    totalQuota: 60,
+    degreeTitle: 'Apoteker / Ners (apt., Ns.)',
+    totalQuota: 120,
     is_active: true,
   },
   {
@@ -70,12 +67,13 @@ const DEFAULT_DEGREES = [
     name: 'Magister',
     studyDuration: '4 Semester (2 Tahun)',
     degreeTitle: 'Magister Farmasi (M.Farm.)',
-    totalQuota: 30,
-    is_active: false,
+    totalQuota: 50,
+    is_active: true,
   },
 ];
 
 const DEFAULT_STUDY_PROGRAMS = [
+  // FAKULTAS FARMASI
   {
     id: 1,
     faculty_id: 1,
@@ -92,40 +90,112 @@ const DEFAULT_STUDY_PROGRAMS = [
   },
   {
     id: 2,
-    faculty_id: 3,
-    faculty_code: 'FTB',
-    faculty_name: 'Fakultas Teknologi & Bisnis',
-    code: 'TI',
-    nim_code: '55',
-    name: 'S1 Teknologi Informasi',
-    degree: 'S1',
-    degree_title: 'S.Kom.',
-    accreditation: 'Baik Sekali',
-    ukt_estimate: 'Rp 4.500.000 / semester',
+    faculty_id: 1,
+    faculty_code: 'FF',
+    faculty_name: 'Fakultas Farmasi',
+    code: 'APT',
+    nim_code: '08',
+    name: 'Pendidikan Profesi Apoteker',
+    degree: 'Profesi',
+    degree_title: 'apt.',
+    accreditation: 'Unggul',
+    ukt_estimate: 'Rp 12.000.000 / semester',
     is_active: true,
   },
   {
     id: 3,
+    faculty_id: 1,
+    faculty_code: 'FF',
+    faculty_name: 'Fakultas Farmasi',
+    code: 'KOSM',
+    nim_code: '07',
+    name: 'S1 Rekayasa Kosmetik',
+    degree: 'S1',
+    degree_title: 'S.T.',
+    accreditation: 'Baik',
+    ukt_estimate: 'Rp 5.500.000 / semester',
+    is_active: true,
+  },
+  {
+    id: 4,
+    faculty_id: 1,
+    faculty_code: 'FF',
+    faculty_name: 'Fakultas Farmasi',
+    code: 'S2FARM',
+    nim_code: '81',
+    name: 'S2 Farmasi',
+    degree: 'S2',
+    degree_title: 'M.Farm.',
+    accreditation: 'Baik',
+    ukt_estimate: 'Rp 9.000.000 / semester',
+    is_active: true,
+  },
+
+  // FAKULTAS KESEHATAN
+  {
+    id: 5,
     faculty_id: 2,
     faculty_code: 'FIK',
-    faculty_name: 'Fakultas Ilmu Kesehatan',
+    faculty_name: 'Fakultas Kesehatan',
     code: 'ARS',
     nim_code: '03',
     name: 'S1 Administrasi Rumah Sakit',
     degree: 'S1',
     degree_title: 'S.Kes.',
+    accreditation: 'Unggul',
+    ukt_estimate: 'Rp 4.500.000 / semester',
+    is_active: true,
+  },
+  {
+    id: 6,
+    faculty_id: 2,
+    faculty_code: 'FIK',
+    faculty_name: 'Fakultas Kesehatan',
+    code: 'SKEP',
+    nim_code: '09',
+    name: 'S1 Keperawatan',
+    degree: 'S1',
+    degree_title: 'S.Kep.',
+    accreditation: 'Unggul',
+    ukt_estimate: 'Rp 5.200.000 / semester',
+    is_active: true,
+  },
+  {
+    id: 7,
+    faculty_id: 2,
+    faculty_code: 'FIK',
+    faculty_name: 'Fakultas Kesehatan',
+    code: 'DKEP',
+    nim_code: '06',
+    name: 'D3 Keperawatan',
+    degree: 'D3',
+    degree_title: 'A.Md.Kep.',
     accreditation: 'Baik Sekali',
     ukt_estimate: 'Rp 4.500.000 / semester',
     is_active: true,
   },
   {
-    id: 4,
+    id: 8,
     faculty_id: 2,
     faculty_code: 'FIK',
-    faculty_name: 'Fakultas Ilmu Kesehatan',
+    faculty_name: 'Fakultas Kesehatan',
+    code: 'NERS',
+    nim_code: '10',
+    name: 'Profesi Ners',
+    degree: 'Profesi',
+    degree_title: 'Ns.',
+    accreditation: 'Unggul',
+    ukt_estimate: 'Rp 8.500.000 / semester',
+    is_active: true,
+  },
+  {
+    id: 9,
+    faculty_id: 2,
+    faculty_code: 'FIK',
+    faculty_name: 'Fakultas Kesehatan',
     code: 'TLM',
     nim_code: '04',
-    name: 'D3 Analis Kesehatan (TLM)',
+    name: 'D3 Analis Kesehatan / Teknologi Laboratorium Medis',
     degree: 'D3',
     degree_title: 'A.Md.Kes.',
     accreditation: 'Baik Sekali',
@@ -133,21 +203,51 @@ const DEFAULT_STUDY_PROGRAMS = [
     is_active: true,
   },
   {
-    id: 5,
-    faculty_id: 1,
-    faculty_code: 'FF',
-    faculty_name: 'Fakultas Farmasi',
-    code: 'DFARM',
-    nim_code: '05',
-    name: 'D3 Farmasi',
+    id: 10,
+    faculty_id: 2,
+    faculty_code: 'FIK',
+    faculty_name: 'Fakultas Kesehatan',
+    code: 'RO',
+    nim_code: '11',
+    name: 'D3 Refraksi Optisi',
     degree: 'D3',
-    degree_title: 'A.Md.Farm.',
-    accreditation: 'Unggul',
-    ukt_estimate: 'Rp 4.800.000 / semester',
+    degree_title: 'A.Md.R.O.',
+    accreditation: 'Baik Sekali',
+    ukt_estimate: 'Rp 4.500.000 / semester',
     is_active: true,
   },
   {
-    id: 6,
+    id: 11,
+    faculty_id: 2,
+    faculty_code: 'FIK',
+    faculty_name: 'Fakultas Kesehatan',
+    code: 'GIZI',
+    nim_code: '12',
+    name: 'S1 Gizi',
+    degree: 'S1',
+    degree_title: 'S.Gz.',
+    accreditation: 'Baik',
+    ukt_estimate: 'Rp 4.800.000 / semester',
+    is_active: true,
+  },
+
+  // FAKULTAS TEKNOLOGI & BISNIS
+  {
+    id: 12,
+    faculty_id: 3,
+    faculty_code: 'FTB',
+    faculty_name: 'Fakultas Teknologi & Bisnis',
+    code: 'SI',
+    nim_code: '56',
+    name: 'S1 Sistem Informasi',
+    degree: 'S1',
+    degree_title: 'S.Kom.',
+    accreditation: 'Baik',
+    ukt_estimate: 'Rp 4.500.000 / semester',
+    is_active: true,
+  },
+  {
+    id: 13,
     faculty_id: 3,
     faculty_code: 'FTB',
     faculty_name: 'Fakultas Teknologi & Bisnis',
@@ -161,25 +261,75 @@ const DEFAULT_STUDY_PROGRAMS = [
     is_active: true,
   },
   {
-    id: 7,
-    faculty_id: 2,
-    faculty_code: 'FIK',
-    faculty_name: 'Fakultas Ilmu Kesehatan',
-    code: 'SKEP',
-    nim_code: '09',
-    name: 'S1 Keperawatan',
+    id: 14,
+    faculty_id: 3,
+    faculty_code: 'FTB',
+    faculty_name: 'Fakultas Teknologi & Bisnis',
+    code: 'TP',
+    nim_code: '58',
+    name: 'S1 Teknologi Pangan',
     degree: 'S1',
-    degree_title: 'S.Kep.',
-    accreditation: 'Baik Sekali',
-    ukt_estimate: 'Rp 5.200.000 / semester',
+    degree_title: 'S.T.P.',
+    accreditation: 'Baik',
+    ukt_estimate: 'Rp 4.500.000 / semester',
+    is_active: true,
+  },
+  {
+    id: 15,
+    faculty_id: 3,
+    faculty_code: 'FTB',
+    faculty_name: 'Fakultas Teknologi & Bisnis',
+    code: 'KWU',
+    nim_code: '59',
+    name: 'S1 Kewirausahaan',
+    degree: 'S1',
+    degree_title: 'S.Bns.',
+    accreditation: 'Baik',
+    ukt_estimate: 'Rp 4.250.000 / semester',
     is_active: true,
   },
 ];
 
 export const useOrganizationStore = defineStore('organization', () => {
-  const faculties = ref(JSON.parse(localStorage.getItem('bth_faculties')) || DEFAULT_FACULTIES);
-  const degrees = ref(JSON.parse(localStorage.getItem('bth_degrees')) || DEFAULT_DEGREES);
-  const studyPrograms = ref(JSON.parse(localStorage.getItem('bth_study_programs')) || DEFAULT_STUDY_PROGRAMS);
+  const loadInitialFaculties = () => {
+    try {
+      const saved = localStorage.getItem('bth_faculties');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length === 3 && parsed[1]?.name === 'Fakultas Kesehatan') return parsed;
+      }
+    } catch (e) {}
+    localStorage.setItem('bth_faculties', JSON.stringify(DEFAULT_FACULTIES));
+    return DEFAULT_FACULTIES;
+  };
+
+  const loadInitialDegrees = () => {
+    try {
+      const saved = localStorage.getItem('bth_degrees');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length >= 4) return parsed;
+      }
+    } catch (e) {}
+    localStorage.setItem('bth_degrees', JSON.stringify(DEFAULT_DEGREES));
+    return DEFAULT_DEGREES;
+  };
+
+  const loadInitialPrograms = () => {
+    try {
+      const saved = localStorage.getItem('bth_study_programs');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length >= 15) return parsed;
+      }
+    } catch (e) {}
+    localStorage.setItem('bth_study_programs', JSON.stringify(DEFAULT_STUDY_PROGRAMS));
+    return DEFAULT_STUDY_PROGRAMS;
+  };
+
+  const faculties = ref(loadInitialFaculties());
+  const degrees = ref(loadInitialDegrees());
+  const studyPrograms = ref(loadInitialPrograms());
 
   const isLoading = ref(false);
   const isLiveConnected = ref(false);

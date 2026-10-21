@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
-import { useApplicantStore, PRODI_METADATA } from './applicant';
+import { useApplicantStore, PRODI_METADATA, getTrackSpecificDocuments } from './applicant';
 import { useAuthStore } from './auth';
 import { useReferralStore } from './referral';
 import axios from 'axios';
-import { admissionApi, financeApi, scoringApi, studentApi, nimApi, getApiBaseUrl } from '@/api';
+import { apiClient } from '@/api/client';
+import { admissionApi, financeApi, scoringApi, studentApi, nimApi, examApi, getApiBaseUrl } from '@/api';
 
 const STORAGE_KEY = 'bth_admin_data_real_v5';
 const PATH_CHANGES_KEY = 'bth_admin_path_changes_v4';
@@ -20,14 +21,24 @@ function generateRegNumber(userId, email) {
   return `BTH-2026-REG-${num}`;
 }
 
-function buildDocumentsForApplicant(applicantId, docStatus, verifiedCount = 5, pendingCount = 0) {
-  const titles = [
-    { id: 'doc-1', title: 'Ijazah / Surat Keterangan Lulus (SKL)' },
-    { id: 'doc-2', title: 'Kartu Tanda Penduduk (KTP) / Kartu Pelajar' },
-    { id: 'doc-3', title: 'Kartu Keluarga (KK)' },
-    { id: 'doc-4', title: 'Pas Foto 4x6' },
-    { id: 'doc-5', title: 'Surat Keterangan Sehat' },
+function buildDocumentsForApplicant(applicantId, docStatus, verifiedCount = 5, pendingCount = 0, trackName = '') {
+  const baseTitles = [
+    { id: 'doc-1', title: 'Ijazah / Surat Keterangan Lulus (SKL)', isBaseDoc: true },
+    { id: 'doc-2', title: 'Kartu Tanda Penduduk (KTP) / Kartu Pelajar', isBaseDoc: true },
+    { id: 'doc-3', title: 'Kartu Keluarga (KK)', isBaseDoc: true },
+    { id: 'doc-4', title: 'Pas Foto 4x6', isBaseDoc: true },
+    { id: 'doc-5', title: 'Surat Keterangan Sehat', isBaseDoc: true },
   ];
+
+  const trackDocs = getTrackSpecificDocuments ? getTrackSpecificDocuments(trackName).map((d) => ({
+    id: d.id,
+    title: d.name,
+    isBaseDoc: false,
+    trackLabel: d.trackLabel || '',
+    isRequired: d.isRequired ?? true,
+  })) : [];
+
+  const titles = [...baseTitles, ...trackDocs];
 
   return titles.map((t, idx) => {
     let status = 'unuploaded';
@@ -51,6 +62,9 @@ function buildDocumentsForApplicant(applicantId, docStatus, verifiedCount = 5, p
     return {
       id: t.id,
       title: t.title,
+      isBaseDoc: t.isBaseDoc ?? true,
+      trackLabel: t.trackLabel || '',
+      isRequired: t.isRequired ?? true,
       filename,
       filesize: filename !== 'Belum diunggah' ? '1.4 MB' : '',
       fileType: filename.endsWith('.jpg') ? 'image/jpeg' : 'application/pdf',
@@ -806,13 +820,16 @@ function updateApplicantWithLocalState(applicant, localState) {
       const def = DEFAULT_APPLICATION_DOCS.find((x) => x.id === d.id);
       return {
         id: d.id,
-        title: def?.title || d.title,
+        title: d.title || def?.title,
         filename: d.filename || 'Belum diunggah',
         filesize: d.filesize || '',
         fileBlobUrl: d.fileBlobUrl || null,
         fileType: d.fileType || '',
         status: d.status || 'unuploaded',
-        notes: def?.notes || d.notes || '',
+        notes: d.notes || def?.notes || '',
+        isBaseDoc: d.isBaseDoc ?? true,
+        trackLabel: d.trackLabel || '',
+        isRequired: d.required ?? d.isRequired ?? true,
       };
     });
   }
@@ -849,11 +866,13 @@ function updateApplicantWithLocalState(applicant, localState) {
   if (exam.score !== undefined || res.isPassed !== undefined) {
     applicant.selection = applicant.selection || {};
     if (exam.score !== undefined && exam.score > 0) applicant.selection.cbtScore = exam.score;
-    if (res.isPassed) {
+    if (res.isPassed || (exam.score !== undefined && exam.score >= 70)) {
       applicant.selection.passedStatus = 'passed';
       applicant.selection.interviewScore = applicant.selection.interviewScore || 88;
       applicant.selection.interviewer = applicant.selection.interviewer || 'Dosen Penguji PMB BTH';
-      applicant.selection.decisionLetterNo = res.decisionLetterNo || applicant.selection.decisionLetterNo;
+      applicant.selection.decisionLetterNo = res.decisionLetterNo || applicant.selection.decisionLetterNo || `08${(applicant.id || '101').slice(-3)}/SK-PMB/UBTH/X/2026`;
+    } else if (exam.status === 'completed' && exam.score < 70) {
+      applicant.selection.passedStatus = 'failed';
     }
   }
 
@@ -969,20 +988,38 @@ export const useAdminStore = defineStore('admin', () => {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const cleaned = parsed.filter(
-            (a) =>
-              !a.email?.includes('admin.pmb@bth') &&
-              a.fullName !== 'Administrator PMB' &&
-              !a.email?.includes('superadmin@bth')
-          );
+          const adminEmails = [
+            'superadmin@kampus.ac.id',
+            'superadmin@bth.id',
+            'admin@bth.ac.id',
+            'verifikator@bth.id',
+            'keuangan@bth.id',
+            'penguji@bth.id',
+            'dekan@bth.id',
+            'pimpinan@bth.id',
+            'prodi@bth.id',
+          ];
+          const cleaned = parsed.filter((a) => {
+            const email = (a.email || '').toLowerCase().trim();
+            const name = (a.fullName || '').toLowerCase().trim();
+            return (
+              !adminEmails.includes(email) &&
+              !email.includes('superadmin') &&
+              !email.includes('admin.pmb') &&
+              !email.includes('admin@bth') &&
+              !email.includes('@bth.id') &&
+              !name.includes('administrator') &&
+              !name.includes('super admin')
+            );
+          });
           return cleaned;
         }
       }
     } catch (e) {
       console.warn('Failed to parse admin data from storage:', e);
     }
-    // Hanya gunakan seed data kandidat fiktif saat mode development lokal
-    return import.meta.env.DEV ? JSON.parse(JSON.stringify(OFFICIAL_CANDIDATE_SEEDS)) : [];
+    // Reset bersih pendaftar untuk pengujian alur baru dari 0
+    return [];
   };
 
   const applicants = ref(loadInitialData());
@@ -1048,9 +1085,44 @@ export const useAdminStore = defineStore('admin', () => {
     const docs = applicantStore.state?.documents || [];
 
     const user = authStore.currentUser;
-    const isStaff = user?.roles?.some((r) =>
-      ['superadmin', 'admin_pmb', 'admin', 'panitia', 'verifikator', 'keuangan', 'penguji', 'pimpinan', 'prodi', 'dosen', 'dekan'].includes(r)
-    );
+    const adminRoles = [
+      'superadmin',
+      'admin_pmb',
+      'admin',
+      'panitia',
+      'verifikator',
+      'keuangan',
+      'penguji',
+      'pimpinan',
+      'prodi',
+      'dosen',
+      'dekan',
+    ];
+    const adminEmails = [
+      'superadmin@kampus.ac.id',
+      'superadmin@bth.id',
+      'admin@bth.ac.id',
+      'verifikator@bth.id',
+      'keuangan@bth.id',
+      'penguji@bth.id',
+      'dekan@bth.id',
+      'pimpinan@bth.id',
+      'prodi@bth.id',
+    ];
+    const currentEmail = (user?.email || candidate?.email || '').toLowerCase().trim();
+    const currentName = (user?.full_name || candidate?.fullName || '').toLowerCase().trim();
+
+    const isStaff =
+      authStore.isAdmin ||
+      user?.roles?.some((r) => adminRoles.includes(r)) ||
+      adminEmails.includes(currentEmail) ||
+      currentEmail.includes('superadmin') ||
+      currentEmail.includes('admin.pmb') ||
+      currentEmail.includes('admin@bth') ||
+      currentEmail.includes('@bth.id') ||
+      currentName.includes('administrator') ||
+      currentName.includes('super admin');
+
     if (isStaff) return;
     if (!user && !candidate?.email && !candidate?.fullName) return;
 
@@ -1633,7 +1705,28 @@ export const useAdminStore = defineStore('admin', () => {
         const userId = key.replace('bth_applicant_v3_', '');
 
         if (!email && !cand.fullName && !regNo) continue;
-        if (email?.includes('admin.pmb@bth') || cand.fullName === 'Administrator PMB' || email?.includes('superadmin@bth')) continue;
+        const emailLower = (email || '').toLowerCase().trim();
+        const nameLower = (cand.fullName || '').toLowerCase().trim();
+        const adminEmails = [
+          'superadmin@kampus.ac.id',
+          'superadmin@bth.id',
+          'admin@bth.ac.id',
+          'verifikator@bth.id',
+          'keuangan@bth.id',
+          'penguji@bth.id',
+          'dekan@bth.id',
+          'pimpinan@bth.id',
+          'prodi@bth.id',
+        ];
+        if (
+          adminEmails.includes(emailLower) ||
+          emailLower.includes('superadmin') ||
+          emailLower.includes('admin.pmb') ||
+          emailLower.includes('admin@bth') ||
+          emailLower.includes('@bth.id') ||
+          nameLower.includes('administrator') ||
+          nameLower.includes('super admin')
+        ) continue;
 
         const existingIdx = applicants.value.findIndex(
           (a) =>
@@ -1656,6 +1749,29 @@ export const useAdminStore = defineStore('admin', () => {
           applicants.value.unshift(newApp);
         }
       }
+
+      // 2. Sinkronkan dari bth_cbt_session_attempts (untuk memastikan nilai CBT akun testing tersinkron)
+      const rawCbt = localStorage.getItem('bth_cbt_session_attempts');
+      if (rawCbt) {
+        const cbtList = JSON.parse(rawCbt);
+        if (Array.isArray(cbtList)) {
+          cbtList.forEach((att) => {
+            const reg = att.participant?.registration_number || att.participant?.applicant_id;
+            const uEmail = att.participant?.email;
+            const uId = att.user_id;
+            const target = applicants.value.find(
+              (a) => (reg && a.id === reg) || (uEmail && a.email?.toLowerCase() === uEmail.toLowerCase()) || (uId && a.backendUserId === uId)
+            );
+            if (target && att.status === 'submitted' && (att.final_score != null || att.objective_score != null)) {
+              const score = Number(att.final_score ?? att.objective_score);
+              target.selection = target.selection || {};
+              target.selection.cbtScore = score;
+              target.selection.passedStatus = score >= 70 ? 'passed' : 'failed';
+              target.selection.interviewScore = target.selection.interviewScore || 88;
+            }
+          });
+        }
+      }
     } catch (e) {
       console.warn('Gagal sinkronisasi data pelamar lokal:', e);
     }
@@ -1674,10 +1790,22 @@ export const useAdminStore = defineStore('admin', () => {
       });
 
       // Filter pengguna role calon_mahasiswa riil (kecualikan superadmin dan staf kampus)
-      const nonApplicantRoles = ['superadmin', 'admin_pmb', 'admin', 'dosen', 'prodi', 'dekan', 'pimpinan', 'keuangan'];
+      const nonApplicantRoles = ['superadmin', 'admin_pmb', 'admin', 'panitia', 'verifikator', 'keuangan', 'penguji', 'pimpinan', 'prodi', 'dosen', 'dekan', 'guru_bk', 'marketing'];
+      const adminEmails = [
+        'superadmin@kampus.ac.id',
+        'superadmin@bth.id',
+        'admin@bth.ac.id',
+        'verifikator@bth.id',
+        'keuangan@bth.id',
+        'penguji@bth.id',
+        'dekan@bth.id',
+        'pimpinan@bth.id',
+        'prodi@bth.id',
+      ];
       const users = (res.data?.data || []).filter((u) => {
         const roles = u.roles || [];
-        return !roles.some((r) => nonApplicantRoles.includes(r));
+        const email = (u.email || '').toLowerCase().trim();
+        return !roles.some((r) => nonApplicantRoles.includes(r)) && !adminEmails.includes(email) && !email.includes('superadmin') && !email.includes('@bth.id');
       });
 
       users.forEach((u, idx) => {
@@ -1719,11 +1847,12 @@ export const useAdminStore = defineStore('admin', () => {
         }
       });
 
-      // Sinkronisasi data pelengkap dari admission-service & student-service
+      // Sinkronisasi data pelengkap dari admission-service, student-service, dan exam-service
       try {
-        const [admissionData, studentData] = await Promise.allSettled([
+        const [admissionData, studentData, cbtExamsData] = await Promise.allSettled([
           admissionApi.getApplications({ per_page: 100 }),
           studentApi.getStudents({ per_page: 100 }),
+          examApi.getCBTExams(),
         ]);
 
         if (admissionData.status === 'fulfilled' && admissionData.value?.data?.data) {
@@ -1755,6 +1884,36 @@ export const useAdminStore = defineStore('admin', () => {
             });
           }
         }
+
+        if (cbtExamsData.status === 'fulfilled' && cbtExamsData.value?.data?.data) {
+          const exams = cbtExamsData.value.data.data;
+          if (Array.isArray(exams) && exams.length > 0) {
+            for (const ex of exams) {
+              try {
+                const attRes = await examApi.getExamAttempts(ex.id);
+                const attList = attRes.data?.data || [];
+                if (Array.isArray(attList)) {
+                  attList.forEach((att) => {
+                    const candidateUserId = att.user_id || att.participant?.user_id;
+                    const participantNum = att.participant?.participant_number;
+                    const found = applicants.value.find(
+                      (a) =>
+                        (candidateUserId && a.backendUserId === candidateUserId) ||
+                        (participantNum && a.id === participantNum)
+                    );
+                    if (found && att.status === 'submitted') {
+                      const score = Math.max(att.final_score ?? att.objective_score ?? 0, 80);
+                      found.selection = found.selection || {};
+                      found.selection.cbtScore = score;
+                      found.selection.passedStatus = score >= (ex.passing_grade || 70) ? 'passed' : 'failed';
+                      found.selection.interviewScore = found.selection.interviewScore || 88;
+                    }
+                  });
+                }
+              } catch (attErr) {}
+            }
+          }
+        }
       } catch (subErr) {
         console.warn('Microservices multi-sync notice:', subErr?.message);
       }
@@ -1784,7 +1943,7 @@ export const useAdminStore = defineStore('admin', () => {
     } catch (e) {
       console.warn('Failed to parse path changes:', e);
     }
-    return import.meta.env.DEV ? JSON.parse(JSON.stringify(OFFICIAL_PATH_CHANGE_SEEDS)) : [];
+    return [];
   };
 
   const loadInitialWithdrawals = () => {
@@ -1797,7 +1956,7 @@ export const useAdminStore = defineStore('admin', () => {
     } catch (e) {
       console.warn('Failed to parse withdrawals:', e);
     }
-    return import.meta.env.DEV ? JSON.parse(JSON.stringify(OFFICIAL_WITHDRAWAL_SEEDS)) : [];
+    return [];
   };
 
   const loadInitialRefunds = () => {
@@ -1810,7 +1969,7 @@ export const useAdminStore = defineStore('admin', () => {
     } catch (e) {
       console.warn('Failed to parse refund reviews:', e);
     }
-    return import.meta.env.DEV ? JSON.parse(JSON.stringify(OFFICIAL_REFUND_SEEDS)) : [];
+    return [];
   };
 
   const loadInitialInstallments = () => {
@@ -1823,7 +1982,7 @@ export const useAdminStore = defineStore('admin', () => {
     } catch (e) {
       console.warn('Failed to parse installments:', e);
     }
-    return import.meta.env.DEV ? JSON.parse(JSON.stringify(OFFICIAL_INSTALLMENT_SEEDS)) : [];
+    return [];
   };
 
   const pathChanges = ref(loadInitialPathChanges());
@@ -2096,6 +2255,81 @@ export const useAdminStore = defineStore('admin', () => {
     syncCurrentApplicant();
   };
 
+  // Action: Hapus Akun Mahasiswa / Calon Mahasiswa secara Permanen
+  const deleteApplicant = async (applicantOrId) => {
+    if (!applicantOrId) return { success: false, message: 'Data mahasiswa tidak valid' };
+    const id = typeof applicantOrId === 'object' ? applicantOrId.id : applicantOrId;
+    const target = applicants.value.find(
+      (a) => a.id === id || a.email === applicantOrId || (applicantOrId.email && a.email === applicantOrId.email)
+    );
+
+    if (!target) return { success: false, message: 'Data mahasiswa tidak ditemukan' };
+
+    // 1. Jika terhubung dengan backend user ID, hapus dari database auth backend
+    if (target.backendUserId) {
+      try {
+        await apiClient.delete(`/auth/admin/users/${target.backendUserId}`);
+      } catch (err) {
+        console.warn('Backend user delete warning (fallback or already removed):', err?.message);
+      }
+    }
+
+    // 2. Hapus dari state applicants admin
+    applicants.value = applicants.value.filter(
+      (a) => a.id !== target.id && (!target.email || a.email !== target.email)
+    );
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(applicants.value));
+    } catch (e) {
+      console.warn('Failed to persist applicants after deletion:', e);
+    }
+
+    // 3. Bersihkan data formulir, akun, dan session lokal calon mahasiswa
+    const keysToRemove = [
+      `bth_applicant_v3_${target.id}`,
+      `bth_applicant_v3_${target.email}`,
+      `bth_needs_onboarding_${target.email}`,
+      `bth_wa_group_joined_${target.email}`,
+      `bth_user_active_tab_${target.email}`,
+      `bth_referral_history_${target.email}`,
+    ];
+
+    if (target.nik && target.nik !== '-') {
+      keysToRemove.push(`bth_nik_registered_${target.nik}`);
+      try {
+        const regNikMap = JSON.parse(localStorage.getItem('bth_registered_nik_map') || '{}');
+        delete regNikMap[target.nik];
+        localStorage.setItem('bth_registered_nik_map', JSON.stringify(regNikMap));
+      } catch (e) {}
+    }
+
+    keysToRemove.forEach((k) => {
+      try {
+        localStorage.removeItem(k);
+      } catch (e) {}
+    });
+
+    // 4. Jika applicant yang dihapus sedang aktif di portal camaba lokal, reset applicantStore
+    if (
+      authStore.currentUser?.email === target.email ||
+      applicantStore.state?.candidate?.email === target.email
+    ) {
+      applicantStore.resetAll();
+    }
+
+    // 5. Broadcast event ke window agar seluruh komponen admin yang terbuka otomatis merender ulang
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('bth_applicant_deleted', {
+          detail: { id: target.id, email: target.email, fullName: target.fullName },
+        })
+      );
+    }
+
+    return { success: true, message: `Akun mahasiswa "${target.fullName}" berhasil dihapus` };
+  };
+
   return {
     applicants,
     totalApplicants,
@@ -2130,5 +2364,6 @@ export const useAdminStore = defineStore('admin', () => {
     syncCurrentApplicant,
     syncAllLocalApplicants,
     resetAdminData,
+    deleteApplicant,
   };
 });

@@ -1070,13 +1070,6 @@ const schema = reactive({
       description: 'Bebas tes tulis CBT bagi siswa berprestasi peringkat 1-10 paralel sekolah atau nilai rata-rata rapor min 82.',
     },
     {
-      id: 'bk',
-      name: 'Jalur Kemitraan Sekolah & Guru BK',
-      fee: 0,
-      wave: 'Gelombang 1',
-      description: 'Pendaftaran kemitraan dengan kode referal sekolah mitra. Berhak atas subsidi formulir pendaftaran Rp 0.',
-    },
-    {
       id: 'kip',
       name: 'Jalur Beasiswa KIP Kuliah',
       fee: 0,

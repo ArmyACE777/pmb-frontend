@@ -16,6 +16,7 @@ dist-ssr/
 
 # Screenshots & OCR Models
 screenshots/
+screenshot/
 audit_screenshots/
 *.traineddata
 

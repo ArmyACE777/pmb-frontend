@@ -23,13 +23,26 @@
           </div>
         </div>
 
-        <!-- Profil Sisi Kanan (Akun Login & Dropdown) -->
-        <div class="relative">
+        <!-- Profil & Panduan Sisi Kanan -->
+        <div class="flex items-center gap-2.5 sm:gap-3.5">
+          <!-- Panduan SOP Marketing Button -->
           <button
             type="button"
-            @click="isProfileDropdownOpen = !isProfileDropdownOpen"
-            class="flex items-center gap-3 text-gray-700 hover:text-gray-900 focus:outline-none transition p-1.5 rounded-xl hover:bg-gray-50 cursor-pointer"
+            @click="showMarketingSopModal = true"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition cursor-pointer shadow-2xs"
+            title="SOP & Panduan Tim Marketing Lapangan"
           >
+            <Megaphone class="w-3.5 h-3.5 text-amber-700" />
+            <span class="hidden sm:inline">SOP Marketing</span>
+          </button>
+
+          <!-- Profil Sisi Kanan (Akun Login & Dropdown) -->
+          <div class="relative">
+            <button
+              type="button"
+              @click="isProfileDropdownOpen = !isProfileDropdownOpen"
+              class="flex items-center gap-3 text-gray-700 hover:text-gray-900 focus:outline-none transition p-1.5 rounded-xl hover:bg-gray-50 cursor-pointer"
+            >
             <div class="hidden sm:flex flex-col text-right">
               <span class="text-xs font-semibold text-gray-800">{{ currentUserDisplayName }}</span>
               <span class="text-[11px] text-gray-500 font-mono">{{ currentUserDisplayEmail }}</span>
@@ -99,7 +112,8 @@
           </div>
         </div>
       </div>
-    </header>
+    </div>
+  </header>
 
     <!-- ========================================================================= -->
     <!-- 2. KONTEN UTAMA TIM MARKETING LAPANGAN                                    -->
@@ -1140,16 +1154,20 @@
         </div>
       </div>
     </div>
+    <!-- Modal Buku Panduan & SOP Tim Marketing -->
+    <MarketingSopModal v-model="showMarketingSopModal" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { Megaphone } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
 import { useReferralStore } from '@/stores/referral';
 import { useCmsStore } from '@/stores/cms';
 import { useToast } from '@/composables/useToast';
+import MarketingSopModal from '@/components/guides/MarketingSopModal.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -1157,6 +1175,8 @@ const authStore = useAuthStore();
 const referralStore = useReferralStore();
 const cmsStore = useCmsStore();
 const toast = useToast();
+
+const showMarketingSopModal = ref(false);
 
 // Status Bagian Aktif: 'referrals' (Daftar Sekolah) vs 'visits' (Laporan Kunjungan)
 const currentSection = ref('referrals');

@@ -121,25 +121,35 @@
           </div>
         </div>
 
-        <button
-          v-if="applicant.onboarding.nim"
-          @click="openEnrolModal(applicant)"
-          class="w-full py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer text-center"
-        >
-          Lihat / Koreksi Data
-        </button>
-        <button
-          v-else-if="applicant.selection.passedStatus === 'passed' && applicant.payments.uktFee.status === 'paid'"
-          @click="generateApplicantNimDirectly(applicant)"
-          class="w-full py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer text-center"
-        >
-          Terbitkan NIM Sekarang
-        </button>
-        <div
-          v-else
-          class="text-center text-[11px] text-slate-400 italic py-1"
-        >
-          NIM otomatis diterbitkan saat UKT lunas
+        <div class="flex items-center gap-2">
+          <button
+            v-if="applicant.onboarding.nim"
+            @click="openEnrolModal(applicant)"
+            class="flex-1 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer text-center"
+          >
+            Lihat / Koreksi Data
+          </button>
+          <button
+            v-else-if="applicant.selection.passedStatus === 'passed' && applicant.payments.uktFee.status === 'paid'"
+            @click="generateApplicantNimDirectly(applicant)"
+            class="flex-1 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer text-center"
+          >
+            Terbitkan NIM Sekarang
+          </button>
+          <div
+            v-else
+            class="flex-1 text-center text-[11px] text-slate-400 italic py-1"
+          >
+            NIM otomatis diterbitkan saat UKT lunas
+          </div>
+
+          <button
+            @click="confirmDeleteApplicant(applicant)"
+            class="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg transition-colors cursor-pointer shrink-0"
+            title="Hapus Akun Mahasiswa"
+          >
+            <Trash2 class="w-4 h-4" />
+          </button>
         </div>
       </div>
 
@@ -263,26 +273,36 @@
 
               <!-- Action -->
               <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                <button
-                  v-if="applicant.onboarding.nim"
-                  @click="openEnrolModal(applicant)"
-                  class="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-medium rounded transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
-                >
-                  Lihat / Koreksi Data
-                </button>
-                <button
-                  v-else-if="applicant.selection.passedStatus === 'passed' && applicant.payments.uktFee.status === 'paid'"
-                  @click="generateApplicantNimDirectly(applicant)"
-                  class="px-3 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-medium text-xs rounded transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
-                >
-                  Terbitkan Sekarang
-                </button>
-                <span
-                  v-else
-                  class="text-[11px] text-slate-400 italic"
-                >
-                  Saat Lunas UKT
-                </span>
+                <div class="inline-flex items-center gap-1.5 justify-end">
+                  <button
+                    v-if="applicant.onboarding.nim"
+                    @click="openEnrolModal(applicant)"
+                    class="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-medium rounded transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
+                  >
+                    Lihat / Koreksi Data
+                  </button>
+                  <button
+                    v-else-if="applicant.selection.passedStatus === 'passed' && applicant.payments.uktFee.status === 'paid'"
+                    @click="generateApplicantNimDirectly(applicant)"
+                    class="px-3 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-medium text-xs rounded transition-colors whitespace-nowrap cursor-pointer shadow-2xs"
+                  >
+                    Terbitkan Sekarang
+                  </button>
+                  <span
+                    v-else
+                    class="text-[11px] text-slate-400 italic"
+                  >
+                    Saat Lunas UKT
+                  </span>
+
+                  <button
+                    @click="confirmDeleteApplicant(applicant)"
+                    class="p-1.5 text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 hover:border-rose-300 rounded transition-colors cursor-pointer shadow-2xs"
+                    title="Hapus Akun Mahasiswa"
+                  >
+                    <Trash2 class="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </td>
             </tr>
             <tr v-if="filteredApplicants.length === 0">
@@ -363,27 +383,38 @@
         </div>
 
         <!-- Action Button -->
-        <div class="pt-2 border-t border-slate-100 flex items-center justify-end">
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
           <button
-            v-if="applicant.onboarding.nim"
-            @click="openEnrolModal(applicant)"
-            class="w-full sm:w-auto px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer text-center shadow-2xs"
+            @click="confirmDeleteApplicant(applicant)"
+            class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+            title="Hapus Akun Mahasiswa"
           >
-            Lihat / Koreksi Data
+            <Trash2 class="w-3.5 h-3.5" />
+            <span>Hapus</span>
           </button>
-          <button
-            v-else-if="applicant.selection.passedStatus === 'passed' && applicant.payments.uktFee.status === 'paid'"
-            @click="generateApplicantNimDirectly(applicant)"
-            class="w-full sm:w-auto px-3.5 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer text-center shadow-2xs"
-          >
-            Terbitkan NIM Sekarang
-          </button>
-          <span
-            v-else
-            class="text-[11px] text-slate-400 italic"
-          >
-            Menunggu Pelunasan UKT
-          </span>
+
+          <div class="flex items-center gap-2">
+            <button
+              v-if="applicant.onboarding.nim"
+              @click="openEnrolModal(applicant)"
+              class="w-full sm:w-auto px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer text-center shadow-2xs"
+            >
+              Lihat / Koreksi Data
+            </button>
+            <button
+              v-else-if="applicant.selection.passedStatus === 'passed' && applicant.payments.uktFee.status === 'paid'"
+              @click="generateApplicantNimDirectly(applicant)"
+              class="w-full sm:w-auto px-3.5 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer text-center shadow-2xs"
+            >
+              Terbitkan NIM Sekarang
+            </button>
+            <span
+              v-else
+              class="text-[11px] text-slate-400 italic"
+            >
+              Menunggu Pelunasan UKT
+            </span>
+          </div>
         </div>
       </div>
 
@@ -450,20 +481,32 @@
             </select>
           </div>
 
-          <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <div class="flex items-center justify-between gap-2 pt-3 border-t border-slate-100">
             <button
               type="button"
-              @click="activeApplicant = null"
-              class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-lg transition-colors cursor-pointer"
+              @click="confirmDeleteApplicant(activeApplicant)"
+              class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-medium text-xs rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+              title="Hapus Akun Mahasiswa"
             >
-              Batal
+              <Trash2 class="w-3.5 h-3.5" />
+              <span>Hapus Akun</span>
             </button>
-            <button
-              type="submit"
-              class="px-5 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-medium text-xs rounded-lg transition-colors cursor-pointer"
-            >
-              Simpan & Terbitkan NIM
-            </button>
+
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                @click="activeApplicant = null"
+                class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-lg transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                class="px-5 py-2 bg-[#1E3A8A] hover:bg-[#172554] text-white font-medium text-xs rounded-lg transition-colors cursor-pointer"
+              >
+                Simpan & Terbitkan NIM
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -624,6 +667,13 @@
       </div>
     </div>
   </Teleport>
+
+  <!-- Modal Konfirmasi Hapus Akun Mahasiswa -->
+  <DeleteStudentModal
+    v-model="showDeleteModal"
+    :student="studentToDelete"
+    @deleted="handleStudentDeleted"
+  />
   </div>
 </template>
 
@@ -632,8 +682,9 @@ import { ref, computed, onMounted } from 'vue';
 import { useAdminStore } from '@/stores/admin';
 import { useToast } from '@/composables/useToast';
 import { PRODI_METADATA } from '@/stores/applicant';
-import { FileSpreadsheet, Upload, X } from 'lucide-vue-next';
+import { FileSpreadsheet, Upload, X, Trash2 } from 'lucide-vue-next';
 import { exportToSevimaMigrationExcel, parseSevimaImportContent } from '@/utils/exportHelper';
+import DeleteStudentModal from '@/components/admin/DeleteStudentModal.vue';
 
 const props = defineProps({
   currentRole: {
@@ -649,6 +700,21 @@ const formNim = ref('');
 const formGroup = ref('Gugus 01 - Hygeia Farmasi');
 const searchQuery = ref('');
 const selectedFilter = ref('all');
+
+// Delete Student State
+const showDeleteModal = ref(false);
+const studentToDelete = ref(null);
+
+const confirmDeleteApplicant = (applicant) => {
+  studentToDelete.value = applicant;
+  showDeleteModal.value = true;
+};
+
+const handleStudentDeleted = (student) => {
+  if (activeApplicant.value && student && activeApplicant.value.id === student.id) {
+    activeApplicant.value = null;
+  }
+};
 
 // Import SEVIMA States
 const showImportModal = ref(false);

@@ -15,6 +15,89 @@
       </div>
     </div>
 
+    <!-- Banner Jalur Pendaftaran & Persyaratan Berkas -->
+    <div class="p-4 bg-blue-50/80 border border-blue-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs font-sans">
+      <div class="space-y-1">
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#1E3A8A] text-white">
+            Jalur Terpilih
+          </span>
+          <span class="font-bold text-[#1E3A8A] font-sora text-xs sm:text-sm">
+            {{ applicantStore.state.admission?.track || 'Jalur Reguler' }}
+          </span>
+        </div>
+        <p class="text-slate-600 text-[11px] leading-relaxed">
+          Kebutuhan berkas disesuaikan otomatis berdasarkan jalur pendaftaran Anda (5 Berkas Pokok<span v-if="trackSpecificCount > 0"> + {{ trackSpecificCount }} Berkas Pendukung Khusus</span>).
+        </p>
+      </div>
+
+      <!-- Filter Kategori Dokumen (Jika ada berkas khusus jalur) -->
+      <div v-if="trackSpecificCount > 0" class="flex items-center gap-1.5 self-start sm:self-auto bg-white p-1 rounded-xl border border-blue-200">
+        <button
+          type="button"
+          @click="activeDocFilter = 'all'"
+          class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+          :class="activeDocFilter === 'all' ? 'bg-[#1E3A8A] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'"
+        >
+          Semua ({{ documents.length }})
+        </button>
+        <button
+          type="button"
+          @click="activeDocFilter = 'base'"
+          class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+          :class="activeDocFilter === 'base' ? 'bg-[#1E3A8A] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'"
+        >
+          Pokok (5)
+        </button>
+        <button
+          type="button"
+          @click="activeDocFilter = 'track'"
+          class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+          :class="activeDocFilter === 'track' ? 'bg-[#1E3A8A] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'"
+        >
+          Khusus Jalur ({{ trackSpecificCount }})
+        </button>
+      </div>
+    </div>
+
+    <!-- Highlight Notifikasi Khusus Jalur dengan Berkas Pendukung -->
+    <div
+      v-if="trackSpecificCount > 0"
+      class="p-4 bg-gradient-to-r from-blue-50/90 to-indigo-50/70 border border-blue-200/90 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs animate-fadeIn font-sans"
+    >
+      <div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-xl bg-[#1E3A8A] text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+          <FileText class="w-4 h-4" />
+        </div>
+        <div>
+          <div class="font-bold text-[#1E3A8A] text-xs sm:text-sm font-sora">
+            Berkas Pendukung Khusus Jalur: {{ applicantStore.state.admission?.track }}
+          </div>
+          <p class="text-slate-600 text-[11px] font-sans mt-0.5 leading-relaxed">
+            Jalur yang Anda pilih memerlukan <strong>{{ trackSpecificCount }} berkas data pendukung khusus</strong> di samping 5 berkas pokok. Silakan klik tombol <strong>Unggah Berkas</strong> pada masing-masing kartu dokumen khusus bertanda biru di bawah.
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 self-start sm:self-auto shrink-0">
+        <button
+          v-if="activeDocFilter !== 'track'"
+          type="button"
+          @click="activeDocFilter = 'track'"
+          class="px-3.5 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white rounded-xl text-xs font-semibold cursor-pointer shadow-xs transition-colors whitespace-nowrap"
+        >
+          Lihat Berkas Khusus Saja
+        </button>
+        <button
+          v-else
+          type="button"
+          @click="activeDocFilter = 'all'"
+          class="px-3.5 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold cursor-pointer shadow-xs transition-colors whitespace-nowrap"
+        >
+          Tampilkan Semua Berkas
+        </button>
+      </div>
+    </div>
+
     <!-- Hidden native file input -->
     <input
       ref="fileInputRef"
@@ -27,9 +110,10 @@
     <!-- Daftar Dokumen List -->
     <div class="space-y-3">
       <div
-        v-for="doc in documents"
+        v-for="doc in displayedDocuments"
         :key="doc.id"
         class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs hover:border-slate-300 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+        :class="isTrackDoc(doc) ? 'ring-1 ring-blue-200/80' : ''"
       >
         <div class="flex items-center gap-3.5 min-w-0 flex-1">
           <!-- Thumbnail pratinjau khusus pasfoto (doc-4) -->
@@ -44,12 +128,33 @@
             />
           </div>
 
-          <div class="space-y-1 min-w-0 flex-1">
+          <div class="space-y-1.5 min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">
               <h3 class="font-sora font-semibold text-slate-900 text-xs sm:text-sm">
                 {{ doc.title }}
               </h3>
-              <span v-if="doc.required" class="text-red-500 font-bold text-xs" title="Wajib Diunggah">*</span>
+
+              <!-- Badge Jenis Berkas (Pokok vs Khusus Jalur) -->
+              <span
+                v-if="!isTrackDoc(doc)"
+                class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200"
+              >
+                Berkas Pokok
+              </span>
+              <span
+                v-else
+                class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-[#1E3A8A] border border-blue-200"
+              >
+                {{ doc.trackLabel || 'Khusus Jalur' }}
+              </span>
+
+              <!-- Badge Wajib vs Pendukung -->
+              <span
+                class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold"
+                :class="doc.required ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-slate-50 text-slate-500 border border-slate-200'"
+              >
+                {{ doc.required ? 'Wajib' : 'Pendukung' }}
+              </span>
 
               <!-- Status Badge di samping judul -->
               <span
@@ -280,7 +385,7 @@ import {
   ArrowLeft,
   X
 } from 'lucide-vue-next';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useApplicantStore } from '@/stores/applicant';
 import { useAuthStore } from '@/stores/auth';
 import { admissionApi, identityApi } from '@/api';
@@ -291,6 +396,38 @@ const applicantStore = useApplicantStore();
 const authStore = useAuthStore();
 const toast = useToast();
 const documents = computed(() => applicantStore.state.documents);
+
+const isTrackDoc = (doc) => doc.isBaseDoc === false || doc.isBase === false;
+
+const activeDocFilter = ref('all');
+const trackSpecificCount = computed(() => documents.value.filter(isTrackDoc).length);
+
+const displayedDocuments = computed(() => {
+  if (activeDocFilter.value === 'base') {
+    return documents.value.filter((d) => !isTrackDoc(d));
+  }
+  if (activeDocFilter.value === 'track') {
+    return documents.value.filter(isTrackDoc);
+  }
+  return documents.value;
+});
+
+// Otomatis sinkronkan dokumen jalur saat halaman berkas dibuka atau saat jalur berubah
+onMounted(() => {
+  const currentTrack = applicantStore.state.admission?.track || 'Jalur Reguler Gelombang 1';
+  if (applicantStore.syncDocumentsForTrack) {
+    applicantStore.syncDocumentsForTrack(currentTrack);
+  }
+});
+
+watch(
+  () => applicantStore.state.admission?.track,
+  (newTrack) => {
+    if (newTrack && applicantStore.syncDocumentsForTrack) {
+      applicantStore.syncDocumentsForTrack(newTrack);
+    }
+  }
+);
 
 const verifiedCount = computed(() => {
   return documents.value.filter((d) => d.status === 'verified').length;
@@ -515,6 +652,15 @@ const handleFileUpload = (e) => {
         'doc-4': 'pas_foto',
         'doc-5': 'surat_sehat',
         'doc-6': 'sertifikat_prestasi',
+        'doc-rapor': 'rapor',
+        'doc-rekomendasi': 'rekomendasi',
+        'doc-sertif': 'sertifikat_prestasi',
+        'doc-portofolio': 'portofolio',
+        'doc-kip': 'kip',
+        'doc-simkip': 'simkip',
+        'doc-rumah': 'foto_rumah',
+        'doc-transkrip': 'transkrip',
+        'doc-pindah': 'surat_pindah',
       };
       const backendDocType = DOC_TYPE_BACKEND_MAP[docCode] || docCode || 'document';
       const formData = new FormData();

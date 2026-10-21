@@ -299,12 +299,8 @@
               </span>
             </div>
 
-            <!-- Details: Akreditasi, Lokasi, Jumlah Prodi -->
-            <div class="grid grid-cols-3 gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-center text-xs">
-              <div>
-                <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Akreditasi</span>
-                <span class="font-bold text-[#1E3A8A] text-xs block mt-0.5">{{ fac.accreditation }}</span>
-              </div>
+            <!-- Details: Lokasi & Jumlah Prodi -->
+            <div class="grid grid-cols-2 gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-center text-xs">
               <div>
                 <span class="text-[10px] text-slate-400 font-bold uppercase block font-sora">Gedung</span>
                 <span class="text-slate-600 text-[11px] block mt-0.5 truncate">{{ fac.building }}</span>
@@ -356,7 +352,6 @@
                 <th class="py-3 px-4 whitespace-nowrap min-w-[180px]">Nama Fakultas</th>
                 <th class="py-3 px-4 whitespace-nowrap min-w-[180px]">Pimpinan (Dekan)</th>
                 <th class="py-3 px-4 whitespace-nowrap min-w-[160px]">Lokasi Gedung</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap min-w-[110px]">Akreditasi</th>
                 <th class="py-3 px-4 text-center whitespace-nowrap min-w-[100px]">Jumlah Prodi</th>
                 <th class="py-3 px-4 text-center whitespace-nowrap min-w-[90px]">Status</th>
                 <th class="py-3 px-4 text-right whitespace-nowrap min-w-[190px]">Aksi</th>
@@ -373,11 +368,6 @@
                 <td class="py-3 px-4 font-bold text-slate-900 whitespace-nowrap">{{ fac.name }}</td>
                 <td class="py-3 px-4 text-slate-700 font-medium whitespace-nowrap">{{ fac.dean }}</td>
                 <td class="py-3 px-4 text-slate-500 whitespace-nowrap">{{ fac.building }}</td>
-                <td class="py-3 px-4 text-center whitespace-nowrap">
-                  <span class="inline-block px-2.5 py-1 rounded text-xs font-semibold whitespace-nowrap bg-blue-50 text-[#1E3A8A] border border-blue-200/60 shadow-2xs">
-                    {{ fac.accreditation }}
-                  </span>
-                </td>
                 <td class="py-3 px-4 text-center font-mono font-bold text-slate-800 whitespace-nowrap">{{ fac.prodiCount }} Prodi</td>
                 <td class="py-3 px-4 text-center whitespace-nowrap">
                   <span
@@ -1018,40 +1008,20 @@
               />
             </div>
 
-            <!-- Kode Singkat Fakultas & Akreditasi -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              <div class="space-y-1.5">
-                <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
-                  <Hash class="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Kode Singkat Fakultas</span>
-                  <span class="text-rose-500">*</span>
-                </label>
-                <input
-                  v-model="facultyForm.code"
-                  type="text"
-                  required
-                  placeholder="Contoh: FKG / FK"
-                  class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs font-mono font-bold uppercase tracking-wider text-[#1E3A8A] outline-none shadow-2xs transition-all"
-                />
-              </div>
-
-              <div class="space-y-1.5">
-                <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
-                  <Award class="w-3.5 h-3.5 text-amber-600" />
-                  <span>Akreditasi Fakultas</span>
-                  <span class="text-rose-500">*</span>
-                </label>
-                <select
-                  v-model="facultyForm.accreditation"
-                  class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-800 outline-none shadow-2xs transition-all cursor-pointer font-medium"
-                >
-                  <option value="Unggul">Unggul</option>
-                  <option value="Baik Sekali">Baik Sekali</option>
-                  <option value="Baik">Baik</option>
-                  <option value="A">A</option>
-                  <option value="B">B</option>
-                </select>
-              </div>
+            <!-- Kode Singkat Fakultas -->
+            <div class="space-y-1.5">
+              <label class="block font-semibold text-slate-800 flex items-center gap-1.5">
+                <Hash class="w-3.5 h-3.5 text-indigo-600" />
+                <span>Kode Singkat Fakultas</span>
+                <span class="text-rose-500">*</span>
+              </label>
+              <input
+                v-model="facultyForm.code"
+                type="text"
+                required
+                placeholder="Contoh: FF / FTB / FIK"
+                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 rounded-xl text-xs font-mono font-bold uppercase tracking-wider text-[#1E3A8A] outline-none shadow-2xs transition-all"
+              />
             </div>
 
             <!-- Dekan & Gedung -->
@@ -1457,7 +1427,6 @@ const facultyForm = ref({
   code: '',
   dean: '',
   building: '',
-  accreditation: 'Baik Sekali',
 });
 
 const openAddFacultyModal = () => {
@@ -1468,7 +1437,6 @@ const openAddFacultyModal = () => {
     code: '',
     dean: '',
     building: 'Gedung Kampus Utama BTH',
-    accreditation: 'Baik Sekali',
   };
   showFacultyModal.value = true;
 };
@@ -1481,7 +1449,6 @@ const openEditFacultyModal = (fac) => {
     code: fac.code,
     dean: fac.dean,
     building: fac.building,
-    accreditation: fac.accreditation,
   };
   showFacultyModal.value = true;
 };

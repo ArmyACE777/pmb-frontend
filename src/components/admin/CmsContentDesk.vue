@@ -582,11 +582,87 @@
           </div>
         </div>
 
+        <!-- SEKSI TAUTAN SELEKSI CBT & WAWANCARA DARING -->
+        <div class="pt-4 border-t border-slate-100 space-y-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+            <h4 class="font-sora font-semibold text-xs text-slate-800 uppercase tracking-wider">
+              Tautan Seleksi Mandiri CBT & Ruang Wawancara Daring
+            </h4>
+          </div>
+          <p class="text-[11px] text-slate-500 font-sans">
+            Konfigurasi link pelaksanaan seleksi online yang tampil langsung di dashboard calon mahasiswa pada menu <strong>Seleksi Mandiri CBT</strong> dan <strong>Ruang Wawancara Daring</strong>.
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            <!-- 1. URL Server CBT -->
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col justify-between space-y-2">
+              <div>
+                <label class="block font-semibold text-slate-800 mb-1">URL Server CBT Online</label>
+                <p class="text-[10px] text-slate-500 mb-2">Alamat server CBT mandiri kampus Universitas BTH.</p>
+                <input
+                  v-model="form.links.cbtServerUrl"
+                  type="url"
+                  class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-[#1E3A8A] text-slate-800 font-mono text-[11px]"
+                  placeholder="https://cbt.universitas-bth.ac.id"
+                />
+              </div>
+              <span class="text-[10px] text-blue-700 font-medium">Tampil di: Info Portal Seleksi CBT</span>
+            </div>
+
+            <!-- 2. Google Meet Wawancara Daring -->
+            <div class="p-3.5 bg-blue-50/50 rounded-xl border border-blue-200 flex flex-col justify-between space-y-2">
+              <div>
+                <label class="block font-semibold text-slate-800 mb-1">Google Meet (Ruang Utama)</label>
+                <p class="text-[10px] text-slate-500 mb-2">Tautan video conference wawancara dosen penguji.</p>
+                <input
+                  v-model="form.links.interviewMeetUrl"
+                  type="url"
+                  class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-blue-600 text-slate-800 font-mono text-[11px]"
+                  placeholder="https://meet.google.com/pmb-ubth-2026"
+                />
+              </div>
+              <span class="text-[10px] text-blue-700 font-medium">Tampil di: Tombol Masuk Google Meet</span>
+            </div>
+
+            <!-- 3. Zoom Meeting ID -->
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col justify-between space-y-2">
+              <div>
+                <label class="block font-semibold text-slate-800 mb-1">Meeting ID Zoom (Cadangan)</label>
+                <p class="text-[10px] text-slate-500 mb-2">ID sesi Zoom resmi untuk opsi ruang cadangan.</p>
+                <input
+                  v-model="form.links.interviewZoomId"
+                  type="text"
+                  class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-slate-800 text-slate-800 font-mono text-[11px]"
+                  placeholder="894 2026 1001"
+                />
+              </div>
+              <span class="text-[10px] text-slate-600 font-medium">Tampil di: Ruang Cadangan Zoom</span>
+            </div>
+
+            <!-- 4. Passcode Zoom -->
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col justify-between space-y-2">
+              <div>
+                <label class="block font-semibold text-slate-800 mb-1">Passcode Zoom Meeting</label>
+                <p class="text-[10px] text-slate-500 mb-2">Kode sandi pengaman ruang Zoom wawancara.</p>
+                <input
+                  v-model="form.links.interviewZoomPasscode"
+                  type="text"
+                  class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-slate-800 text-slate-800 font-mono text-[11px]"
+                  placeholder="BTH2026"
+                />
+              </div>
+              <span class="text-[10px] text-slate-600 font-medium">Tampil di: Passcode Peserta</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEKSI TAUTAN DOKUMEN DIGITAL & TUR KAMPUS -->
         <div class="pt-4 border-t border-slate-100">
           <h4 class="font-sora font-semibold text-xs text-slate-800 mb-3">
-            Tautan Pendukung PMB (Brosur, CBT, & Tur Kampus)
+            Tautan Pendukung PMB (Brosur & Tur Kampus)
           </h4>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
               <label class="block font-semibold text-slate-700 mb-1">Tautan Unduh Brosur PMB (PDF)</label>
               <input
@@ -594,16 +670,6 @@
                 type="url"
                 class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-[#1E3A8A] text-slate-800 font-mono"
                 placeholder="https://pmb.bth.ac.id/brosur-pmb-2026.pdf"
-              />
-            </div>
-
-            <div>
-              <label class="block font-semibold text-slate-700 mb-1">URL Server Ujian Mandiri CBT</label>
-              <input
-                v-model="form.links.cbtServerUrl"
-                type="url"
-                class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-[#1E3A8A] text-slate-800 font-mono"
-                placeholder="https://cbt.universitas-bth.ac.id"
               />
             </div>
 
@@ -1087,7 +1153,7 @@ const form = reactive({
   contact: { ...cmsStore.contact },
   announcement: { ...cmsStore.announcement },
   socialMedia: { ...cmsStore.socialMedia },
-  links: { ...cmsStore.links },
+  links: { ...DEFAULT_CMS_DATA.links, ...cmsStore.links },
   faqs: [...cmsStore.faqs],
   tracks: JSON.parse(JSON.stringify(cmsStore.tracks)),
   studyPrograms: JSON.parse(JSON.stringify(cmsStore.studyPrograms)),
@@ -1101,7 +1167,7 @@ watch(
     form.contact = { ...newVal.contact };
     form.announcement = { ...newVal.announcement };
     form.socialMedia = { ...newVal.socialMedia };
-    form.links = { ...newVal.links };
+    form.links = { ...DEFAULT_CMS_DATA.links, ...newVal.links };
     form.faqs = [...newVal.faqs];
     form.tracks = JSON.parse(JSON.stringify(newVal.tracks || DEFAULT_CMS_DATA.tracks));
     form.studyPrograms = JSON.parse(JSON.stringify(newVal.studyPrograms || DEFAULT_CMS_DATA.studyPrograms));

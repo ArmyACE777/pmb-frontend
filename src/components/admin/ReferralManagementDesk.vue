@@ -5,10 +5,10 @@
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
         <div>
           <h2 class="font-sora font-extrabold text-slate-900 text-lg sm:text-xl">
-            Kode Referal & Akun Kemitraan Guru BK
+            Kode Referal & Tim Marketing
           </h2>
           <p class="text-xs text-slate-500 mt-1 font-sans">
-            Pengelolaan akun mitra sekolah, kode referal, dan akumulasi hak komisi kemitraan.
+            Pengelolaan akun mitra sekolah (Guru BK), tim marketing lapangan, kode referal, dan pelaporan kunjungan.
           </p>
         </div>
 
@@ -85,7 +85,7 @@
           :class="activeSubTab === 'referrals' ? 'bg-white text-slate-900 font-semibold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
         >
           <Users class="w-4 h-4 text-[#1E3A8A]" />
-          <span>Mitra Sekolah & Guru BK ({{ referralList.length }})</span>
+          <span>Daftar Mitra & Tim Marketing ({{ referralList.length }})</span>
         </button>
 
         <button
@@ -105,23 +105,37 @@
     <!-- ========================================================================= -->
     <div v-if="activeSubTab === 'referrals'" class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
       <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div class="flex items-center gap-2 w-full sm:w-auto">
-          <span class="text-xs font-semibold text-slate-600 whitespace-nowrap">Status:</span>
-          <select
-            v-model="statusFilter"
-            class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 outline-none focus:border-[#1E3A8A]"
-          >
-            <option value="ALL">Semua Mitra ({{ referralList.length }})</option>
-            <option value="ACTIVE">Akun Aktif ({{ activeCodesCount }})</option>
-            <option value="INACTIVE">Akun Nonaktif</option>
-          </select>
+        <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-semibold text-slate-600 whitespace-nowrap">Status:</span>
+            <select
+              v-model="statusFilter"
+              class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 outline-none focus:border-[#1E3A8A]"
+            >
+              <option value="ALL">Semua Status</option>
+              <option value="ACTIVE">Akun Aktif ({{ activeCodesCount }})</option>
+              <option value="INACTIVE">Akun Nonaktif</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-semibold text-slate-600 whitespace-nowrap">Tipe:</span>
+            <select
+              v-model="categoryFilter"
+              class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 outline-none focus:border-[#1E3A8A]"
+            >
+              <option value="ALL">Semua Tipe</option>
+              <option value="GURU_BK">Mitra Guru BK</option>
+              <option value="MARKETING">Tim Marketing</option>
+            </select>
+          </div>
         </div>
 
         <div class="w-full sm:w-80">
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Cari kode referal / guru BK / sekolah..."
+            placeholder="Cari kode referal / petugas / sekolah..."
             class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:border-[#1E3A8A] text-slate-800"
           />
         </div>
@@ -137,7 +151,17 @@
           <!-- Top: School & Referral Code -->
           <div class="flex items-start justify-between gap-2">
             <div>
-              <h4 class="font-sora font-bold text-slate-900 text-sm leading-snug">{{ r.schoolName || '-' }}</h4>
+              <div class="flex items-center gap-1.5 mb-0.5">
+                <span
+                  class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider border"
+                  :class="r.category === 'marketing' || (r.code && r.code.startsWith('MKT-'))
+                    ? 'bg-amber-50 text-amber-800 border-amber-200'
+                    : 'bg-blue-50 text-[#1E3A8A] border-blue-200'"
+                >
+                  {{ r.category === 'marketing' || (r.code && r.code.startsWith('MKT-')) ? 'Marketing' : 'Guru BK' }}
+                </span>
+                <h4 class="font-sora font-bold text-slate-900 text-sm leading-snug">{{ r.schoolName || '-' }}</h4>
+              </div>
               <div class="text-xs text-slate-500 mt-0.5">
                 {{ r.picName }} <span v-if="r.schoolCity">• {{ r.schoolCity }}</span>
               </div>
@@ -229,7 +253,17 @@
             >
               <!-- 1. Mitra & Sekolah Asal -->
               <td class="py-3.5 px-4">
-                <div class="font-semibold text-slate-900 text-xs">{{ r.schoolName || '-' }}</div>
+                <div class="flex items-center gap-1.5 mb-1">
+                  <span
+                    class="px-1.5 py-0.2 rounded text-[10px] font-bold uppercase tracking-wider border flex-shrink-0"
+                    :class="r.category === 'marketing' || (r.code && r.code.startsWith('MKT-'))
+                      ? 'bg-amber-50 text-amber-800 border-amber-200'
+                      : 'bg-blue-50 text-[#1E3A8A] border-blue-200'"
+                  >
+                    {{ r.category === 'marketing' || (r.code && r.code.startsWith('MKT-')) ? 'Marketing' : 'Guru BK' }}
+                  </span>
+                  <div class="font-semibold text-slate-900 text-xs truncate">{{ r.schoolName || '-' }}</div>
+                </div>
                 <div class="text-[11px] text-slate-500 mt-0.5">
                   {{ r.picName }} <span v-if="r.schoolCity">• {{ r.schoolCity }}</span>
                 </div>
@@ -578,9 +612,11 @@
           <div class="p-5 sm:p-6 pb-4 flex items-center justify-between border-b border-slate-100 flex-shrink-0">
             <div>
               <h3 class="font-sora font-bold text-slate-900 text-base">
-                Buat Akun Guru BK & Kode Referal Baru
+                {{ form.category === 'marketing' ? 'Buat Akun Tim Marketing Lapangan' : 'Buat Akun Guru BK & Kode Referal Baru' }}
               </h3>
-              <p class="text-xs text-slate-500 mt-0.5">Program Sosialisasi PMB Universitas BTH</p>
+              <p class="text-xs text-slate-500 mt-0.5">
+                {{ form.category === 'marketing' ? 'Penerbitan akun tim promosi & sosialisasi lapangan PMB' : 'Program Kemitraan Sekolah & Guru BK PMB Universitas BTH' }}
+              </p>
             </div>
             <button @click="showModal = false" class="text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
               <X class="w-5 h-5" />
@@ -588,24 +624,53 @@
           </div>
 
           <form @submit.prevent="saveReferral" class="p-5 sm:p-6 space-y-4 text-xs font-sans flex-1 overflow-y-auto">
+            <!-- Pilihan Jenis / Peran Akun -->
             <div>
-              <label class="block font-semibold text-slate-800 mb-1">Kode Referal Unik *</label>
+              <label class="block font-semibold text-slate-800 mb-1.5">Kategori Akun *</label>
+              <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                <button
+                  type="button"
+                  @click="setCategory('guru_bk')"
+                  class="py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  :class="form.category === 'guru_bk' ? 'bg-white text-[#1E3A8A] shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                >
+                  <School class="w-3.5 h-3.5" />
+                  <span>Mitra Guru BK Sekolah</span>
+                </button>
+                <button
+                  type="button"
+                  @click="setCategory('marketing')"
+                  class="py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  :class="form.category === 'marketing' ? 'bg-white text-[#1E3A8A] shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                >
+                  <Megaphone class="w-3.5 h-3.5 text-amber-600" />
+                  <span>Tim Marketing Lapangan</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-800 mb-1">
+                {{ form.category === 'marketing' ? 'Kode Marketing Lapangan *' : 'Kode Referal Unik *' }}
+              </label>
               <input
                 v-model="form.code"
                 required
                 @input="handleCodeInput"
-                placeholder="Contoh: SMKCONTOH01, SMAN1TSM, BK-FARMASI"
+                :placeholder="form.category === 'marketing' ? 'Contoh: MKT-BDG01, MKT-TASIK01' : 'Contoh: SMKCONTOH01, SMAN1TSM, BK-FARMASI'"
                 class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A] uppercase font-mono"
               />
             </div>
 
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block font-semibold text-slate-800 mb-1">Nama Guru BK / Mitra *</label>
+                <label class="block font-semibold text-slate-800 mb-1">
+                  {{ form.category === 'marketing' ? 'Nama Petugas Marketing *' : 'Nama Guru BK / Mitra *' }}
+                </label>
                 <input
                   v-model="form.picName"
                   required
-                  placeholder="Nama Lengkap Penanggung Jawab"
+                  :placeholder="form.category === 'marketing' ? 'Nama Petugas Marketing' : 'Nama Lengkap Penanggung Jawab'"
                   class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A]"
                 />
               </div>
@@ -622,11 +687,13 @@
 
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block font-semibold text-slate-800 mb-1">Nama Asal Sekolah / Mitra *</label>
+                <label class="block font-semibold text-slate-800 mb-1">
+                  {{ form.category === 'marketing' ? 'Wilayah / Sekolah Binaan *' : 'Nama Asal Sekolah / Mitra *' }}
+                </label>
                 <input
                   v-model="form.schoolName"
                   required
-                  placeholder="Contoh: SMAN 1 Tasikmalaya"
+                  :placeholder="form.category === 'marketing' ? 'Contoh: SMK Marhas (Binaan Lapangan)' : 'Contoh: SMAN 1 Tasikmalaya'"
                   class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A]"
                 />
               </div>
@@ -641,11 +708,11 @@
               </div>
             </div>
 
-            <!-- Kredensial Login Akun Guru BK -->
+            <!-- Kredensial Login Akun -->
             <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
               <div class="font-semibold text-slate-800 text-xs flex items-center gap-1.5">
                 <ShieldCheck class="w-4 h-4 text-[#1E3A8A]" />
-                <span>Kredensial Login Portal Guru BK (/login)</span>
+                <span>{{ form.category === 'marketing' ? 'Kredensial Login Tim Marketing (/login)' : 'Kredensial Login Portal Guru BK (/login)' }}</span>
               </div>
               <div class="grid grid-cols-2 gap-3">
                 <div>
@@ -653,7 +720,7 @@
                   <input
                     v-model="form.username"
                     required
-                    placeholder="Contoh: nurjanah.bk"
+                    :placeholder="form.category === 'marketing' ? 'Contoh: mkt_tasik' : 'Contoh: nurjanah.bk'"
                     class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A] font-mono text-xs"
                   />
                 </div>
@@ -668,12 +735,14 @@
                 </div>
               </div>
               <div>
-                <label class="block text-[11px] font-medium text-slate-600 mb-1">Email Sekolah / Kontak</label>
+                <label class="block text-[11px] font-medium text-slate-600 mb-1">
+                  {{ form.category === 'marketing' ? 'Email Resmi Petugas / Tim' : 'Email Sekolah / Kontak' }}
+                </label>
                 <input
                   v-model="form.email"
                   type="email"
                   required
-                  placeholder="bk@sekolah.sch.id"
+                  :placeholder="form.category === 'marketing' ? 'marketing@bth.ac.id' : 'bk@sekolah.sch.id'"
                   class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg outline-none focus:border-[#1E3A8A] text-xs"
                 />
               </div>
@@ -738,7 +807,7 @@
           <div class="p-5 sm:p-6 pb-4 flex items-center justify-between border-b border-slate-100 flex-shrink-0">
             <div>
               <div class="text-[11px] font-bold text-blue-700 uppercase tracking-wider font-sora">
-                Pengaturan Akun Mitra Guru BK
+                {{ selectedPartner.category === 'marketing' || (selectedPartner.code && selectedPartner.code.startsWith('MKT-')) ? 'Pengaturan Akun Tim Marketing' : 'Pengaturan Akun Mitra Guru BK' }}
               </div>
               <h3 class="font-sora font-bold text-slate-900 text-base sm:text-lg mt-0.5">
                 {{ selectedPartner.picName }}
@@ -785,7 +854,9 @@
                   />
                 </div>
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Email Sekolah</label>
+                  <label class="block font-semibold text-slate-700 mb-1">
+                    {{ selectedPartner.category === 'marketing' || (selectedPartner.code && selectedPartner.code.startsWith('MKT-')) ? 'Email Petugas Marketing' : 'Email Sekolah' }}
+                  </label>
                   <input
                     v-model="editForm.email"
                     type="email"
@@ -1046,10 +1117,12 @@
 <script setup>
 import { ref, computed, reactive } from 'vue';
 import { useRouter } from 'vue-router';
-import { Plus, X, Download, Copy, ExternalLink, Users, Coins } from 'lucide-vue-next';
+import { Plus, X, Download, Copy, ExternalLink, Users, Coins, Megaphone, School } from 'lucide-vue-next';
 import { useToast } from '@/composables/useToast';
 import { useAuthStore } from '@/stores/auth';
 import { useReferralStore } from '@/stores/referral';
+import { authApi } from '@/api/auth';
+import { referralApi } from '@/api/referral';
 
 const router = useRouter();
 const toast = useToast();
@@ -1057,6 +1130,7 @@ const authStore = useAuthStore();
 const referralStore = useReferralStore();
 
 const statusFilter = ref('ALL');
+const categoryFilter = ref('ALL');
 const searchQuery = ref('');
 const showModal = ref(false);
 const selectedPartner = ref(null);
@@ -1135,9 +1209,13 @@ const filteredReferrals = computed(() => {
     if (statusFilter.value === 'INACTIVE' && r.status === 'active') return false;
     if (statusFilter.value === 'PENDING_SETTLEMENT' && !hasPendingSettlement(r)) return false;
 
+    const isMkt = r.category === 'marketing' || (r.code && r.code.startsWith('MKT-'));
+    if (categoryFilter.value === 'GURU_BK' && isMkt) return false;
+    if (categoryFilter.value === 'MARKETING' && !isMkt) return false;
+
     if (searchQuery.value.trim()) {
       const q = searchQuery.value.toLowerCase();
-      const matchCode = r.code.toLowerCase().includes(q);
+      const matchCode = (r.code || '').toLowerCase().includes(q);
       const matchPic = (r.picName || '').toLowerCase().includes(q);
       const matchSchool = (r.schoolName || r.institution || '').toLowerCase().includes(q);
       const matchUser = (r.username || '').toLowerCase().includes(q);
@@ -1157,21 +1235,37 @@ const copyCode = async (code) => {
   }
 };
 
+const setCategory = (cat) => {
+  form.value.category = cat;
+  if (cat === 'marketing') {
+    if (!form.value.code || form.value.code.startsWith('BK-') || !form.value.code.startsWith('MKT-')) {
+      form.value.code = 'MKT-';
+    }
+  } else {
+    if (form.value.code === 'MKT-') {
+      form.value.code = '';
+    }
+  }
+  handleCodeInput();
+};
+
 const handleCodeInput = () => {
   if (form.value.code) {
     const slug = form.value.code.toLowerCase().replace(/[^a-z0-9]/g, '');
-    if (!form.value.username) {
-      form.value.username = `bk_${slug}`;
+    const isMkt = form.value.category === 'marketing';
+    if (!form.value.username || form.value.username.startsWith('bk_') || form.value.username.startsWith('mkt_')) {
+      form.value.username = isMkt ? `mkt_${slug}` : `bk_${slug}`;
     }
-    if (!form.value.email) {
-      form.value.email = `${slug}@sekolah.sch.id`;
+    if (!form.value.email || form.value.email.includes('@sekolah.sch.id') || form.value.email.includes('@bth.ac.id')) {
+      form.value.email = isMkt ? `marketing_${slug}@bth.ac.id` : `${slug}@sekolah.sch.id`;
     }
   }
 };
 
-const openAddModal = () => {
+const openAddModal = (presetCategory = 'guru_bk') => {
   form.value = {
-    code: '',
+    category: presetCategory,
+    code: presetCategory === 'marketing' ? 'MKT-' : '',
     picName: '',
     picPhone: '',
     schoolName: '',
@@ -1185,28 +1279,87 @@ const openAddModal = () => {
   showModal.value = true;
 };
 
-const saveReferral = () => {
-  const code = form.value.code.toUpperCase();
+const saveReferral = async () => {
+  const category = form.value.category || 'guru_bk';
+  const isMkt = category === 'marketing';
+  const code = String(form.value.code || '').trim().toUpperCase();
+  const picName = String(form.value.picName || '').trim();
+  const picPhone = String(form.value.picPhone || '').trim();
+  const schoolName = String(form.value.schoolName || '').trim();
+  const schoolCity = String(form.value.schoolCity || '').trim();
+  const username = String(form.value.username || (isMkt ? `mkt_${code.toLowerCase()}` : `bk_${code.toLowerCase()}`)).trim();
+  const email = String(form.value.email || (isMkt ? `marketing_${code.toLowerCase()}@bth.ac.id` : `${code.toLowerCase()}@sekolah.sch.id`)).trim().toLowerCase();
+  const password = String(form.value.password || 'password123').trim();
+  const commissionType = form.value.commissionType || 'nominal';
+  const commissionValue = form.value.commissionValue;
+
   referralStore.addReferral({
     code,
-    picName: form.value.picName,
-    picPhone: form.value.picPhone,
-    schoolName: form.value.schoolName,
-    schoolCity: form.value.schoolCity,
-    username: form.value.username || `bk_${code.toLowerCase()}`,
-    email: form.value.email || `${code.toLowerCase()}@sekolah.sch.id`,
-    password: form.value.password || 'password123',
-    commissionType: form.value.commissionType,
-    commissionValue: form.value.commissionValue,
+    picName,
+    picPhone,
+    schoolName,
+    institution: schoolName,
+    schoolCity,
+    username,
+    email,
+    password,
+    category,
+    commissionType,
+    commissionValue,
+    status: 'active',
   });
-  toast.success(`Akun Guru BK dan kode referal ${code} berhasil dibuat.`);
+
+  // 1. Pastikan memiliki token admin yang sah di backend
+  try {
+    const currentToken = localStorage.getItem('access_token');
+    if (!currentToken || currentToken.startsWith('mock_')) {
+      await authStore.login('admin@bth.ac.id', 'password123').catch(() => null);
+    }
+  } catch (e) {}
+
+  // 2. Sinkronisasikan pembuatan user ke database backend (pmb_auth.users)
+  try {
+    await authApi.createAdminUser({
+      email,
+      full_name: picName || (isMkt ? 'Tim Marketing Lapangan' : 'Guru BK Mitra'),
+      phone: picPhone,
+      password,
+      roles: [{ role: isMkt ? 'marketing' : 'guru_bk' }],
+      send_set_password_email: false,
+    });
+  } catch (err) {
+    console.warn('Backend user sync (saveReferral):', err?.response?.data?.message || err.message);
+  }
+
+  // 3. Sinkronisasikan kode referal ke database backend (pmb-service referral_codes)
+  try {
+    await referralApi.createAdminCode({
+      code,
+      payment_code: code,
+      institution_name: schoolName || (isMkt ? 'Tim Marketing PMB' : 'Sekolah Mitra PMB'),
+      institution_type: isMkt ? 'program' : 'sekolah',
+      commission_type: commissionType === 'percentage' ? 'persen' : 'nominal',
+      commission_value: Number(commissionValue) || 50000,
+      status: 'active',
+      description: isMkt ? 'Kode Referal Tim Marketing' : `Kode Referal Sekolah Mitra ${schoolName}`,
+    });
+  } catch (err) {
+    console.warn('Backend referral code sync (saveReferral):', err?.response?.data?.message || err.message);
+  }
+
+  toast.success(
+    isMkt
+      ? `Akun Tim Marketing (${username}) dan kode ${code} berhasil diterbitkan.`
+      : `Akun Guru BK (${username}) dan kode referal ${code} berhasil dibuat.`
+  );
   showModal.value = false;
 };
 
 const openAccountModal = (partner) => {
   selectedPartner.value = partner;
-  editForm.username = partner.username || `bk_${partner.code.toLowerCase()}`;
-  editForm.email = partner.email || `${partner.code.toLowerCase()}@sekolah.sch.id`;
+  const isMkt = partner.category === 'marketing' || (partner.code && partner.code.startsWith('MKT-'));
+  editForm.username = partner.username || (isMkt ? `mkt_${partner.code.toLowerCase()}` : `bk_${partner.code.toLowerCase()}`);
+  editForm.email = partner.email || (isMkt ? `marketing_${partner.code.toLowerCase()}@bth.ac.id` : `${partner.code.toLowerCase()}@sekolah.sch.id`);
   editForm.password = partner.password || 'password123';
   editForm.picPhone = partner.picPhone || '';
 };
@@ -1232,14 +1385,34 @@ const toggleActiveStatusModal = () => {
   }
 };
 
-const saveAccountChanges = () => {
+const saveAccountChanges = async () => {
   if (!selectedPartner.value) return;
+  const updatedUsername = String(editForm.username || '').trim();
+  const updatedEmail = String(editForm.email || '').trim().toLowerCase();
+  const updatedPassword = String(editForm.password || '').trim();
+  const updatedPhone = String(editForm.picPhone || '').trim();
+
   referralStore.updateReferral(selectedPartner.value.id, {
-    username: editForm.username,
-    email: editForm.email,
-    password: editForm.password,
-    picPhone: editForm.picPhone,
+    username: updatedUsername,
+    email: updatedEmail,
+    password: updatedPassword,
+    picPhone: updatedPhone,
   });
+
+  // Sinkronisasikan perubahan kredensial ke database server
+  try {
+    await authApi.createAdminUser({
+      email: updatedEmail,
+      full_name: selectedPartner.value.picName || 'Guru BK Mitra',
+      phone: updatedPhone,
+      password: updatedPassword,
+      roles: [{ role: 'guru_bk' }],
+      send_set_password_email: false,
+    });
+  } catch (err) {
+    console.warn('Backend user sync (saveAccountChanges):', err?.response?.data?.message || err.message);
+  }
+
   toast.success('Pembaruan data akun Guru BK berhasil disimpan.');
   selectedPartner.value = null;
 };

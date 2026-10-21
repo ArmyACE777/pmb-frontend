@@ -333,6 +333,26 @@
         </div>
       </div>
 
+      <!-- Banner Pintasan Kode Referal Guru BK -->
+      <div
+        v-if="selectedInvoiceType === 'registration' && !applicantStore.state?.referral?.isApplied"
+        class="p-4 bg-gradient-to-r from-blue-50/90 via-indigo-50/80 to-blue-50/90 border border-blue-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs animate-fadeIn font-sans"
+      >
+        <div class="flex items-start gap-3">
+          <div class="w-9 h-9 rounded-lg bg-[#1E3A8A] text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-2xs">
+            <Ticket class="w-5 h-5 text-amber-300" />
+          </div>
+          <div class="space-y-0.5">
+            <div class="font-sora font-bold text-xs sm:text-sm text-slate-900">
+              Memiliki Kode Referal Guru BK / Sekolah Mitra?
+            </div>
+            <p class="text-xs text-slate-600 font-sans leading-relaxed">
+              Apapun pilihan jalur pendaftaran Anda, Anda dapat memasukkan kode referal resmi dari Guru BK sekolah mitra Anda pada formulir di samping (atau bawah) untuk mendapatkan <strong>pembebasan biaya pendaftaran formulir (Rp 0)</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <!-- Kolom Kiri: Rincian Tagihan & Pembayaran (Col 7) -->
         <div class="lg:col-span-7 space-y-4">
@@ -734,7 +754,7 @@
                   Input dibatasi sementara karena 3x salah memasukkan kode. Mohon hubungi Guru BK Anda untuk mendapatkan kode resmi.
                 </p>
                 <p v-else class="text-[11px] text-slate-500">
-                  Masukkan kode resmi yang akurat sesuai yang diterbitkan oleh Guru BK sekolah mitra Anda.
+                  Abaikan jika mendaftar mandiri/reguler. Masukkan kode hanya jika Anda mendaftar melalui kemitraan Guru BK sekolah mitra Anda.
                 </p>
               </div>
 
@@ -971,7 +991,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { Copy, RefreshCw, ChevronDown, Download, AlertCircle, CheckCircle2, ChevronRight, Zap } from 'lucide-vue-next';
+import { Copy, RefreshCw, ChevronDown, Download, AlertCircle, CheckCircle2, ChevronRight, Zap, Ticket } from 'lucide-vue-next';
 import QRCode from 'qrcode';
 import { useApplicantStore } from '@/stores/applicant';
 import { useAuthStore } from '@/stores/auth';

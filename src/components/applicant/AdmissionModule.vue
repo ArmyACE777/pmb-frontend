@@ -375,13 +375,13 @@
     <!-- ========================================================================= -->
     <!-- KONDISI B: FORM UTAMA PEMILIHAN JALUR & PROGRAM STUDI                     -->
     <!-- ========================================================================= -->
-    <form v-else @submit.prevent="saveAdmission" class="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
+    <form v-else @submit.prevent="saveAdmission" class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
       <div class="p-6 sm:p-7 space-y-6">
         <!-- 1. Pemilihan Jalur Pendaftaran -->
-        <div class="space-y-2">
+        <div class="space-y-3">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-            <label class="block text-xs font-semibold text-slate-800">
-              Jalur Pendaftaran <span class="text-rose-500">*</span>
+            <label class="block text-xs font-bold text-slate-800 font-sora">
+              Pilihan Jalur Pendaftaran <span class="text-rose-500 font-semibold">*</span>
             </label>
             <span class="text-[11px] text-slate-400 font-sans">
               Tahun Akademik {{ applicantStore.state.admission.academicYear || '2026/2027' }}
@@ -401,52 +401,77 @@
           </select>
 
           <!-- Detail Informasi Jalur yang Dipilih -->
-          <div v-if="currentTrackDetails" class="space-y-2 pt-1 text-[11px]">
+          <div v-if="currentTrackDetails" class="space-y-3 pt-1 text-[11px]">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-slate-500">
               <span>{{ currentTrackDetails.description }}</span>
-              <span v-if="(currentTrackDetails.registration_fee ?? 250000) === 0" class="inline-flex items-center gap-1 font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded text-[11px]">
+              <!-- Tampilkan status biaya berdasarkan tipe jalur -->
+              <span v-if="isCurrentTrackFree" class="inline-flex items-center gap-1 font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded text-[11px]">
                 <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" />
-                Biaya Formulir: Rp 0 (Bebas Biaya / Gratis)
+                Biaya Formulir: Rp 0 (Bebas Biaya / Beasiswa)
               </span>
               <span v-else class="font-medium text-slate-700 whitespace-nowrap">
                 Biaya Formulir: Rp {{ (currentTrackDetails.registration_fee ?? 250000).toLocaleString('id-ID') }}
               </span>
             </div>
 
-            <!-- Notifikasi Khusus Jalur Bebas Biaya (Rp 0) -->
-            <div
-              v-if="(currentTrackDetails.registration_fee ?? 250000) === 0"
-              class="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-lg text-xs text-emerald-900 flex items-start gap-2.5 animate-fadeIn"
-            >
-              <CheckCircle2 class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-              <div class="space-y-0.5">
-                <span class="font-semibold text-emerald-900">Jalur Pendaftaran Bebas Biaya Formulir (Rp 0)</span>
-                <p class="text-[11px] text-emerald-800 leading-relaxed font-sans">
-                  Jalur ini tidak memerlukan pembayaran formulir. Anda tidak perlu mengakses portal pembayaran dan akan langsung diarahkan ke tahap selanjutnya (Unggah Berkas Persyaratan).
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Status Referal Mitra Guru BK Aktif -->
-          <div
-            v-if="applicantStore.state?.referral?.isApplied"
-            class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-950 flex items-start justify-between gap-3 animate-fadeIn"
-          >
-            <div class="flex items-start gap-2.5">
-              <CheckCircle2 class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-              <div class="space-y-0.5">
-                <span class="font-bold text-emerald-900">
-                  Terhubung Kemitraan: {{ applicantStore.state.referral.schoolName }} (Kode: {{ applicantStore.state.referral.code }})
+            <!-- Ringkasan Berkas Persyaratan Jalur yang Dipilih -->
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-2 animate-fadeIn">
+              <div class="flex items-center justify-between gap-2 pb-1.5 border-b border-slate-200/70">
+                <div class="flex items-center gap-1.5 font-semibold text-slate-800 text-xs font-sora">
+                  <FileText class="w-3.5 h-3.5 text-[#1E3A8A]" />
+                  <span>Kebutuhan Berkas Pendaftaran:</span>
+                </div>
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-50 text-[#1E3A8A] border border-blue-200">
+                  {{ 5 + currentTrackSpecificDocs.length }} Total Berkas (5 Pokok + {{ currentTrackSpecificDocs.length }} Khusus Jalur)
                 </span>
-                <p class="text-[11px] text-emerald-800 leading-relaxed font-sans">
-                  Pendaftaran Anda dikoordinasikan bersama Guru BK <strong>{{ applicantStore.state.referral.picName }}</strong>. Biaya formulir dialihkan menjadi Rp 0 (Bebas Biaya).
+              </div>
+
+              <!-- Jika Memiliki Berkas Khusus Jalur -->
+              <div v-if="currentTrackSpecificDocs.length > 0" class="space-y-2 pt-0.5">
+                <p class="text-[11px] text-slate-500 font-sans">
+                  Selain 5 berkas pokok (Ijazah/SKL, KTP, KK, Pas Foto, Surat Sehat), jalur ini mewajibkan berkas pendukung spesifik:
                 </p>
+                <div class="grid grid-cols-1 gap-1.5">
+                  <div
+                    v-for="doc in currentTrackSpecificDocs"
+                    :key="doc.id"
+                    class="p-2.5 bg-white rounded-lg border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-[11px]"
+                  >
+                    <div class="flex items-center gap-2">
+                      <span class="font-semibold text-slate-800">{{ doc.title || doc.name }}</span>
+                      <span
+                        class="text-[10px] px-1.5 py-0.2 rounded font-semibold"
+                        :class="(doc.required ?? doc.isRequired) ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-600 border border-slate-200'"
+                      >
+                        {{ (doc.required ?? doc.isRequired) ? 'Wajib' : 'Pendukung' }}
+                      </span>
+                    </div>
+                    <span class="text-[10px] text-slate-500 font-sans">Format: PDF atau JPG/PNG (Maks. 2 MB)</span>
+                  </div>
+                </div>
+
+                <!-- Tombol Navigasi Cepat Langsung ke Halaman Berkas -->
+                <div class="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-slate-200/70">
+                  <span class="text-[11px] text-slate-600 font-sans">
+                    Seluruh berkas khusus ini diunggah pada <strong>Halaman Berkas</strong>.
+                  </span>
+                  <button
+                    type="button"
+                    @click="goToDocumentModule"
+                    class="px-3.5 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white text-[11px] font-semibold rounded-lg shadow-2xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer self-start sm:self-auto"
+                  >
+                    <Upload class="w-3.5 h-3.5" />
+                    <span>Buka Halaman Berkas & Unggah</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Jika Jalur Reguler / Hanya Berkas Pokok -->
+              <div v-else class="text-[11px] text-slate-600 flex items-center gap-2 py-0.5">
+                <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>Jalur ini hanya memerlukan <strong>5 Berkas Pokok Standar</strong> tanpa dokumen tambahan khusus.</span>
               </div>
             </div>
-            <span class="text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded font-bold uppercase tracking-wider whitespace-nowrap">
-              Mitra BK Aktif
-            </span>
           </div>
         </div>
 
@@ -479,14 +504,19 @@
               </div>
 
               <!-- Metadata Pilihan 1 Ringkas & Bersih -->
-              <div v-if="currentProdi1Details" class="pt-2 border-t border-slate-200/60 text-xs space-y-1">
+              <div v-if="currentProdi1Details" class="pt-2 border-t border-slate-200/60 text-xs space-y-1.5">
                 <div class="flex justify-between items-center text-slate-600">
                   <span class="text-slate-400 text-[11px]">Fakultas:</span>
                   <span class="font-medium text-slate-800 text-[11px]">{{ currentProdi1Details.faculty_name }}</span>
                 </div>
                 <div class="flex justify-between items-center text-slate-600">
-                  <span class="text-slate-400 text-[11px]">Jenjang Akademik:</span>
-                  <span class="font-medium text-slate-800 text-[11px]">{{ currentProdi1Details.degree }}</span>
+                  <span class="text-slate-400 text-[11px]">Jenjang & Akreditasi:</span>
+                  <span class="font-medium text-slate-800 text-[11px] flex items-center gap-1.5">
+                    <span>{{ currentProdi1Details.degree }}</span>
+                    <span v-if="currentProdi1Details.accreditation" class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      Akreditasi {{ currentProdi1Details.accreditation }}
+                    </span>
+                  </span>
                 </div>
                 <div class="flex justify-between items-center text-slate-600">
                   <span class="text-slate-400 text-[11px]">Estimasi Biaya UKT:</span>
@@ -502,7 +532,7 @@
             <div class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-3">
               <div>
                 <label class="block text-xs font-medium text-slate-700 mb-1.5">
-                  Program Studi Pilihan Kedua <span class="text-slate-400 text-[11px] font-normal">(Opsional)</span>
+                  Program Studi Pilihan Kedua
                 </label>
                 <select
                   v-model="admissionForm.prodi2"
@@ -522,14 +552,19 @@
               </div>
 
               <!-- Metadata Pilihan 2 Ringkas & Bersih -->
-              <div v-if="currentProdi2Details" class="pt-2 border-t border-slate-200/60 text-xs space-y-1">
+              <div v-if="currentProdi2Details" class="pt-2 border-t border-slate-200/60 text-xs space-y-1.5">
                 <div class="flex justify-between items-center text-slate-600">
                   <span class="text-slate-400 text-[11px]">Fakultas:</span>
                   <span class="font-medium text-slate-800 text-[11px]">{{ currentProdi2Details.faculty_name }}</span>
                 </div>
                 <div class="flex justify-between items-center text-slate-600">
-                  <span class="text-slate-400 text-[11px]">Jenjang Akademik:</span>
-                  <span class="font-medium text-slate-800 text-[11px]">{{ currentProdi2Details.degree }}</span>
+                  <span class="text-slate-400 text-[11px]">Jenjang & Akreditasi:</span>
+                  <span class="font-medium text-slate-800 text-[11px] flex items-center gap-1.5">
+                    <span>{{ currentProdi2Details.degree }}</span>
+                    <span v-if="currentProdi2Details.accreditation" class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      Akreditasi {{ currentProdi2Details.accreditation }}
+                    </span>
+                  </span>
                 </div>
               </div>
               <div v-else class="pt-2 border-t border-slate-200/60 text-[11px] text-slate-400 italic">
@@ -537,6 +572,20 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- Panduan Pemilihan Jalur PMB (Tips & Ketentuan Ringkas) -->
+        <div class="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 text-xs text-slate-600 space-y-2 font-sans">
+          <div class="flex items-center gap-2 font-bold text-slate-800 font-sora">
+            <HelpCircle class="w-4 h-4 text-[#1E3A8A] shrink-0" />
+            <span>Ketentuan Pemilihan Jalur & Program Studi:</span>
+          </div>
+          <ul class="space-y-1.5 text-[11px] text-slate-500 pl-6 list-disc leading-relaxed">
+            <li><strong>Program Studi Pilihan Utama:</strong> Prioritas alokasi kursi seleksi utama calon mahasiswa baru.</li>
+            <li><strong>Program Studi Pilihan Kedua:</strong> Alternatif otomatis jika kuota pada pilihan utama telah terpenuhi (tanpa biaya pendaftaran tambahan).</li>
+            <li><strong>Jalur Bebas Tes (Prestasi / Rapor):</strong> Kelulusan dievaluasi berdasarkan nilai rapor semester 1–5 atau sertifikat prestasi tanpa perlu mengikuti ujian CBT.</li>
+            <li><strong>Perubahan Pilihan:</strong> Sebelum pembayaran formulir dilakukan, Anda dapat bebas mengganti pilihan atau mengosongkan pilihan. Setelah lunas, perubahan jalur dapat diajukan via tombol <em>Ajukan Pindah Jalur</em>.</li>
+          </ul>
         </div>
       </div>
 
@@ -546,13 +595,14 @@
         <div class="text-xs text-slate-500 font-sans text-center sm:text-left">
           <span v-if="applicantStore.isAdmissionLocked" class="flex items-center gap-1.5 text-emerald-800">
             <Lock class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-            <span>Pendaftaran telah dikunci karena biaya formulir telah terverifikasi lunas.</span>
+            <span v-if="applicantStore.isFreeTrack">Pendaftaran telah dikonfirmasi melalui Jalur Bebas Biaya (Rp 0).</span>
+            <span v-else>Pendaftaran telah dikunci karena biaya formulir telah terverifikasi lunas.</span>
           </span>
           <span v-else-if="applicantStore.state.admission.prodi1">
-            <span>Pilihan tersimpan. Anda dapat langsung mengubah pilihan prodi di atas atau melanjutkan ke pembayaran.</span>
+            <span>Pilihan tersimpan. Anda dapat langsung mengubah pilihan prodi di atas atau melanjutkan ke tahap berikutnya.</span>
           </span>
           <span v-else>
-            <span v-if="(currentTrackDetails?.registration_fee ?? 250000) === 0">
+            <span v-if="isCurrentTrackFree">
               Jalur pendaftaran bebas biaya (Rp 0). Anda langsung diarahkan ke pengunggahan berkas persyaratan.
             </span>
             <span v-else>
@@ -608,19 +658,19 @@
             <button
               v-if="isFormChanged"
               type="submit"
-              :disabled="isSaving"
-              class="w-full sm:w-auto px-4 py-2 rounded-lg bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-70 text-center"
+              :disabled="isSaving || (isReferralTrack && !applicantStore.state?.referral?.isApplied)"
+              class="w-full sm:w-auto px-4 py-2 rounded-lg bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-center"
             >
-              {{ isSaving ? 'Menyimpan...' : 'Simpan Perubahan Pilihan' }}
+              {{ isSaving ? 'Menyimpan...' : (isReferralTrack && !applicantStore.state?.referral?.isApplied) ? 'Verifikasi Kode Referal Dahulu' : 'Simpan Perubahan Pilihan' }}
             </button>
 
             <button
               v-else
               type="button"
-              @click="(currentTrackDetails?.registration_fee ?? 250000) === 0 ? emit('switch-tab', 'documents') : emit('switch-tab', 'payment')"
+              @click="isCurrentTrackFree ? emit('switch-tab', 'documents') : emit('switch-tab', 'payment')"
               class="w-full sm:w-auto px-4 py-2 rounded-lg bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer text-center"
             >
-              {{ (currentTrackDetails?.registration_fee ?? 250000) === 0 ? 'Lanjut ke Berkas Dokumen' : 'Lanjut ke Pembayaran' }}
+              {{ isCurrentTrackFree ? 'Lanjut ke Berkas Dokumen' : 'Lanjut ke Pembayaran' }}
             </button>
           </template>
 
@@ -628,10 +678,10 @@
           <button
             v-else
             type="submit"
-            :disabled="isSaving"
-            class="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-semibold shadow-xs hover:shadow-sm transition-all cursor-pointer disabled:opacity-70 text-center"
+            :disabled="isSaving || (isReferralTrack && !applicantStore.state?.referral?.isApplied)"
+            class="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-[#1E3A8A] hover:bg-[#172554] text-white text-xs font-semibold shadow-xs hover:shadow-sm transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-center"
           >
-            {{ isSaving ? 'Menyimpan...' : (currentTrackDetails?.registration_fee ?? 250000) === 0 ? 'Simpan & Lanjut ke Berkas' : 'Simpan & Lanjut ke Pembayaran' }}
+            {{ isSaving ? 'Menyimpan...' : (isReferralTrack && !applicantStore.state?.referral?.isApplied) ? 'Verifikasi Kode Referal Dahulu' : isCurrentTrackFree ? 'Simpan & Lanjut ke Berkas' : 'Simpan & Lanjut ke Pembayaran' }}
           </button>
         </div>
       </div>
@@ -754,7 +804,7 @@
               </div>
 
               <div>
-                <label class="block font-semibold text-slate-700 mb-1">Pilihan Program Studi 2 (Opsional)</label>
+                <label class="block font-semibold text-slate-700 mb-1">Pilihan Program Studi 2 (Baru)</label>
                 <select
                   v-model="pathChangeForm.prodi2"
                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-[#1E3A8A] rounded-lg text-xs outline-none"
@@ -1145,12 +1195,16 @@ import {
   Lock,
   X,
   UserX,
-  CreditCard
+  CreditCard,
+  Check,
+  HelpCircle,
+  Upload
 } from 'lucide-vue-next';
-import { ref, reactive, computed, watch, onMounted } from 'vue';
-import { useApplicantStore } from '@/stores/applicant';
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue';
+import { useApplicantStore, getTrackSpecificDocuments } from '@/stores/applicant';
 import { useOrganizationStore } from '@/stores/organization';
 import { useCmsStore } from '@/stores/cms';
+import { useReferralStore } from '@/stores/referral';
 import { admissionApi } from '@/api/admission';
 import { useToast } from '@/composables/useToast';
 
@@ -1159,11 +1213,17 @@ const emit = defineEmits(['switch-tab']);
 const applicantStore = useApplicantStore();
 const organizationStore = useOrganizationStore();
 const cmsStore = useCmsStore();
+const referralStore = useReferralStore();
 const toast = useToast();
 
 const isSaving = ref(false);
 const isCancelling = ref(false);
 const showCancelModal = ref(false);
+
+const isCurrentTrackFree = computed(() => {
+  const fee = currentTrackDetails.value?.registration_fee ?? 250000;
+  return fee === 0 || applicantStore.state?.referral?.isApplied === true;
+});
 
 // Pantau status refund dan catatan resmi dari Biro Keuangan
 const currentRefundReview = computed(() => {
@@ -1232,8 +1292,26 @@ const withdrawalForm = reactive({
   agreement: false,
 });
 
-const openPathChangeModal = () => {
+const openPathChangeModal = async () => {
   pathChangeError.value = '';
+
+  // Pastikan record pendaftaran aktif telah tersinkronisasi dari backend
+  if (!applicantStore.state.admission?.applicationId) {
+    try {
+      const res = await admissionApi.getMyApplications();
+      const raw = res?.data?.data;
+      const found = raw?.active_application || (Array.isArray(raw) && raw.length > 0 ? raw[0] : (raw?.id ? raw : null));
+      if (found?.id) {
+        applicantStore.state.admission.applicationId = found.id;
+        if (found.registration_no) {
+          applicantStore.state.candidate.registrationNumber = found.registration_no;
+        }
+      }
+    } catch (e) {
+      // Abaikan bila backend sedang offline
+    }
+  }
+
   pathChangeForm.track = applicantStore.state.admission?.track || '';
   pathChangeForm.prodi1 = '';
   pathChangeForm.prodi2 = '';
@@ -1249,11 +1327,26 @@ const submitPathChange = async () => {
     const p2 = prodiList.value.find((p) => p.name === pathChangeForm.prodi2);
     const t = trackList.value.find((tr) => tr.name === pathChangeForm.track);
 
+    const formatChoiceUUID = (id) => {
+      if (!id) return null;
+      if (typeof id === 'string' && id.includes('-')) return id;
+      const num = parseInt(id) || 1;
+      return `00000000-0000-0000-0000-${String(num).padStart(12, '0')}`;
+    };
+
+    const choice1UUID = p1?.uuid || formatChoiceUUID(p1?.id || 1);
+    const choice2UUID = p2 ? (p2?.uuid || formatChoiceUUID(p2?.id || 2)) : null;
+
+    let cleanReason = (pathChangeForm.reason || '').trim();
+    if (cleanReason.length < 10) {
+      cleanReason = `Permohonan alih jalur seleksi: ${cleanReason}`;
+    }
+
     const res = await applicantStore.requestPathChange({
       newPathId: t?.id || 1,
-      choice1Id: p1?.id || 1,
-      choice2Id: p2?.id || null,
-      reason: pathChangeForm.reason,
+      choice1Id: choice1UUID,
+      choice2Id: choice2UUID,
+      reason: cleanReason,
       trackName: t?.name,
     });
 
@@ -1386,64 +1479,97 @@ const prodiList = computed(() => {
 const DEFAULT_TRACK_LIST = [
   {
     id: 1,
-    name: 'Reguler Tes CBT',
+    name: 'Jalur Reguler Gelombang 1',
     badge: 'Seleksi CBT Mandiri',
-    description: 'Jalur seleksi umum berbasis Computer Based Test (CBT) dan wawancara peminatan.',
+    tag: 'CBT Online',
+    description: 'Jalur pendaftaran umum dengan seleksi Computer-Based Test (CBT) dan verifikasi berkas.',
     registration_fee: 250000,
     requires_exam: true,
   },
   {
     id: 2,
-    name: 'Prestasi Akademik',
+    name: 'Jalur Prestasi Akademik / Rapor',
     badge: 'Bebas Tes Tulis',
-    description: 'Jalur seleksi bebas tes berbasis nilai rapor atau sertifikat olimpiade sains.',
-    registration_fee: 200000,
-    requires_exam: false,
-  },
-  {
-    id: 3,
-    name: 'Prestasi Non-Akademik',
-    badge: 'Bebas Tes Tulis',
-    description: 'Jalur seleksi prestasi seni, olahraga, dan keagamaan (Tahfidz).',
-    registration_fee: 200000,
+    tag: 'Nilai Rapor Smt 1-5',
+    description: 'Bebas tes tulis CBT bagi siswa berprestasi peringkat 1-10 paralel sekolah atau nilai rata-rata rapor min 82.',
+    registration_fee: 250000,
     requires_exam: false,
   },
   {
     id: 4,
-    name: 'Beasiswa Kemitraan',
+    name: 'Jalur Beasiswa KIP-Kuliah',
     badge: 'Beasiswa Penuh',
-    description: 'Jalur beasiswa penuh kerja sama institusi dan mitra faskes.',
+    tag: 'Subsidi Pemerintah',
+    description: 'Program beasiswa subsidi pemerintah bagi calon mahasiswa berprestasi dari keluarga prasejahtera.',
     registration_fee: 0,
     requires_exam: true,
   },
 ];
 
 const trackList = computed(() => {
+  let list = [];
   if (Array.isArray(cmsStore.tracks) && cmsStore.tracks.length > 0) {
-    return cmsStore.tracks.map((t, idx) => ({
-      id: t.id || idx + 1,
-      name: t.name,
-      badge: t.wave || 'Gelombang 1',
-      description: t.description || 'Jalur seleksi resmi PMB Universitas BTH.',
-      registration_fee: typeof t.fee === 'number' ? t.fee : 250000,
-      requires_exam: !t.name.toLowerCase().includes('prestasi') && !t.name.toLowerCase().includes('bk'),
-    }));
+    list = cmsStore.tracks
+      .filter((t) => {
+        const lower = (t.name || '').toLowerCase();
+        return !lower.includes('kemitraan') && !lower.includes('guru bk') && !lower.includes('referral');
+      })
+      .map((t, idx) => {
+        const fee = typeof t.fee === 'number' ? t.fee : 250000;
+        const isFree = fee === 0;
+        const lower = (t.name || '').toLowerCase();
+        const isPrestasi = lower.includes('prestasi') || lower.includes('rapor');
+        const isKip = lower.includes('kip') || lower.includes('beasiswa');
+        let badge = 'Seleksi CBT Mandiri';
+        let tag = 'CBT Online';
+
+        if (isKip) {
+          badge = 'Beasiswa Penuh';
+          tag = 'Subsidi Pemerintah';
+        } else if (isPrestasi) {
+          badge = 'Bebas Tes Tulis';
+          tag = 'Nilai Rapor Smt 1-5';
+        }
+
+        return {
+          id: t.id || idx + 1,
+          name: t.name,
+          badge,
+          tag,
+          description: t.description || 'Jalur seleksi resmi PMB Universitas BTH.',
+          registration_fee: fee,
+          requires_exam: !isPrestasi && !isFree,
+        };
+      });
+  } else if (backendPaths.value && backendPaths.value.length > 0) {
+    list = backendPaths.value
+      .filter((p) => {
+        const lower = (p.name || '').toLowerCase();
+        return !lower.includes('kemitraan') && !lower.includes('guru bk') && !lower.includes('referral');
+      })
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        badge: p.requires_exam ? 'Seleksi CBT Mandiri' : 'Bebas Tes Tulis',
+        tag: p.requires_exam ? 'CBT Online' : 'Seleksi Berkas',
+        description: p.description || 'Jalur seleksi resmi PMB Universitas BTH.',
+        registration_fee: p.registration_fee ?? 250000,
+        requires_exam: p.requires_exam,
+      }));
+  } else {
+    list = [...DEFAULT_TRACK_LIST];
   }
-  if (backendPaths.value && backendPaths.value.length > 0) {
-    return backendPaths.value.map((p) => ({
-      id: p.id,
-      name: p.name,
-      badge: p.requires_exam ? 'Seleksi CBT Mandiri' : 'Bebas Tes Tulis',
-      description: p.description || 'Jalur seleksi resmi PMB Universitas BTH.',
-      registration_fee: p.registration_fee ?? 250000,
-      requires_exam: p.requires_exam,
-    }));
-  }
-  return DEFAULT_TRACK_LIST;
+
+  return list;
 });
 
+const defaultTrack =
+  applicantStore.state.admission?.track && !applicantStore.state.admission.track.includes('Guru BK')
+    ? applicantStore.state.admission.track
+    : 'Jalur Reguler Gelombang 1';
+
 const admissionForm = ref({
-  track: applicantStore.state.admission.track || 'Reguler Tes CBT',
+  track: defaultTrack,
   prodi1: applicantStore.state.admission.prodi1 || '',
   prodi2: applicantStore.state.admission.prodi2 || '',
 });
@@ -1474,8 +1600,38 @@ watch(
   }
 );
 
+watch(
+  () => admissionForm.value.track,
+  (newTrack) => {
+    if (newTrack) {
+      if (applicantStore.state.admission && !applicantStore.isAdmissionLocked) {
+        applicantStore.state.admission.track = newTrack;
+      }
+      if (applicantStore.syncDocumentsForTrack) {
+        applicantStore.syncDocumentsForTrack(newTrack);
+      }
+    }
+  }
+);
+
+const goToDocumentModule = () => {
+  if (admissionForm.value.track) {
+    if (applicantStore.state.admission && !applicantStore.isAdmissionLocked) {
+      applicantStore.state.admission.track = admissionForm.value.track;
+    }
+    if (applicantStore.syncDocumentsForTrack) {
+      applicantStore.syncDocumentsForTrack(admissionForm.value.track);
+    }
+  }
+  emit('switch-tab', 'documents');
+};
+
 const currentTrackDetails = computed(() => {
   return trackList.value.find((t) => t.name === admissionForm.value.track) || trackList.value[0];
+});
+
+const currentTrackSpecificDocs = computed(() => {
+  return getTrackSpecificDocuments(admissionForm.value.track);
 });
 
 const currentProdi1Details = computed(() => {
@@ -1489,7 +1645,7 @@ const currentProdi2Details = computed(() => {
 const isFormChanged = computed(() => {
   const currentProdi1 = applicantStore.state.admission?.prodi1 || '';
   const currentProdi2 = applicantStore.state.admission?.prodi2 || '';
-  const currentTrack = applicantStore.state.admission?.track || 'Reguler Tes CBT';
+  const currentTrack = applicantStore.state.admission?.track || 'Jalur Reguler Gelombang 1';
 
   return (
     admissionForm.value.prodi1 !== currentProdi1 ||
@@ -1517,6 +1673,7 @@ const saveAdmission = async () => {
     toast.error('Silakan pilih Program Studi Pilihan Utama terlebih dahulu.');
     return;
   }
+
   isSaving.value = true;
   try {
     const p1 = currentProdi1Details.value;
@@ -1528,6 +1685,7 @@ const saveAdmission = async () => {
 
     applicantStore.updateAdmission({
       track: admissionForm.value.track,
+      requiresExam: currentTrackDetails.value?.requires_exam !== false,
       prodi1: admissionForm.value.prodi1,
       prodi1Code: p1?.code || '',
       prodi1NimCode: p1?.nim_code || '01',
@@ -1549,13 +1707,24 @@ const saveAdmission = async () => {
     const choice2UUID = p2 ? (p2?.uuid || formatChoiceUUID(p2?.id || 2)) : null;
 
     // Sinkronisasi ke backend admission-service
+    // 0. Pastikan langkah onboarding wa_group_camaba terkonfirmasi di database backend (CR-011)
+    await admissionApi.confirmOnboarding('wa_group_camaba').catch(() => null);
+
     const existingApps = await admissionApi.getMyApplications().catch(() => null);
-    if (existingApps?.data?.data && existingApps.data.data.length > 0) {
-      const activeApp = existingApps.data.data[0];
+    const existingList = existingApps?.data?.data;
+    const activeApp = existingList?.active_application || (Array.isArray(existingList) && existingList.length > 0 ? existingList[0] : (existingList?.id ? existingList : null));
+
+    if (activeApp?.id) {
       await admissionApi.updateChoices(activeApp.id, {
         choice_1_id: choice1UUID,
         choice_2_id: choice2UUID,
-      }).catch(() => null);
+      }).catch((err) => {
+        console.warn('Update choices notice:', err?.response?.data || err);
+      });
+      applicantStore.state.admission.applicationId = activeApp.id;
+      if (activeApp.registration_no) {
+        applicantStore.state.candidate.registrationNumber = activeApp.registration_no;
+      }
     } else {
       let periodId = activePeriod.value?.id || 1;
       let pathId = currentTrackDetails.value?.id || 1;
@@ -1567,57 +1736,107 @@ const saveAdmission = async () => {
         if (found?.id) pathId = found.id;
       }
 
-      const createRes = await admissionApi.createApplication({
-        period_id: periodId,
-        admission_path_id: pathId,
-        choice_1_id: choice1UUID,
-        choice_2_id: choice2UUID,
-      }).catch((err) => {
-        console.warn('Backend create application notice:', err);
-        return null;
-      });
+      let createRes = null;
+      try {
+        createRes = await admissionApi.createApplication({
+          period_id: periodId,
+          admission_path_id: pathId,
+          choice_1_id: choice1UUID,
+          choice_2_id: choice2UUID,
+        });
+      } catch (err) {
+        if (err?.response?.data?.error_code === 'WA_GROUP_JOIN_REQUIRED') {
+          await admissionApi.confirmOnboarding('wa_group_camaba').catch(() => null);
+          createRes = await admissionApi.createApplication({
+            period_id: periodId,
+            admission_path_id: pathId,
+            choice_1_id: choice1UUID,
+            choice_2_id: choice2UUID,
+          }).catch((e) => {
+            console.error('Retry create application notice:', e?.response?.data || e);
+            return null;
+          });
+        } else if (err?.response?.data?.error_code === 'DUPLICATE_APPLICATION' || err?.response?.data?.error_code === 'ACTIVE_APPLICATION_EXISTS') {
+          console.info('Pendaftaran sudah terdaftar di backend.');
+        } else {
+          console.error('Backend create application notice:', err?.response?.data || err);
+        }
+      }
 
-      if (createRes?.data?.data?.registration_no) {
-        applicantStore.state.candidate.registrationNumber = createRes.data.data.registration_no;
+      if (createRes?.data?.data) {
+        const newAppData = createRes.data.data;
+        if (newAppData.id) {
+          applicantStore.state.admission.applicationId = newAppData.id;
+        }
+        if (newAppData.registration_no) {
+          applicantStore.state.candidate.registrationNumber = newAppData.registration_no;
+        }
       }
     }
 
-    const isFreeTrack = (currentTrackDetails.value?.registration_fee ?? 250000) === 0;
+    const isFreeTrack = isCurrentTrackFree.value;
 
     if (isFreeTrack) {
       if (applicantStore.state?.payments?.registrationFee) {
         applicantStore.state.payments.registrationFee.amount = 0;
         applicantStore.state.payments.registrationFee.status = 'paid';
         applicantStore.state.payments.registrationFee.isFree = true;
-        applicantStore.state.payments.registrationFee.paymentMethod = 'Jalur Bebas Biaya (Gratis)';
+        applicantStore.state.payments.registrationFee.paymentMethod = applicantStore.state?.referral?.isApplied
+          ? `Kemitraan Guru BK (${applicantStore.state.referral.code})`
+          : 'Jalur Bebas Biaya (Gratis)';
+        applicantStore.state.payments.registrationFee.statusLabel = applicantStore.state?.referral?.isApplied
+          ? 'Lunas (Mitra BK)'
+          : 'Bebas Biaya (Rp 0)';
       }
       applicantStore.state.admission.status = 'form_open';
+    } else {
+      if (applicantStore.state?.payments?.registrationFee) {
+        if (!applicantStore.state?.referral?.isApplied) {
+          const trackFee = currentTrackDetails.value?.registration_fee ?? 250000;
+          if (applicantStore.state.payments.registrationFee.isFree || applicantStore.state.payments.registrationFee.amount === 0) {
+            applicantStore.state.payments.registrationFee.amount = trackFee;
+            applicantStore.state.payments.registrationFee.isFree = false;
+            applicantStore.state.payments.registrationFee.status = 'unpaid';
+            applicantStore.state.payments.registrationFee.statusLabel = 'Menunggu Pembayaran';
+            applicantStore.state.payments.registrationFee.paymentMethod = '';
+            applicantStore.state.payments.registrationFee.paidAt = null;
+          }
+        }
+      }
     }
 
     // Refresh sinkronisasi seluruh state dari backend
     await applicantStore.syncFromBackend().catch(() => null);
 
     if (isFreeTrack) {
-      toast.success('Pilihan jalur bebas biaya berhasil disimpan. Mengalihkan ke unggah berkas...');
+      toast.success(
+        applicantStore.state?.referral?.isApplied
+          ? 'Pilihan program studi berhasil disimpan (Mitra Guru BK Terhubung). Mengalihkan ke unggah berkas...'
+          : 'Pilihan jalur bebas biaya berhasil disimpan. Mengalihkan ke unggah berkas...'
+      );
       setTimeout(() => {
         emit('switch-tab', 'documents');
       }, 700);
     } else {
-      toast.success('Pilihan program studi berhasil disimpan. Mengalihkan ke pembayaran...');
+      toast.success('Pilihan jalur & program studi berhasil disimpan. Mengalihkan ke pembayaran...');
       setTimeout(() => {
         emit('switch-tab', 'payment');
       }, 600);
     }
   } catch (err) {
     console.warn('Admission save notice (fallback):', err);
-    const isFreeTrack = (currentTrackDetails.value?.registration_fee ?? 250000) === 0;
+    const isFreeTrack = isCurrentTrackFree.value;
     if (isFreeTrack) {
-      toast.success('Pilihan jalur bebas biaya berhasil disimpan. Mengalihkan ke unggah berkas...');
+      toast.success(
+        applicantStore.state?.referral?.isApplied
+          ? 'Pilihan program studi berhasil disimpan (Mitra Guru BK Terhubung). Mengalihkan ke unggah berkas...'
+          : 'Pilihan jalur bebas biaya berhasil disimpan. Mengalihkan ke unggah berkas...'
+      );
       setTimeout(() => {
         emit('switch-tab', 'documents');
       }, 700);
     } else {
-      toast.success('Pilihan program studi berhasil disimpan. Mengalihkan ke pembayaran...');
+      toast.success('Pilihan jalur & program studi berhasil disimpan. Mengalihkan ke pembayaran...');
       setTimeout(() => {
         emit('switch-tab', 'payment');
       }, 600);

@@ -113,6 +113,10 @@ export const examApi = {
     return apiClient.post('/exam/admin/cbt/exams', data);
   },
 
+  async updateCBTExam(examId, data) {
+    return apiClient.put(`/exam/admin/cbt/exams/${examId}`, data);
+  },
+
   async publishCBTExam(examId) {
     return apiClient.post(`/exam/admin/cbt/exams/${examId}/publish`);
   },

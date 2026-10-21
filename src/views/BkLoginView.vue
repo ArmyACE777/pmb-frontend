@@ -63,7 +63,7 @@
                   type="text"
                   required
                   autocomplete="username"
-                  placeholder="Contoh: SMKCONTOH01 atau nurjanah.bk"
+                  placeholder="Contoh: SMAN1TSM-BK atau username terdaftar"
                   class="w-full pl-3.5 pr-10 py-2.5 bg-slate-50/60 border border-slate-300 focus:border-[#1E3A8A] focus:bg-white focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-900 font-sans outline-none transition-all"
                 />
                 <User class="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -146,6 +146,8 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useReferralStore } from '@/stores/referral';
+import { useAuthStore } from '@/stores/auth';
+import { referralApi } from '@/api/referral';
 import { useToast } from '@/composables/useToast';
 import {
   GraduationCap,
@@ -160,6 +162,7 @@ import {
 
 const router = useRouter();
 const referralStore = useReferralStore();
+const authStore = useAuthStore();
 const toast = useToast();
 
 const identifier = ref('');
@@ -176,12 +179,69 @@ const handleLogin = async () => {
   }
 
   isLoading.value = true;
+  const inputIdent = String(identifier.value).trim();
+  const inputPass = String(password.value).trim();
+
   try {
-    // Simulasi delay autentikasi
-    await new Promise((r) => setTimeout(r, 400));
-    
-    const result = referralStore.loginBk(identifier.value, password.value);
+    // 1. Coba sinkronisasi data terbaru terlebih dahulu dari backend / shared server
+    try {
+      await referralStore.syncFromSharedServer();
+    } catch {}
+
+    // 2. Coba login melalui store lokal Guru BK
+    let result = referralStore.loginBk(inputIdent, inputPass);
+
+    // 3. Jika belum ditemukan di lokal, periksa apakah inputIdent adalah kode referal resmi di backend DB
+    if (!result.success) {
+      const cleanCode = inputIdent.replace(/^(bk_|mkt_)/i, '').toUpperCase();
+      try {
+        const checkRes = await referralApi.checkCode(cleanCode);
+        const codeData = checkRes.data?.data || checkRes.data;
+        if (codeData?.valid) {
+          const instName = codeData.institution_name || 'Sekolah Mitra PMB';
+          const partner = referralStore.addReferral({
+            code: cleanCode,
+            institution: instName,
+            schoolName: instName,
+            category: 'guru_bk',
+            username: `bk_${cleanCode.toLowerCase()}`,
+            email: `${cleanCode.toLowerCase()}@sekolah.sch.id`,
+            password: inputPass,
+            status: 'active',
+          });
+          result = referralStore.loginBk(cleanCode, inputPass);
+        }
+      } catch (e) {}
+    }
+
+    // 4. Jika masih belum berhasil dan input berupa email, coba autentikasi ke backend API resmi
+    if (!result.success && inputIdent.includes('@')) {
+      try {
+        await authStore.login(inputIdent, inputPass);
+        if (authStore.isBkPartner || authStore.userRoles.includes('guru_bk')) {
+          let partner = referralStore.findPartnerByIdentifier(inputIdent);
+          if (!partner) {
+            partner = referralStore.createOrEnsureBkPartner({
+              email: inputIdent,
+              full_name: authStore.currentUser?.full_name || authStore.currentUser?.name,
+              phone: authStore.currentUser?.phone,
+            });
+          }
+          referralStore.setSessionPartner(partner);
+          authStore.setBkUser(partner);
+          result = {
+            success: true,
+            partner,
+            message: `Selamat datang, ${partner.picName}! Berhasil masuk ke Portal Kemitraan Guru BK.`,
+          };
+        }
+      } catch (authErr) {
+        console.warn('Backend BK login attempt:', authErr?.response?.data?.message || authErr.message);
+      }
+    }
+
     if (result.success) {
+      authStore.setBkUser(result.partner);
       toast.success(result.message);
       router.push('/bk');
     } else {

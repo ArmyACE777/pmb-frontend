@@ -100,16 +100,30 @@
               </div>
             </div>
 
-            <!-- Tombol Riwayat Aktivitas -->
-            <button
-              type="button"
-              @click="openAuditHistoryModal"
-              class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#1E3A8A] bg-blue-50/85 hover:bg-blue-100 border border-blue-200/90 transition-all cursor-pointer shadow-2xs hover:shadow-xs whitespace-nowrap"
-              title="Buka rekam jejak aktivitas simpan, ubah, berkas, dan transaksi"
-            >
-              <History class="w-3.5 h-3.5 text-[#1E3A8A]" />
-              <span>Riwayat Aktivitas</span>
-            </button>
+            <!-- Action Buttons: Panduan PMB & Riwayat Aktivitas -->
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                @click="showGuideModal = true"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-all cursor-pointer shadow-2xs hover:shadow-xs whitespace-nowrap"
+                title="Buka Buku Panduan Pendaftaran Calon Mahasiswa Baru"
+              >
+                <BookOpen class="w-3.5 h-3.5 text-[#1E3A8A]" />
+                <span class="hidden sm:inline">Panduan PMB</span>
+                <span class="sm:hidden">Panduan</span>
+              </button>
+
+              <!-- Tombol Riwayat Aktivitas -->
+              <button
+                type="button"
+                @click="openAuditHistoryModal"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#1E3A8A] bg-blue-50/85 hover:bg-blue-100 border border-blue-200/90 transition-all cursor-pointer shadow-2xs hover:shadow-xs whitespace-nowrap"
+                title="Buka rekam jejak aktivitas simpan, ubah, berkas, dan transaksi"
+              >
+                <History class="w-3.5 h-3.5 text-[#1E3A8A]" />
+                <span>Riwayat Aktivitas</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -607,6 +621,9 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- Modal Panduan PMB Mahasiswa Baru -->
+    <ApplicantGuideModal v-model="showGuideModal" />
   </DashboardLayout>
 </template>
 
@@ -637,7 +654,8 @@ import {
   Lock,
   Search,
   X,
-  Bell
+  Bell,
+  Award
 } from 'lucide-vue-next';
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
@@ -653,6 +671,7 @@ import DocumentModule from '@/components/applicant/DocumentModule.vue';
 import PaymentModule from '@/components/applicant/PaymentModule.vue';
 import ExamModule from '@/components/applicant/ExamModule.vue';
 import ResultModule from '@/components/applicant/ResultModule.vue';
+import ApplicantGuideModal from '@/components/guides/ApplicantGuideModal.vue';
 import { useToast } from '@/composables/useToast';
 
 const route = useRoute();
@@ -660,6 +679,8 @@ const applicantStore = useApplicantStore();
 const authStore = useAuthStore();
 const cmsStore = useCmsStore();
 const toast = useToast();
+
+const showGuideModal = ref(false);
 
 // Format nominal biaya formulir pendaftaran dinamis (dari CMS / store pendaftar)
 const dynamicRegFeeAmount = computed(() => {
@@ -968,6 +989,18 @@ const nextActionInfo = computed(() => {
         icon: RotateCcw,
       };
     }
+    if (applicantStore.isExamExempt) {
+      return {
+        title: 'Jalur Bebas Tes: Seleksi Berkas Prestasi & Nilai Rapor',
+        desc: 'Pendaftaran Anda bebas dari ujian tertulis CBT. Berkas persyaratan dan portofolio nilai rapor Anda sedang ditinjau oleh Panitia Seleksi PMB.',
+        cta: 'Cek Status Berkas & Seleksi',
+        tab: 'exam',
+        section: null,
+        badge: 'Bebas Tes CBT (Seleksi Berkas)',
+        theme: 'emerald',
+        icon: Award,
+      };
+    }
     return {
       title: 'Ujian Selesai - Verifikasi Nilai CBT',
       desc: `Skor CBT Anda (${applicantStore.state?.exam?.score ?? 0}/100) sedang ditinjau panitia PMB. Pengumuman maksimal 1x24 jam.`,
@@ -1038,7 +1071,9 @@ const steps = computed(() => [
     id: 'documents',
     number: 4,
     title: 'Berkas Dokumen',
-    statusText: applicantStore.isDocumentsComplete ? 'Lengkap (5/5)' : `${applicantStore.uploadedDocsCount}/5 Diunggah`,
+    statusText: applicantStore.isDocumentsComplete
+      ? `Lengkap (${applicantStore.uploadedDocsCount}/${applicantStore.totalDocsCount})`
+      : `${applicantStore.uploadedDocsCount}/${applicantStore.totalDocsCount} Diunggah`,
     isCompleted: applicantStore.isDocumentsComplete,
     isCurrent: applicantStore.isRegPaymentComplete && !applicantStore.isDocumentsComplete,
     icon: FileText,
@@ -1046,11 +1081,17 @@ const steps = computed(() => [
   {
     id: 'exam',
     number: 5,
-    title: 'Proses Seleksi',
-    statusText: applicantStore.isExamCompleted ? `Skor ${applicantStore.state?.exam?.score ?? 0}/100` : applicantStore.isRegPaymentComplete ? 'CBT & Lisan' : 'Menunggu Bayar',
+    title: applicantStore.isExamExempt ? 'Seleksi Berkas & Rapor' : 'Proses Seleksi',
+    statusText: applicantStore.isExamExempt
+      ? 'Bebas Tes (Seleksi Berkas)'
+      : applicantStore.isExamCompleted
+        ? `Skor ${applicantStore.state?.exam?.score ?? 0}/100`
+        : applicantStore.isRegPaymentComplete
+          ? 'CBT & Lisan'
+          : 'Menunggu Bayar',
     isCompleted: applicantStore.isExamCompleted,
     isCurrent: applicantStore.isRegPaymentComplete && !applicantStore.isExamCompleted,
-    icon: ClipboardCheck,
+    icon: applicantStore.isExamExempt ? Award : ClipboardCheck,
   },
   {
     id: 'result',
@@ -1112,6 +1153,7 @@ const copyRegNumber = async () => {
 };
 
 const switchTab = (tabId) => {
+  if (tabId === 'document' || tabId === 'berkas') tabId = 'documents';
   if (applicantStore.isWithdrawn && ['documents', 'exam', 'result'].includes(tabId)) {
     toast.warning('Pendaftaran telah berstatus mengundurkan diri. Fitur berkas, seleksi, dan daftar ulang dinonaktifkan.');
     return;
