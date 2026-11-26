@@ -1131,11 +1131,10 @@ import {
   Edit2,
   Trash2,
   ArrowRight,
-  ExternalLink,
   DollarSign
 } from 'lucide-vue-next';
 import { ref, reactive, watch } from 'vue';
-import { useCmsStore, DEFAULT_CMS_DATA } from '@/stores/cms';
+import { useCmsStore, DEFAULT_CMS_DATA, buildWhatsappLink } from '@/stores/cms';
 import { useToast } from '@/composables/useToast';
 
 const cmsStore = useCmsStore();
@@ -1178,12 +1177,7 @@ watch(
 // Auto-generate WhatsApp API Link saat nomor diubah
 const autoSyncWaLink = () => {
   if (form.contact.whatsapp) {
-    const rawNumber = form.contact.whatsapp.replace(/[^0-9]/g, '');
-    let formatted = rawNumber;
-    if (formatted.startsWith('0')) {
-      formatted = '62' + formatted.slice(1);
-    }
-    form.contact.whatsappLink = `https://api.whatsapp.com/send?phone=${formatted}&text=Halo%20Helpdesk%20PMB%20BTH%2C%20saya%20ingin%20bertanya%20mengenai%20pendaftaran.`;
+    form.contact.whatsappLink = buildWhatsappLink(form.contact.whatsapp);
   }
 };
 

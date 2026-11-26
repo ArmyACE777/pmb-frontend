@@ -1541,16 +1541,11 @@ export const useAdminStore = defineStore('admin', () => {
 
     syncApplicantToLocalApplicantStorage(applicant);
 
-    nimApi
-      .generateNim({
-        applicant_id: applicant.id,
-        nim,
-        faculty: applicant.faculty,
-        prodi: applicant.prodi1,
-      })
-      .catch((e) => {
-        console.warn('NIM API Notice (autoGenerateNim fallback):', e?.message);
+    if (applicant.studentId) {
+      studentApi.issueNimManual(applicant.studentId).catch((e) => {
+        console.warn('Student NIM API Notice (autoGenerateNim fallback):', e?.message);
       });
+    }
 
     return nim;
   };
@@ -1646,17 +1641,12 @@ export const useAdminStore = defineStore('admin', () => {
     // Sinkronkan ke local storage siswa dan siarkan update
     syncApplicantToLocalApplicantStorage(applicant);
 
-    // Dispatch ke backend nim-service
-    nimApi
-      .generateNim({
-        applicant_id: applicantId,
-        nim: applicant.onboarding.nim,
-        faculty: applicant.faculty,
-        prodi: applicant.prodi1,
-      })
-      .catch((e) => {
-        console.warn('NIM API Notice (generateNim fallback):', e?.message);
+    // Dispatch ke backend student-service bila studentId backend tersedia
+    if (applicant.studentId) {
+      studentApi.issueNimManual(applicant.studentId).catch((e) => {
+        console.warn('Student NIM API Notice (generateNim fallback):', e?.message);
       });
+    }
   };
 
   // Helper internal: Dapatkan token otorisasi admin untuk mengakses API backend
@@ -1877,9 +1867,12 @@ export const useAdminStore = defineStore('admin', () => {
               const found = applicants.value.find(
                 (a) => a.id === stud.registration_number || a.backendUserId === stud.user_id
               );
-              if (found && stud.nim) {
-                found.onboarding.nim = stud.nim;
-                found.onboarding.isEnrolled = true;
+              if (found) {
+                if (stud.id) found.studentId = stud.id;
+                if (stud.nim) {
+                  found.onboarding.nim = stud.nim;
+                  found.onboarding.isEnrolled = true;
+                }
               }
             });
           }
@@ -1902,11 +1895,13 @@ export const useAdminStore = defineStore('admin', () => {
                         (participantNum && a.id === participantNum)
                     );
                     if (found && att.status === 'submitted') {
-                      const score = Math.max(att.final_score ?? att.objective_score ?? 0, 80);
+                      const score = Number(att.final_score ?? att.objective_score ?? 0);
                       found.selection = found.selection || {};
                       found.selection.cbtScore = score;
                       found.selection.passedStatus = score >= (ex.passing_grade || 70) ? 'passed' : 'failed';
-                      found.selection.interviewScore = found.selection.interviewScore || 88;
+                      if (att.interview_score != null) {
+                        found.selection.interviewScore = Number(att.interview_score);
+                      }
                     }
                   });
                 }

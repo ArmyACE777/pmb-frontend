@@ -14,10 +14,10 @@
         <button
           @click="handleExportSevima"
           class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
-          title="Unduh seluruh data calon mahasiswa dalam format 62 kolom SEVIMA"
+          title="Unduh seluruh data calon mahasiswa dalam format 62 kolom SEVIMA (.xlsx)"
         >
           <FileSpreadsheet class="w-3.5 h-3.5" />
-          <span>Ekspor SEVIMA (.xls)</span>
+          <span>Ekspor SEVIMA (.xlsx)</span>
         </button>
 
         <button
@@ -563,10 +563,10 @@
             />
             <Upload class="w-8 h-8 text-slate-400 mx-auto mb-2" />
             <div class="font-medium text-slate-700">
-              Klik atau tarik file CSV / Excel format SEVIMA ke sini
+              Klik atau tarik file Excel (.xlsx) / CSV format SEVIMA ke sini
             </div>
             <div class="text-[10px] text-slate-400 mt-1">
-              Mendukung file .csv (pemisah titik-koma / koma) & tabel SEVIMA
+              Mendukung file .xlsx resmi SEVIMA (62 kolom) & .csv (pemisah titik-koma / koma)
             </div>
           </div>
 
@@ -643,7 +643,7 @@
             @click="downloadSevimaTemplate"
             class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold cursor-pointer"
           >
-            Unduh Format Blanko SEVIMA (.xls)
+            Unduh Format Blanko SEVIMA (.xlsx)
           </button>
 
           <div class="flex items-center gap-2">
@@ -683,7 +683,7 @@ import { useAdminStore } from '@/stores/admin';
 import { useToast } from '@/composables/useToast';
 import { PRODI_METADATA } from '@/stores/applicant';
 import { FileSpreadsheet, Upload, X, Trash2 } from 'lucide-vue-next';
-import { exportToSevimaMigrationExcel, parseSevimaImportContent } from '@/utils/exportHelper';
+import { exportToSevimaMigrationExcel, parseSevimaImportFile } from '@/utils/exportHelper';
 import DeleteStudentModal from '@/components/admin/DeleteStudentModal.vue';
 
 const props = defineProps({
@@ -723,17 +723,17 @@ const isDragging = ref(false);
 const importParseResult = ref(null);
 const isImporting = ref(false);
 
-const handleExportSevima = () => {
+const handleExportSevima = async () => {
   const list = adminStore.applicants || [];
   if (list.length === 0) {
     toast.error('Belum ada data pendaftar untuk diekspor.');
     return;
   }
-  exportToSevimaMigrationExcel({
+  await exportToSevimaMigrationExcel({
     filename: `Format_Migrasi_SEVIMA_PMB_BTH_${new Date().toISOString().split('T')[0]}`,
     applicants: list,
   });
-  toast.success(`Berhasil mengekspor ${list.length} pendaftar ke format tabel migrasi SEVIMA.`);
+  toast.success(`Berhasil mengekspor ${list.length} pendaftar ke format resmi SEVIMA (.xlsx).`);
 };
 
 const triggerFileInput = () => {
@@ -755,19 +755,14 @@ const handleFileDrop = (e) => {
   }
 };
 
-const readFileContent = (file) => {
-  const reader = new FileReader();
-  reader.onload = (evt) => {
-    try {
-      const text = evt.target.result;
-      const res = parseSevimaImportContent(text);
-      importParseResult.value = res;
-      toast.success(`File terbaca: ${res.validCount} baris valid siap diimpor.`);
-    } catch (err) {
-      toast.error(err.message || 'Gagal memproses file. Pastikan format CSV/tabel valid.');
-    }
-  };
-  reader.readAsText(file);
+const readFileContent = async (file) => {
+  try {
+    const res = await parseSevimaImportFile(file);
+    importParseResult.value = res;
+    toast.success(`File terbaca: ${res.validCount} baris valid siap diimpor.`);
+  } catch (err) {
+    toast.error(err.message || 'Gagal memproses file. Pastikan format .xlsx / .csv SEVIMA valid.');
+  }
 };
 
 const closeImportModal = () => {
@@ -775,12 +770,12 @@ const closeImportModal = () => {
   importParseResult.value = null;
 };
 
-const downloadSevimaTemplate = () => {
-  exportToSevimaMigrationExcel({
+const downloadSevimaTemplate = async () => {
+  await exportToSevimaMigrationExcel({
     filename: 'Template_Kosong_Migrasi_SEVIMA_PMB_BTH',
     applicants: [],
   });
-  toast.info('Template blanko 62-kolom SEVIMA berhasil diunduh.');
+  toast.info('Template blanko resmi 62-kolom SEVIMA (.xlsx) berhasil diunduh.');
 };
 
 const commitSevimaImport = () => {
@@ -810,8 +805,15 @@ const commitSevimaImport = () => {
           graduationYear: d.graduationYear || '2025',
           programType: d.programType || 'IPA',
           lastEducation: d.lastEducation || 'SMA',
-          institutionType: d.institutionType || '7',
+          institutionType: d.institutionType || '1',
           almamaterSize: d.almamaterSize || 'L',
+          npsn: d.npsn || '',
+          nisn: d.nisn || '',
+          province: d.province || '',
+          city: d.city || '',
+          district: d.district || '',
+          motherName: d.motherName || '',
+          fatherName: d.fatherName || '',
         },
         selection: {
           passedStatus: 'passed',

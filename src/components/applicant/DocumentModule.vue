@@ -15,87 +15,14 @@
       </div>
     </div>
 
-    <!-- Banner Jalur Pendaftaran & Persyaratan Berkas -->
-    <div class="p-4 bg-blue-50/80 border border-blue-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs font-sans">
-      <div class="space-y-1">
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#1E3A8A] text-white">
-            Jalur Terpilih
-          </span>
-          <span class="font-bold text-[#1E3A8A] font-sora text-xs sm:text-sm">
-            {{ applicantStore.state.admission?.track || 'Jalur Reguler' }}
-          </span>
-        </div>
-        <p class="text-slate-600 text-[11px] leading-relaxed">
-          Kebutuhan berkas disesuaikan otomatis berdasarkan jalur pendaftaran Anda (5 Berkas Pokok<span v-if="trackSpecificCount > 0"> + {{ trackSpecificCount }} Berkas Pendukung Khusus</span>).
-        </p>
-      </div>
-
-      <!-- Filter Kategori Dokumen (Jika ada berkas khusus jalur) -->
-      <div v-if="trackSpecificCount > 0" class="flex items-center gap-1.5 self-start sm:self-auto bg-white p-1 rounded-xl border border-blue-200">
-        <button
-          type="button"
-          @click="activeDocFilter = 'all'"
-          class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer"
-          :class="activeDocFilter === 'all' ? 'bg-[#1E3A8A] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'"
-        >
-          Semua ({{ documents.length }})
-        </button>
-        <button
-          type="button"
-          @click="activeDocFilter = 'base'"
-          class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer"
-          :class="activeDocFilter === 'base' ? 'bg-[#1E3A8A] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'"
-        >
-          Pokok (5)
-        </button>
-        <button
-          type="button"
-          @click="activeDocFilter = 'track'"
-          class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer"
-          :class="activeDocFilter === 'track' ? 'bg-[#1E3A8A] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'"
-        >
-          Khusus Jalur ({{ trackSpecificCount }})
-        </button>
-      </div>
-    </div>
-
-    <!-- Highlight Notifikasi Khusus Jalur dengan Berkas Pendukung -->
-    <div
-      v-if="trackSpecificCount > 0"
-      class="p-4 bg-gradient-to-r from-blue-50/90 to-indigo-50/70 border border-blue-200/90 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs animate-fadeIn font-sans"
-    >
-      <div class="flex items-start gap-3">
-        <div class="w-8 h-8 rounded-xl bg-[#1E3A8A] text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
-          <FileText class="w-4 h-4" />
-        </div>
-        <div>
-          <div class="font-bold text-[#1E3A8A] text-xs sm:text-sm font-sora">
-            Berkas Pendukung Khusus Jalur: {{ applicantStore.state.admission?.track }}
-          </div>
-          <p class="text-slate-600 text-[11px] font-sans mt-0.5 leading-relaxed">
-            Jalur yang Anda pilih memerlukan <strong>{{ trackSpecificCount }} berkas data pendukung khusus</strong> di samping 5 berkas pokok. Silakan klik tombol <strong>Unggah Berkas</strong> pada masing-masing kartu dokumen khusus bertanda biru di bawah.
-          </p>
-        </div>
-      </div>
-      <div class="flex items-center gap-2 self-start sm:self-auto shrink-0">
-        <button
-          v-if="activeDocFilter !== 'track'"
-          type="button"
-          @click="activeDocFilter = 'track'"
-          class="px-3.5 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white rounded-xl text-xs font-semibold cursor-pointer shadow-xs transition-colors whitespace-nowrap"
-        >
-          Lihat Berkas Khusus Saja
-        </button>
-        <button
-          v-else
-          type="button"
-          @click="activeDocFilter = 'all'"
-          class="px-3.5 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold cursor-pointer shadow-xs transition-colors whitespace-nowrap"
-        >
-          Tampilkan Semua Berkas
-        </button>
-      </div>
+    <!-- Info Ringkas Jalur Terpilih -->
+    <div class="px-4 py-2.5 bg-blue-50/70 border border-blue-200/80 rounded-xl flex items-center gap-2 text-xs font-sans">
+      <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#1E3A8A] text-white">
+        Jalur Terpilih
+      </span>
+      <span class="font-bold text-[#1E3A8A] font-sora text-xs sm:text-sm">
+        {{ applicantStore.state.admission?.track || 'Jalur Reguler' }}
+      </span>
     </div>
 
     <!-- Hidden native file input -->
@@ -110,7 +37,7 @@
     <!-- Daftar Dokumen List -->
     <div class="space-y-3">
       <div
-        v-for="doc in displayedDocuments"
+        v-for="doc in documents"
         :key="doc.id"
         class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs hover:border-slate-300 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
         :class="isTrackDoc(doc) ? 'ring-1 ring-blue-200/80' : ''"
@@ -379,7 +306,6 @@
 import {
   ExternalLink,
   CheckCircle2,
-  AlertCircle,
   FileText,
   ArrowRight,
   ArrowLeft,
@@ -398,19 +324,6 @@ const toast = useToast();
 const documents = computed(() => applicantStore.state.documents);
 
 const isTrackDoc = (doc) => doc.isBaseDoc === false || doc.isBase === false;
-
-const activeDocFilter = ref('all');
-const trackSpecificCount = computed(() => documents.value.filter(isTrackDoc).length);
-
-const displayedDocuments = computed(() => {
-  if (activeDocFilter.value === 'base') {
-    return documents.value.filter((d) => !isTrackDoc(d));
-  }
-  if (activeDocFilter.value === 'track') {
-    return documents.value.filter(isTrackDoc);
-  }
-  return documents.value;
-});
 
 // Otomatis sinkronkan dokumen jalur saat halaman berkas dibuka atau saat jalur berubah
 onMounted(() => {

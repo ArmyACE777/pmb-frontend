@@ -97,19 +97,9 @@
               <CheckCircle2 class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
               <div>
                 <strong class="text-slate-900 font-semibold">Bebas Memilih Jalur & Prodi Baru</strong>
-                <p class="text-[11px] text-slate-500 mt-0.5">Dapat langsung memilih program studi baru di Fakultas Farmasi atau Fakultas Ilmu Kesehatan.</p>
+                <p class="text-[11px] text-slate-500 mt-0.5">Dapat langsung memilih program studi atau jalur lain melalui tombol Tambah Pendaftaran di atas.</p>
               </div>
             </div>
-          </div>
-
-          <div class="pt-2">
-            <button
-              @click="showReapplyModal = true"
-              class="w-full rounded-xl px-5 py-2.5 bg-[#1E3A8A] hover:bg-[#172554] text-white font-medium text-xs transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <RotateCcw class="w-3.5 h-3.5" />
-              <span>Daftar ke Jalur & Pilihan Lain Sekarang</span>
-            </button>
           </div>
         </div>
 
@@ -148,7 +138,15 @@
               <span>Butuh Bimbingan Pemilihan Jurusan?</span>
             </div>
             <p class="text-[11px] text-slate-600 leading-relaxed font-sans">
-              Tim panitia PMB siap membantu konsultasi jurusan yang sesuai dengan minat dan potensi Anda. Hubungi Layanan Hotline PMB BTH: <strong>(0265) 334111</strong> atau WhatsApp <strong>0812-2026-BTH</strong>.
+              Tim panitia PMB siap membantu konsultasi jurusan yang sesuai dengan minat dan potensi Anda. Hubungi Hotline: <strong>{{ cmsStore.contact.phone || '(0265) 345678' }}</strong> atau WhatsApp
+              <a
+                :href="cmsStore.contact.whatsappLink || 'https://api.whatsapp.com/send?phone=6282117100200'"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="font-semibold text-[#1E3A8A] hover:underline"
+              >
+                {{ cmsStore.contact.whatsapp || '0821-1710-0200' }}
+              </a>.
             </p>
           </div>
         </div>
@@ -718,8 +716,6 @@ import {
   Printer,
   Shirt,
   X,
-  CreditCard,
-  User,
 } from 'lucide-vue-next';
 import { useApplicantStore, PRODI_METADATA } from '@/stores/applicant';
 import { useCmsStore } from '@/stores/cms';

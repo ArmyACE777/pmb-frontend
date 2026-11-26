@@ -142,8 +142,8 @@ export const examApi = {
     return apiClient.post('/exam/admin/sessions', data);
   },
 
-  async recordAttendance(sessionId, data) {
-    return apiClient.post(`/exam/admin/sessions/${sessionId}/attendance`, data);
+  async recordAttendance(participantId, status = 'present') {
+    return apiClient.patch(`/exam/admin/participants/${participantId}/attendance`, { status });
   },
 };
 

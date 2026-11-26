@@ -245,7 +245,7 @@
                 </h3>
               </div>
               <span class="text-[11px] font-mono font-semibold text-[#1E3A8A] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
-                T.A. 2026/2027
+                T.A. {{ cmsStore.identity.academicYear || '2026/2027' }}
               </span>
             </div>
 
@@ -296,76 +296,8 @@
           </div>
         </div>
 
-        <!-- Kolom Kanan: Ringkasan Administrasi & Kontak Layanan BTH (Col 5) -->
+        <!-- Kolom Kanan: Grup WhatsApp & Layanan BTH (Col 5) -->
         <div class="lg:col-span-5 space-y-4">
-          <!-- Card Ringkasan Berkas & Biaya -->
-          <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-4">
-            <h3 class="font-sora font-bold text-slate-900 text-sm pb-2 border-b border-slate-100">
-              Ringkasan Dokumen & Pembayaran
-            </h3>
-
-            <!-- Item Berkas -->
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between gap-3 text-xs">
-              <div class="flex items-center gap-2.5">
-                <FileText class="w-4 h-4 text-slate-500" />
-                <div>
-                  <div class="font-medium text-slate-800">Berkas Persyaratan</div>
-                  <div class="text-[11px] text-slate-500">
-                    {{ applicantStore.isWithdrawn ? 'Dinonaktifkan (Mengundurkan Diri)' : `${applicantStore.uploadedDocsCount} dari 5 berkas diunggah` }}
-                  </div>
-                </div>
-              </div>
-              <button
-                @click="switchTab('documents')"
-                :disabled="applicantStore.isWithdrawn"
-                class="px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors"
-                :class="applicantStore.isWithdrawn ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 cursor-pointer'"
-              >
-                {{ applicantStore.isWithdrawn ? 'Terkunci' : 'Buka Berkas' }}
-              </button>
-            </div>
-
-            <!-- Item Biaya Pendaftaran -->
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between gap-3 text-xs">
-              <div class="flex items-center gap-2.5">
-                <CreditCard class="w-4 h-4 text-slate-500" />
-                <div>
-                  <div class="font-medium text-slate-800">Biaya Formulir PMB</div>
-                  <div class="text-[11px]" :class="applicantStore.isWithdrawn ? 'text-slate-600 font-medium' : applicantStore.isRegPaymentComplete ? 'text-emerald-700 font-semibold' : 'text-amber-700'">
-                    {{ applicantStore.isWithdrawn ? (applicantStore.isFreeTrack ? 'Bebas Biaya (Tidak Ada Refund)' : applicantStore.isRegPaymentComplete ? 'Pengajuan Refund Ditinjau' : 'Tagihan Dibatalkan') : applicantStore.isFreeTrack ? 'Bebas Biaya (Rp 0)' : applicantStore.isRegPaymentComplete ? `Lunas (${dynamicRegFeeFormatted})` : `Menunggu Bayar (${dynamicRegFeeFormatted})` }}
-                  </div>
-                </div>
-              </div>
-              <button
-                @click="applicantStore.isWithdrawn ? switchTab('admission') : switchTab('payment')"
-                class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-[11px] font-medium transition-colors cursor-pointer"
-              >
-                {{ applicantStore.isWithdrawn ? 'Detail Refund' : applicantStore.isRegPaymentComplete ? 'Bukti Bayar' : 'Bayar Sekarang' }}
-              </button>
-            </div>
-
-            <!-- Item CBT / Seleksi -->
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between gap-3 text-xs">
-              <div class="flex items-center gap-2.5">
-                <ClipboardCheck class="w-4 h-4 text-slate-500" />
-                <div>
-                  <div class="font-medium text-slate-800">Ujian Mandiri CBT</div>
-                  <div class="text-[11px]" :class="applicantStore.isWithdrawn ? 'text-slate-500' : applicantStore.isExamCompleted ? 'text-emerald-700 font-semibold' : 'text-slate-500'">
-                    {{ applicantStore.isWithdrawn ? 'Dinonaktifkan (Mengundurkan Diri)' : applicantStore.isExamCompleted ? `Skor: ${applicantStore.state.exam.score}/100` : applicantStore.isRegPaymentComplete ? 'Sesi CBT Siap Dikerjakan' : 'Menunggu Bayar Formulir' }}
-                  </div>
-                </div>
-              </div>
-              <button
-                @click="switchTab('exam')"
-                :disabled="applicantStore.isWithdrawn"
-                class="px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors"
-                :class="applicantStore.isWithdrawn ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 cursor-pointer'"
-              >
-                {{ applicantStore.isWithdrawn ? 'Terkunci' : 'Buka CBT' }}
-              </button>
-            </div>
-          </div>
-
           <!-- Card Grup WhatsApp Resmi Informasi PMB (Diatur oleh Admin) -->
           <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-3 text-xs font-sans">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -426,7 +358,18 @@
 
               <div class="flex items-center gap-2">
                 <Phone class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                <span>Hotline: {{ cmsStore.contact.phone || '(0265) 345678' }} | WhatsApp: <strong>{{ cmsStore.contact.whatsapp || '0821-1710-0200' }}</strong></span>
+                <span>
+                  Hotline: {{ cmsStore.contact.phone || '(0265) 345678' }} |
+                  WhatsApp:
+                  <a
+                    :href="cmsStore.contact.whatsappLink || 'https://api.whatsapp.com/send?phone=6282117100200'"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="font-semibold text-[#1E3A8A] hover:underline"
+                  >
+                    {{ cmsStore.contact.whatsapp || '0821-1710-0200' }}
+                  </a>
+                </span>
               </div>
             </div>
           </div>
@@ -629,7 +572,6 @@
 
 <script setup>
 import {
-  CheckCircle2,
   User,
   Compass,
   FileText,
@@ -639,7 +581,6 @@ import {
   ArrowRight,
   Copy,
   Check,
-  LifeBuoy,
   RotateCcw,
   BookOpen,
   Calendar,
@@ -651,10 +592,8 @@ import {
   MessageSquare,
   ExternalLink,
   UserX,
-  Lock,
   Search,
   X,
-  Bell,
   Award
 } from 'lucide-vue-next';
 import { ref, computed, onMounted } from 'vue';
@@ -955,7 +894,7 @@ const nextActionInfo = computed(() => {
   if (!applicantStore.isDocumentsComplete) {
     return {
       title: 'Unggah Berkas Persyaratan Pendaftaran',
-      desc: `Baru ${applicantStore.uploadedDocsCount} dari 5 berkas diunggah. Silakan lengkapi pindaian KTP, Ijazah/SKL, dan pasfoto Anda.`,
+      desc: `Baru ${applicantStore.uploadedDocsCount} dari ${applicantStore.totalDocsCount} berkas diunggah. Silakan lengkapi berkas persyaratan Anda.`,
       cta: 'Unggah Berkas Dokumen',
       tab: 'documents',
       section: null,
@@ -1106,37 +1045,37 @@ const steps = computed(() => [
 
 const timelineEvents = computed(() => [
   {
-    title: 'Pengisian Formulir Biodata & Berkas Dokumen',
-    date: 'Aktif Berjalan',
-    desc: 'Melengkapi profil identitas, pilihan program studi, dan berkas persyaratan.',
-    isDone: applicantStore.isProfileComplete && applicantStore.isAdmissionComplete && applicantStore.isDocumentsComplete,
-    isActive: !applicantStore.isProfileComplete || !applicantStore.isAdmissionComplete || !applicantStore.isDocumentsComplete,
-  },
-  {
-    title: 'Pembayaran Formulir Pendaftaran',
-    date: 'Batas: 3 Hari Kerja',
-    desc: `Pembayaran ${dynamicRegFeeFormatted.value} via Virtual Account BSI / Mandiri untuk aktivasi sesi Ujian CBT.`,
+    title: 'Aktivasi Formulir & Pembayaran',
+    date: applicantStore.isFreeTrack || applicantStore.state?.referral?.isApplied ? 'Bebas Biaya (Rp 0)' : 'Batas: 3 Hari Kerja',
+    desc: `Pelunasan biaya formulir ${dynamicRegFeeFormatted.value} via VA, QRIS, transfer manual, atau Referal BK.`,
     isDone: applicantStore.isRegPaymentComplete || applicantStore.state?.referral?.isApplied || applicantStore.isFreeTrack,
     isActive: applicantStore.isAdmissionComplete && !applicantStore.isRegPaymentComplete && !applicantStore.state?.referral?.isApplied && !applicantStore.isFreeTrack,
   },
   {
-    title: 'Ujian Mandiri Berbasis Komputer (CBT) & Wawancara',
+    title: applicantStore.isExamExempt ? 'Verifikasi Rapor & Portofolio (Non-CBT)' : 'Ujian Mandiri CBT Online',
     date: applicantStore.state.schedule?.cbt?.date || 'Sesuai Jadwal Sesi',
-    desc: 'Pelaksanaan ujian potensi akademik daring dan presensi tes lisan / wawancara.',
+    desc: applicantStore.isExamExempt ? 'Penilaian berkas rapor & prestasi tanpa tes tulis CBT.' : 'Pelaksanaan ujian potensi akademik daring (durasi 60 menit).',
     isDone: applicantStore.isExamCompleted,
     isActive: (applicantStore.isRegPaymentComplete || applicantStore.state?.referral?.isApplied || applicantStore.isFreeTrack) && !applicantStore.isExamCompleted,
   },
   {
-    title: 'Pengumuman Kelulusan & Surat Penerimaan (LoA)',
+    title: 'Wawancara Daring',
+    date: applicantStore.state.schedule?.interview?.date || 'Sesuai Jadwal Sesi',
+    desc: 'Sesi tanya jawab tim penguji melalui Google Meet / Zoom.',
+    isDone: !!applicantStore.state?.exam?.interviewAttended,
+    isActive: applicantStore.isExamCompleted && !applicantStore.state?.exam?.interviewAttended,
+  },
+  {
+    title: 'Pengumuman Kelulusan & LoA',
     date: applicantStore.state.schedule?.announcementDate || 'Jadwal Pengumuman',
     desc: 'Pengumuman SK Rektor dan penerbitan Letter of Acceptance (LoA).',
     isDone: applicantStore.isResultPassed,
     isActive: applicantStore.isExamCompleted && !applicantStore.isResultPassed,
   },
   {
-    title: 'Daftar Ulang & Pembayaran UKT Semester 1',
+    title: 'Daftar Ulang & Pelunasan UKT Semester 1',
     date: 'Masa Registrasi Ulang',
-    desc: 'Pelunasan UKT semester 1 dan penerbitan Nomor Induk Mahasiswa (NIM) BTH.',
+    desc: 'Pembayaran/cicilan UKT semester 1 untuk penerbitan NIM resmi.',
     isDone: applicantStore.isUktPaid,
     isActive: applicantStore.isResultPassed && !applicantStore.isUktPaid,
   },

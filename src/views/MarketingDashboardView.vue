@@ -131,7 +131,16 @@
             </p>
           </div>
 
-          <div class="flex items-center gap-2 flex-shrink-0">
+          <div class="flex flex-wrap items-center gap-2 flex-shrink-0">
+            <a
+              :href="cmsStore.contact.whatsappLink || 'https://api.whatsapp.com/send?phone=6282117100200'"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-sans text-xs font-medium rounded-lg transition-colors"
+            >
+              Helpdesk PMB ({{ cmsStore.contact.whatsapp || '0821-1710-0200' }})
+            </a>
+
             <a
               :href="cmsStore.links.bkWaGroup || 'https://chat.whatsapp.com/BTH-MitraGuruBK2026'"
               target="_blank"

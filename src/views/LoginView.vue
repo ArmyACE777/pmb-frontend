@@ -130,30 +130,42 @@
           </div>
         </template>
 
-        <!-- Tautan Registrasi Akun Calon Mahasiswa Baru -->
-        <div class="pt-2 border-t border-slate-100 text-center text-xs text-slate-500 font-sans">
-          <span>Calon mahasiswa baru belum memiliki akun?</span>
-          <RouterLink
-            to="/register"
-            class="font-semibold text-[#1E3A8A] hover:text-[#2563EB] hover:underline ml-1 font-sora"
-          >
-            Daftar Akun Baru
-          </RouterLink>
+        <!-- Tautan Registrasi Akun Calon Mahasiswa Baru & Panduan -->
+        <div class="pt-2 border-t border-slate-100 text-center text-xs text-slate-500 font-sans space-y-1.5">
+          <div>
+            <span>Calon mahasiswa baru belum memiliki akun?</span>
+            <RouterLink
+              to="/register"
+              class="font-semibold text-[#1E3A8A] hover:text-[#2563EB] hover:underline ml-1 font-sora"
+            >
+              Daftar Akun Baru
+            </RouterLink>
+          </div>
+          <div>
+            <RouterLink
+              to="/panduan"
+              class="text-[11px] font-medium text-slate-500 hover:text-[#1E3A8A] hover:underline inline-flex items-center gap-1"
+            >
+              <span>Lihat Buku Panduan Pendaftaran PMB</span>
+            </RouterLink>
+          </div>
         </div>
+
+        <!-- Panel 1-Klik Akun Uji Sementara (Hanya dimuat di mode npm run dev, terhapus otomatis saat build) -->
+        <DevQuickLoginBar v-if="DevQuickLoginBar" />
       </form>
     </div>
   </AuthLayout>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, defineAsyncComponent } from 'vue';
 import { useRouter, useRoute, RouterLink } from 'vue-router';
 import { Loader2 } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
 import { useReferralStore } from '@/stores/referral';
 import { useToast } from '@/composables/useToast';
 import { admissionApi } from '@/api/admission';
-import { referralApi } from '@/api/referral';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 
 const router = useRouter();
@@ -169,6 +181,11 @@ const showPassword = ref(false);
 const isLoading = ref(false);
 // Toggle visibilitas tombol autentikasi Google (di-hide sementara, ubah ke true untuk mengaktifkan kembali)
 const showGoogleAuth = ref(false);
+
+// Komponen quick-login khusus development (otomatis tereliminasi saat npm run build)
+const DevQuickLoginBar = import.meta.env.DEV
+  ? defineAsyncComponent(() => import('@/dev/DevQuickLoginBar.vue'))
+  : null;
 
 
 onMounted(() => {
@@ -241,143 +258,20 @@ const handleLogin = async () => {
       }
     }
 
-    // 2.2 Cek apakah inputIdent merupakan Kode Referal atau Username yang terdaftar di database backend
-    if (!knownMarketing && !knownBkPartner) {
-      const cleanCode = inputIdent.replace(/^(bk_|mkt_)/i, '').toUpperCase().trim();
-      try {
-        const checkRes = await referralApi.checkCode(cleanCode);
-        const codeData = checkRes.data?.data || checkRes.data;
-        if (codeData?.valid) {
-          const isMkt = cleanCode.startsWith('MKT-') || inputIdent.toLowerCase().startsWith('mkt');
-          const instName = codeData.institution_name || (isMkt ? 'Tim Marketing Lapangan' : 'Sekolah Mitra PMB');
-          const partner = referralStore.addReferral({
-            code: cleanCode,
-            institution: instName,
-            schoolName: instName,
-            category: isMkt ? 'marketing' : 'guru_bk',
-            username: isMkt ? `mkt_${cleanCode.toLowerCase()}` : `bk_${cleanCode.toLowerCase()}`,
-            email: isMkt ? `marketing_${cleanCode.toLowerCase()}@bth.ac.id` : `${cleanCode.toLowerCase()}@sekolah.sch.id`,
-            password: inputPass,
-            status: 'active',
-          });
-          if (isMkt) {
-            const mktResult = referralStore.loginMarketing(cleanCode, inputPass);
-            if (mktResult.success) {
-              authStore.setMarketingUser(mktResult.partner);
-              toast.success(mktResult.message);
-              router.push('/marketing');
-              return;
-            }
-          } else {
-            const bkResult = referralStore.loginBk(cleanCode, inputPass);
-            if (bkResult.success) {
-              authStore.setBkUser(bkResult.partner);
-              toast.success(bkResult.message);
-              router.push('/bk');
-              return;
-            }
-          }
-        }
-      } catch (e) {}
-    }
+    // 2.2 Autentikasi mitra (Guru BK / Marketing) wajib melalui kredensial terverifikasi:
+    // Jangan pernah mengizinkan login hanya berdasarkan endpoint publik referralApi.checkCode()
+    // dengan menyintesis password dari input pengguna.
 
-    // 2.5 Kredensial Akun Dummy Standar untuk Pengujian Lokal & Meja Kerja (Offline Resilient)
-    const cleanLowerIdent = inputIdent.toLowerCase();
-
-    // Akun Administrator PMB / Superadmin:
-    if (
-      cleanLowerIdent === 'admin@bth.ac.id' ||
-      cleanLowerIdent === 'admin' ||
-      cleanLowerIdent === 'superadmin' ||
-      cleanLowerIdent === 'admin_pmb'
-    ) {
-      if (inputPass === 'admin123' || inputPass === 'password123' || inputPass === 'admin') {
-        const adminUser = {
-          id: '00000000-0000-0000-0000-000000000001',
-          full_name: 'Administrator PMB BTH',
-          name: 'Administrator PMB BTH',
-          email: 'admin@bth.ac.id',
-          roles: ['superadmin', 'admin_pmb', 'panitia', 'keuangan', 'verifikator'],
-          role: 'superadmin',
-          status: 'active',
-        };
-        authStore.setAuth({
-          access_token: 'mock_verified_admin_token',
-          refresh_token: 'mock_verified_admin_refresh_token',
-          user: adminUser,
-        });
-        localStorage.setItem('bth_allow_demo_admin', 'true');
-        toast.success(`Selamat datang, ${adminUser.full_name}! Masuk ke Meja Kerja PMB.`);
-        router.push('/admin');
-        return;
-      }
-    }
-
-    // Akun Calon Mahasiswa (Portal PMB):
-    if (
-      cleanLowerIdent === 'camaba@gmail.com' ||
-      cleanLowerIdent === 'calon.maba@gmail.com' ||
-      cleanLowerIdent === 'camaba' ||
-      cleanLowerIdent === 'ujang@gmail.com' ||
-      cleanLowerIdent === 'dinda@gmail.com'
-    ) {
-      if (inputPass === 'camaba123' || inputPass === 'password123' || inputPass === '123456' || inputPass === 'camaba') {
-        const applicantUser = {
-          id: '32d44743-7a7a-4d22-9e65-56f63f6d91e0',
-          full_name: 'Dinda Ayu Lestari',
-          name: 'Dinda Ayu Lestari',
-          email: 'camaba@gmail.com',
-          roles: ['calon_mahasiswa'],
-          role: 'calon_mahasiswa',
-          status: 'active',
-        };
-        authStore.setAuth({
-          access_token: 'mock_verified_applicant_token',
-          refresh_token: 'mock_verified_applicant_refresh_token',
-          user: applicantUser,
-        });
-
-        // Inisialisasi initial state pendaftar jika belum ada di localStorage
-        const appKey = `bth_applicant_v3_${applicantUser.id}`;
-        if (!localStorage.getItem(appKey)) {
-          const initData = {
-            candidate: {
-              fullName: 'Dinda Ayu Lestari',
-              nik: '3278011204040008',
-              nisn: '0061284918',
-              email: 'camaba@gmail.com',
-              phone: '081234567890',
-              birthPlace: 'Tasikmalaya',
-              birthDate: '2004-05-12',
-              gender: 'Perempuan',
-              religion: 'Islam',
-              schoolName: 'SMK MARHAS MARGAHAYU',
-              registrationNumber: 'BTH-2026-REG-09182',
-            },
-            admission: {
-              track: 'Reguler Tes CBT',
-              prodi1: 'S1 Farmasi',
-              prodi2: 'S1 Administrasi Rumah Sakit',
-              prodi1Degree: 'S1',
-              prodi1Faculty: 'Fakultas Farmasi',
-              status: 'Pendaftaran Selesai (Dapat Diubah)',
-              backendStatus: 'submitted',
-            },
-            payments: {
-              registrationFee: {
-                amount: 250000,
-                status: 'unpaid',
-                isFree: false,
-                statusLabel: 'Menunggu Pembayaran',
-                vaNumber: '9881234567890123',
-              },
-            },
-          };
-          localStorage.setItem(appKey, JSON.stringify(initData));
-        }
-
-        toast.success('Selamat datang di Portal PMB Universitas BTH!');
-        router.push('/dashboard');
+    // 2.5 Kredensial Akun Uji Lokal (Khusus mode development — dieliminasi otomatis saat build produksi)
+    if (import.meta.env.DEV) {
+      const { tryDevCredentialLogin } = await import('@/dev/devTestAccounts');
+      const handledByDev = await tryDevCredentialLogin(inputIdent, inputPass, {
+        authStore,
+        referralStore,
+        router,
+        toast,
+      });
+      if (handledByDev) {
         return;
       }
     }

@@ -589,7 +589,6 @@ import {
   FileSpreadsheet,
   LogOut,
   RefreshCw,
-  ExternalLink,
   User,
   ShieldCheck,
   Menu,

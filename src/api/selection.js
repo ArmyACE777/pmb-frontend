@@ -12,11 +12,11 @@ export const selectionApi = {
 
   // === Admin & Panitia Seleksi Endpoints ===
   async getResults(params = {}) {
-    return apiClient.get('/selection/admin/results', { params });
+    return apiClient.get('/selection/admin/scoreboard', { params });
   },
 
   async publishResults(payload) {
-    return apiClient.post('/selection/admin/publish', payload);
+    return apiClient.post('/selection/admin/announcements/publish', payload);
   },
 
   async getProgramRecommendations(params = {}) {
@@ -28,6 +28,6 @@ export const selectionApi = {
   },
 
   async decideApproval(payload) {
-    return apiClient.post('/selection/approval/decide', payload);
+    return apiClient.post('/selection/admin/approval', payload);
   },
 };

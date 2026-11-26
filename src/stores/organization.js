@@ -464,7 +464,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     persistState();
 
     try {
-      await organizationApi.toggleStudyProgram(id);
+      await organizationApi.toggleStudyProgram(id, item.is_active);
     } catch {}
   }
 
@@ -553,7 +553,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     persistState();
 
     try {
-      await organizationApi.toggleFaculty(id);
+      await organizationApi.toggleFaculty(id, item.is_active);
     } catch {}
   }
 

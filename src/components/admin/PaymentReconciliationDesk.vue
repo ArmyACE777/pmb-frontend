@@ -857,11 +857,8 @@ import DoughnutChart from '@/components/charts/DoughnutChart.vue';
 import {
   FileSpreadsheet,
   Download,
-  Receipt,
   CheckCircle2,
-  XCircle,
   X,
-  Quote,
   RefreshCw,
 } from 'lucide-vue-next';
 import { exportToExcelTable, exportToCsvSeparated } from '@/utils/exportHelper';

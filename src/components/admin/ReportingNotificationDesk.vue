@@ -172,7 +172,7 @@
                 @click="exportSevimaExcel"
                 class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
               >
-                <span>Unduh Format Excel SEVIMA (.xls)</span>
+                <span>Unduh Format Excel SEVIMA (.xlsx)</span>
               </button>
               <button
                 @click="exportSevimaCsv"
@@ -696,7 +696,7 @@
 import { ref, computed, watch } from 'vue';
 import { useAdminStore } from '@/stores/admin';
 import { PRODI_METADATA } from '@/stores/applicant';
-import { exportToExcelTable, exportToCsvSeparated, exportToSevimaMigrationExcel, exportToSevimaMigrationCsv } from '@/utils/exportHelper';
+import { exportToExcelTable, exportToSevimaMigrationExcel, exportToSevimaMigrationCsv } from '@/utils/exportHelper';
 import { useToast } from '@/composables/useToast';
 
 const props = defineProps({
@@ -934,17 +934,17 @@ const exportReport = (type) => {
   toast.success(`Rekapitulasi ${type} berhasil diunduh dalam format tabel Excel.`);
 };
 
-const exportSevimaExcel = () => {
+const exportSevimaExcel = async () => {
   const applicants = adminStore.applicants || [];
   if (applicants.length === 0) {
     toast.error('Belum ada data pendaftar untuk diekspor.');
     return;
   }
-  exportToSevimaMigrationExcel({
+  await exportToSevimaMigrationExcel({
     filename: `Format_Migrasi_SEVIMA_PMB_BTH_${new Date().toISOString().slice(0, 10)}`,
     applicants,
   });
-  toast.success(`Berhasil mengekspor ${applicants.length} pendaftar ke format migrasi resmi SEVIMA (.xls).`);
+  toast.success(`Berhasil mengekspor ${applicants.length} pendaftar ke format migrasi resmi SEVIMA (.xlsx).`);
 };
 
 const exportSevimaCsv = () => {

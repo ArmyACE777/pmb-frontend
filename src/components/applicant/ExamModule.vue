@@ -845,7 +845,6 @@ import {
 import { useApplicantStore } from '@/stores/applicant';
 import { useCmsStore } from '@/stores/cms';
 import { examApi } from '@/api/exam';
-import { scoringApi } from '@/api/scoring';
 import { useToast } from '@/composables/useToast';
 
 const emit = defineEmits(['switch-tab']);
@@ -1309,55 +1308,41 @@ const finishExam = async () => {
     let correctCount = 0;
 
     if (activeAttemptId.value) {
+      let scoredFromServer = false;
       try {
         const subRes = await examApi.submitCBTAttempt(activeAttemptId.value);
         const data = subRes?.data?.data || {};
-        finalScore = Math.round(data.final_score ?? data.objective_score ?? 0);
+        if (data.final_score != null || data.objective_score != null) {
+          finalScore = Math.round(data.final_score ?? data.objective_score ?? 0);
+          scoredFromServer = true;
+        }
       } catch (subErr) {
         // Jika attempt sudah dikumpulkan sebelumnya (idempotent), ambil hasil penilaian dari server
         const resData = await examApi.getAttemptResult(activeAttemptId.value).catch(() => null);
         if (resData?.data?.data) {
           const res = resData.data.data;
           finalScore = Math.round(res.final_score ?? res.objective_score ?? 0);
-        } else {
-          // Fallback perkiraan dari butir terjawab
-          const answered = questions.value.filter((q) => isQuestionAnswered(q.id)).length;
-          finalScore = Math.max(70, Math.min(100, Math.round((answered / (questions.value.length || 1)) * 100)));
+          scoredFromServer = true;
         }
       }
 
-      // Pastikan perolehan nilai tidak 0 jika peserta telah menjawab soal
       const answered = questions.value.filter((q) => isQuestionAnswered(q.id)).length;
-      if (finalScore === 0 && answered > 0) {
-        finalScore = Math.max(75, Math.min(100, Math.round((answered / (questions.value.length || 1)) * 100)));
+      if (!scoredFromServer) {
+        finalScore = Math.min(100, Math.round((answered / (questions.value.length || 1)) * 100));
       }
 
-      // Hitung perkiraan butir benar
+      // Hitung perkiraan butir benar secara proporsional terhadap skor
       const totalQ = questions.value.length || 5;
-      correctCount = Math.min(totalQ, Math.round(finalScore / (100 / totalQ)));
-      if (finalScore >= 70 && correctCount < Math.ceil(totalQ * 0.7)) {
-        correctCount = Math.ceil(totalQ * 0.7);
-      }
+      correctCount = Math.min(totalQ, Math.round((finalScore / 100) * totalQ));
     } else {
       // Fallback offline / tanpa activeAttemptId
       const answered = questions.value.filter((q) => isQuestionAnswered(q.id)).length;
-      finalScore = Math.max(75, Math.min(100, Math.round((answered / (questions.value.length || 1)) * 100)));
-      correctCount = Math.min(questions.value.length, Math.round(finalScore / 14));
+      finalScore = Math.min(100, Math.round((answered / (questions.value.length || 1)) * 100));
+      const totalQ = questions.value.length || 5;
+      correctCount = Math.min(totalQ, Math.round((finalScore / 100) * totalQ));
     }
 
     applicantStore.submitExam(finalScore, correctCount);
-
-    scoringApi
-      .submitScore({
-        applicant_id: applicantStore.state.candidate?.registrationNumber || 'BTH-2026-REG-PENDING',
-        exam_id: activeExam.value?.id || 'CBT-ONLINE-01',
-        score: finalScore,
-        component: 'cbt_test',
-        passing_grade: 70,
-      })
-      .catch((err) => {
-        console.warn('Scoring API Notice:', err?.message);
-      });
 
     // Sinkronkan ke penyimpanan sesi pengawasan CBT & meja kerja admin secara langsung
     try {
@@ -1427,18 +1412,12 @@ const finishExam = async () => {
 const recordInterviewAttendance = async () => {
   isSubmittingAttendance.value = true;
   try {
-    await examApi.recordAttendance('SESSION-INT-01', {
-      applicant_id: applicantStore.state.candidate?.registrationNumber || 'BTH-2026-REG-PENDING',
-      status: 'present',
-      channel: 'google_meet',
-      timestamp: new Date().toISOString(),
-    }).catch(() => null);
-  } catch (err) {
-    console.warn('Interview Attendance API Notice (fallback):', err?.message);
-  } finally {
-    isSubmittingAttendance.value = false;
+    // Presensi kehadiran sesi wawancara peserta dicatat di state lokal,
+    // sedangkan validasi kehadiran resmi pada backend dilakukan oleh penguji/admin melalui PATCH /exam/admin/participants/:id/attendance.
     interviewAttended.value = true;
     toast.success('Presensi tes lisan berhasil dicatat. Silakan bergabung ke ruang virtual yang telah disediakan.');
+  } finally {
+    isSubmittingAttendance.value = false;
   }
 };
 

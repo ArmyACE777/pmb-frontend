@@ -35,3 +35,4 @@ audit_screenshots/
 *.sln
 *.sw?
 .shared_sync_state.json
+.cms_sync_state.json

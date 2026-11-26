@@ -46,17 +46,17 @@ export const organizationApi = {
   },
 
   /**
-   * Toggle status aktif/non-aktif fakultas
+   * Toggle status aktif/non-aktif fakultas (PATCH /organization/admin/faculties/:id)
    */
-  async toggleFaculty(id) {
-    return apiClient.patch(`/organization/admin/faculties/${id}/toggle`);
+  async toggleFaculty(id, isActive) {
+    return apiClient.patch(`/organization/admin/faculties/${id}`, { is_active: isActive });
   },
 
   /**
-   * Menghapus fakultas
+   * Nonaktifkan fakultas melalui PATCH /organization/admin/faculties/:id
    */
   async deleteFaculty(id) {
-    return apiClient.delete(`/organization/admin/faculties/${id}`);
+    return apiClient.patch(`/organization/admin/faculties/${id}`, { is_active: false });
   },
 
   /**
@@ -74,16 +74,16 @@ export const organizationApi = {
   },
 
   /**
-   * Toggle status aktif/non-aktif program studi
+   * Toggle status aktif/non-aktif program studi (PATCH /organization/admin/study-programs/:id)
    */
-  async toggleStudyProgram(id) {
-    return apiClient.patch(`/organization/admin/study-programs/${id}/toggle`);
+  async toggleStudyProgram(id, isActive) {
+    return apiClient.patch(`/organization/admin/study-programs/${id}`, { is_active: isActive });
   },
 
   /**
-   * Menghapus program studi
+   * Nonaktifkan program studi melalui PATCH /organization/admin/study-programs/:id
    */
   async deleteStudyProgram(id) {
-    return apiClient.delete(`/organization/admin/study-programs/${id}`);
+    return apiClient.patch(`/organization/admin/study-programs/${id}`, { is_active: false });
   },
 };

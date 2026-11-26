@@ -825,7 +825,7 @@ export const useApplicantStore = defineStore('applicant', () => {
               (userName ? refStore.findReferralByStudent(userName) : null);
 
             // Hanya rekonsiliasi kemitraan jika akun memang belum memilih jalur lain secara tersimpan atau sudah aktif memakai referal
-            const hasExplicitOtherTrack = saved?.admission?.track && !saved?.admission?.track?.toLowerCase().includes('kemitraan') && !saved?.referral?.isApplied;
+            const hasExplicitOtherTrack = parsed?.admission?.track && !parsed?.admission?.track?.toLowerCase().includes('kemitraan') && !parsed?.referral?.isApplied;
             if (foundRef && foundRef.partner && !hasExplicitOtherTrack) {
               const p = foundRef.partner;
               merged.referral = {
@@ -1936,11 +1936,17 @@ export const useApplicantStore = defineStore('applicant', () => {
 
   // Sinkronisasi data menyeluruh dari microservices backend
   const syncFromBackend = async () => {
-    if (!authStore.isAuthenticated) return;
+    if (!authStore.isAuthenticated || !authStore.isApplicant) return;
+    if (String(authStore.accessToken || '').startsWith('mock_')) return;
     isSyncingBackend.value = true;
     try {
-      // 1. Identity Service (Profil, Alamat, Orang Tua, Pendidikan)
-      const profileRes = await identityApi.getProfile().catch(() => null);
+      // 1. Identity Service (Cek kelengkapan dulu agar akun baru tidak memicu 404 console error)
+      const compRes = await identityApi.getCompleteness().catch(() => null);
+      const missingFields = Array.isArray(compRes?.data?.data?.missing) ? compRes.data.data.missing : null;
+
+      const profileRes = missingFields?.includes('profile.full_name')
+        ? null
+        : await identityApi.getProfile().catch(() => null);
       if (profileRes?.data?.data) {
         const p = profileRes.data.data;
         if (p.full_name) state.value.candidate.fullName = p.full_name;
@@ -1958,7 +1964,9 @@ export const useApplicantStore = defineStore('applicant', () => {
         }
       }
 
-      const addrRes = await identityApi.getAddresses().catch(() => null);
+      const addrRes = missingFields?.includes('addresses.ktp')
+        ? null
+        : await identityApi.getAddresses().catch(() => null);
       if (addrRes?.data?.data && addrRes.data.data.length > 0) {
         const a = addrRes.data.data[0];
         if (a.street) state.value.candidate.address = a.street;
@@ -1967,7 +1975,9 @@ export const useApplicantStore = defineStore('applicant', () => {
         if (a.postal_code) state.value.candidate.postalCode = a.postal_code;
       }
 
-      const guardianRes = await identityApi.getGuardians().catch(() => null);
+      const guardianRes = missingFields?.includes('guardians')
+        ? null
+        : await identityApi.getGuardians().catch(() => null);
       if (guardianRes?.data?.data && guardianRes.data.data.length > 0) {
         guardianRes.data.data.forEach((g) => {
           if (g.relation === 'ayah') {
@@ -1981,7 +1991,9 @@ export const useApplicantStore = defineStore('applicant', () => {
         });
       }
 
-      const eduRes = await identityApi.getEducation().catch(() => null);
+      const eduRes = missingFields?.includes('education_histories')
+        ? null
+        : await identityApi.getEducation().catch(() => null);
       if (eduRes?.data?.data) {
         const e = eduRes.data.data;
         if (e.school_name) state.value.candidate.schoolName = e.school_name;
@@ -1999,7 +2011,21 @@ export const useApplicantStore = defineStore('applicant', () => {
         if (app.registration_no || app.application_number) {
           state.value.candidate.registrationNumber = app.registration_no || app.application_number;
         }
-        if (app.admission_path?.name) state.value.admission.track = app.admission_path.name;
+        if (app.admission_path?.name) {
+          state.value.admission.track = app.admission_path.name;
+          if (typeof app.admission_path.requires_exam === 'boolean') {
+            state.value.admission.requiresExam = app.admission_path.requires_exam;
+          } else {
+            const lowerTrack = app.admission_path.name.toLowerCase();
+            state.value.admission.requiresExam = !(
+              lowerTrack.includes('prestasi') ||
+              lowerTrack.includes('rapor') ||
+              lowerTrack.includes('tahfidz') ||
+              lowerTrack.includes('tanpa tes') ||
+              lowerTrack.includes('bebas tes')
+            );
+          }
+        }
         if (app.choice_1_name) state.value.admission.prodi1 = app.choice_1_name;
         if (app.choice_2_name) state.value.admission.prodi2 = app.choice_2_name;
         if (app.status) state.value.admission.backendStatus = app.status;
@@ -2053,69 +2079,24 @@ export const useApplicantStore = defineStore('applicant', () => {
             });
           }
         }
-      } else {
-        // Jika tidak ada active_application, cek apakah pendaftar sedang dalam mode draft pendaftaran baru
-        if (!state.value?.admission?.isDraftReapply) {
-          // Cek riwayat pendaftaran apakah berstatus withdrawn
-          const histRes = await admissionApi.getMyHistory().catch(() => null);
-          const historyList = histRes?.data?.data || [];
-          if (historyList.length > 0) {
-            const latestHist = historyList[0];
-            if (latestHist.status === 'withdrawn') {
-              state.value.admission.backendStatus = 'withdrawn';
-              state.value.admission.status = 'Pendaftaran Ditarik (Mengundurkan Diri)';
-              if (latestHist.registration_no) {
-                state.value.candidate.registrationNumber = latestHist.registration_no;
-              }
-              if (latestHist.admission_path?.name) {
-                state.value.admission.track = latestHist.admission_path.name;
-              }
-            }
-          }
+      }
 
-          // Cek data pengunduran diri resmi
-          const wRes = await admissionApi.getMyWithdrawal().catch(() => null);
-          if (wRes?.data?.data) {
-            const wd = wRes.data.data;
-            if (wd.status === 'effective' || wd.status === 'approved') {
-              withdrawalInfo.value = wd;
-              state.value.withdrawalInfo = wd;
-              state.value.admission.backendStatus = 'withdrawn';
-              state.value.admission.status = 'Pendaftaran Ditarik (Mengundurkan Diri)';
-              pendingWithdrawal.value = null;
-              if (state.value) delete state.value.pendingWithdrawal;
-            } else if (wd.status === 'pending') {
-              pendingWithdrawal.value = wd;
-              state.value.pendingWithdrawal = wd;
-              withdrawalInfo.value = wd;
-            } else if (wd.status === 'rejected') {
-              rejectedWithdrawal.value = wd;
-              state.value.rejectedWithdrawal = wd;
-              pendingWithdrawal.value = null;
-              withdrawalInfo.value = null;
-              if (state.value) {
-                delete state.value.pendingWithdrawal;
-                delete state.value.withdrawalInfo;
-              }
-            } else {
-              // Status 'cancelled'
-              rejectedWithdrawal.value = null;
-              withdrawalInfo.value = null;
-              pendingWithdrawal.value = null;
-              if (state.value) {
-                delete state.value.withdrawalInfo;
-                delete state.value.pendingWithdrawal;
-                delete state.value.rejectedWithdrawal;
-              }
+      const histRes = await admissionApi.getMyHistory().catch(() => null);
+      const historyList = Array.isArray(histRes?.data?.data) ? histRes.data.data : [];
+      applicationHistory.value = historyList;
+
+      if (!app) {
+        // Jika tidak ada active_application, cek riwayat apakah berstatus withdrawn
+        if (!state.value?.admission?.isDraftReapply && historyList.length > 0) {
+          const latestHist = historyList[0];
+          if (latestHist.status === 'withdrawn') {
+            state.value.admission.backendStatus = 'withdrawn';
+            state.value.admission.status = 'Pendaftaran Ditarik (Mengundurkan Diri)';
+            if (latestHist.registration_no) {
+              state.value.candidate.registrationNumber = latestHist.registration_no;
             }
-          } else {
-            withdrawalInfo.value = null;
-            pendingWithdrawal.value = null;
-            rejectedWithdrawal.value = null;
-            if (state.value) {
-              delete state.value.withdrawalInfo;
-              delete state.value.pendingWithdrawal;
-              delete state.value.rejectedWithdrawal;
+            if (latestHist.admission_path?.name) {
+              state.value.admission.track = latestHist.admission_path.name;
             }
           }
         }
@@ -2151,9 +2132,21 @@ export const useApplicantStore = defineStore('applicant', () => {
               state.value.payments.registrationFee.statusLabel = 'Bebas Biaya (Lunas Otomatis)';
             }
             if (vaNum) state.value.payments.registrationFee.vaNumber = vaNum;
-          } else if (inv.fee_type === 'reregistration') {
+          } else if (['reregistration', 'tuition', 'ukt'].includes(String(inv.fee_type || '').toLowerCase())) {
             state.value.payments.uktFee.id = inv.id;
-            if (inv.status === 'paid') state.value.payments.uktFee.status = 'paid';
+            if (inv.status === 'paid') {
+              state.value.payments.uktFee.status = 'paid';
+              state.value.payments.uktFee.statusLabel = 'Lunas';
+            } else if (inv.status === 'partially_paid') {
+              state.value.payments.uktFee.status = 'partially_paid';
+              state.value.payments.uktFee.statusLabel = 'Sebagian Terbayar (Cicilan)';
+            } else if (inv.status === 'expired') {
+              state.value.payments.uktFee.status = 'expired';
+              state.value.payments.uktFee.statusLabel = 'Tagihan Kedaluwarsa';
+            } else {
+              state.value.payments.uktFee.status = 'unpaid';
+              state.value.payments.uktFee.statusLabel = 'Menunggu Pembayaran';
+            }
             if (inv.amount !== undefined && inv.amount !== null) {
               state.value.payments.uktFee.amount = inv.amount;
             }
@@ -2228,8 +2221,9 @@ export const useApplicantStore = defineStore('applicant', () => {
         }
       }
 
-      // 5. Selection Service (Pengumuman Kelulusan)
-      const selRes = await selectionApi.getMyResult().catch(() => null);
+      // 5. Selection Service (Pengumuman Kelulusan — hanya jika aplikasi sudah melewati tahap draf/bayar)
+      const canCheckSelection = Boolean(app && !['draft', 'pending_payment', 'awaiting_payment', 'cancelled', 'withdrawn'].includes(app.status));
+      const selRes = canCheckSelection ? await selectionApi.getMyResult().catch(() => null) : null;
       if (selRes?.data?.data) {
         const res = selRes.data.data;
         state.value.result.isAnnounced = true;
@@ -2239,8 +2233,9 @@ export const useApplicantStore = defineStore('applicant', () => {
         if (res.decision_letter_no) state.value.result.decisionLetterNo = res.decision_letter_no;
       }
 
-      // 6. Student Service (NIM & Status Registrasi Ulang)
-      const stdRes = await studentApi.getMyReregistration().catch(() => null);
+      // 6. Student Service (NIM & Status Registrasi Ulang — hanya jika peserta sudah dinyatakan lulus)
+      const canCheckRereg = Boolean(state.value?.result?.isPassed || ['passed', 'reregistered', 'enrolled'].includes(app?.status));
+      const stdRes = canCheckRereg ? await studentApi.getMyReregistration().catch(() => null) : null;
       if (stdRes?.data?.data) {
         const s = stdRes.data.data;
         if (s.nim) state.value.onboarding.nim = s.nim;
@@ -2249,7 +2244,7 @@ export const useApplicantStore = defineStore('applicant', () => {
       }
 
       // 7. Riwayat Pendaftaran & Permohonan Pindah Jalur (CR-006 & CR-005)
-      const pcRes = await admissionApi.getMyPendingPathChange().catch(() => null);
+      const pcRes = app ? await admissionApi.getMyPendingPathChange().catch(() => null) : null;
       if (pcRes?.data?.data && pcRes.data.data.status === 'pending') {
         const p = pcRes.data.data;
         pendingPathChange.value = {
@@ -2268,12 +2263,7 @@ export const useApplicantStore = defineStore('applicant', () => {
         if (state.value) delete state.value.pendingPathChange;
       }
 
-      const histRes = await admissionApi.getMyHistory().catch(() => null);
-      if (histRes?.data?.data && Array.isArray(histRes.data.data)) {
-        applicationHistory.value = histRes.data.data;
-      }
-
-      const changesRes = await admissionApi.getMyChanges().catch(() => null);
+      const changesRes = (app || historyList.length > 0) ? await admissionApi.getMyChanges().catch(() => null) : null;
       const changes = changesRes?.data?.data?.items || (Array.isArray(changesRes?.data?.data) ? changesRes.data.data : []);
       if (changes.length > 0) {
         // Urutkan riwayat perubahan dari yang terbaru (newest first)
@@ -2326,7 +2316,7 @@ export const useApplicantStore = defineStore('applicant', () => {
       }
 
       // 8. Cek Pengunduran Diri Resmi (CR-007)
-      const wRes = await admissionApi.getMyWithdrawal().catch(() => null);
+      const wRes = (app || historyList.length > 0) ? await admissionApi.getMyWithdrawal().catch(() => null) : null;
       if (wRes?.data?.data) {
         const wd = wRes.data.data;
         if (wd.status === 'effective' || wd.status === 'approved') {
@@ -2881,7 +2871,7 @@ export const useApplicantStore = defineStore('applicant', () => {
       registrationNumber: candidateData.registrationNumber || '',
       prodi: state.value.admission?.prodi1 || '',
       user_id: currentUser.id || null,
-      nominal: 300000,
+      nominal: Number(state.value.payments?.registrationFee?.amount) || 250000,
     });
 
     if (!result.success) {

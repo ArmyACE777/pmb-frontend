@@ -7,7 +7,7 @@
           {{ selectedInvoiceType === 'tuition' ? 'Pembayaran UKT Semester 1' : 'Pembayaran Biaya Pendaftaran' }}
         </h2>
         <p class="text-xs text-slate-500 mt-0.5 font-sans">
-          Universitas Bakti Tunas Husada • Tahun Akademik {{ admission?.academicYear || '2026/2027' }}
+          {{ cmsStore.identity.name || 'Universitas Bakti Tunas Husada' }} • Tahun Akademik {{ admission?.academicYear || cmsStore.identity.academicYear || '2026/2027' }}
         </p>
       </div>
 
@@ -18,11 +18,13 @@
             ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
             : isCurrentInvoiceExpired
             ? 'bg-rose-50 text-rose-800 border-rose-200'
+            : isCurrentInvoicePartial
+            ? 'bg-indigo-50 text-indigo-800 border-indigo-200'
             : isCurrentInvoicePending
             ? 'bg-amber-50 text-amber-800 border-amber-200'
             : 'bg-blue-50 text-[#1E3A8A] border-blue-200'"
         >
-          {{ isCurrentInvoicePaid ? 'Pembayaran Lunas' : isCurrentInvoiceExpired ? 'Tagihan Kedaluwarsa' : isCurrentInvoicePending ? 'Menunggu Konfirmasi' : 'Menunggu Pembayaran' }}
+          {{ isCurrentInvoicePaid ? 'Pembayaran Lunas' : isCurrentInvoiceExpired ? 'Tagihan Kedaluwarsa' : isCurrentInvoicePartial ? 'Sebagian Terbayar (Cicilan)' : isCurrentInvoicePending ? 'Menunggu Konfirmasi' : 'Menunggu Pembayaran' }}
         </span>
       </div>
     </div>
@@ -247,7 +249,7 @@
     <!-- ========================================================================= -->
     <!-- KONDISI B: BELUM LUNAS (CHECKOUT PEMBAYARAN VIA REAL BACKEND GATEWAY)      -->
     <!-- ========================================================================= -->
-    <div v-else class="space-y-6">
+    <div v-else-if="!isCurrentInvoiceExpired" class="space-y-6">
 
       <!-- Program Cicilan UKT (CR-010: Khusus Tagihan UKT) -->
       <div v-if="selectedInvoiceType === 'tuition'" class="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
@@ -262,13 +264,24 @@
           </div>
 
           <button
-            v-if="!hasActiveInstallmentPlan"
+            v-if="!hasActiveInstallmentPlan && !isInstallmentRequestPending"
             type="button"
             @click="openInstallmentModal = true"
             class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-sora font-semibold rounded border border-slate-300 transition-colors cursor-pointer self-start sm:self-auto"
           >
             Ajukan Keringanan Cicilan UKT
           </button>
+        </div>
+
+        <!-- Status Pengajuan Cicilan (Pending / Approved / Rejected) -->
+        <div v-if="currentInstallmentRequest && !hasActiveInstallmentPlan" class="text-xs text-slate-600 space-y-1">
+          <div>
+            Status Pengajuan ({{ currentInstallmentRequest.requested_terms }} Termin):
+            <strong :class="installmentStatusColor">{{ installmentStatusLabel }}</strong>
+          </div>
+          <p v-if="currentInstallmentRequest.review_note" class="text-[11px] text-slate-500">
+            Catatan Keuangan: {{ currentInstallmentRequest.review_note }}
+          </p>
         </div>
 
         <!-- Jika Sudah Ada Rencana Cicilan Yang Disetujui / Diajukan -->
@@ -333,26 +346,6 @@
         </div>
       </div>
 
-      <!-- Banner Pintasan Kode Referal Guru BK -->
-      <div
-        v-if="selectedInvoiceType === 'registration' && !applicantStore.state?.referral?.isApplied"
-        class="p-4 bg-gradient-to-r from-blue-50/90 via-indigo-50/80 to-blue-50/90 border border-blue-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs animate-fadeIn font-sans"
-      >
-        <div class="flex items-start gap-3">
-          <div class="w-9 h-9 rounded-lg bg-[#1E3A8A] text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-2xs">
-            <Ticket class="w-5 h-5 text-amber-300" />
-          </div>
-          <div class="space-y-0.5">
-            <div class="font-sora font-bold text-xs sm:text-sm text-slate-900">
-              Memiliki Kode Referal Guru BK / Sekolah Mitra?
-            </div>
-            <p class="text-xs text-slate-600 font-sans leading-relaxed">
-              Apapun pilihan jalur pendaftaran Anda, Anda dapat memasukkan kode referal resmi dari Guru BK sekolah mitra Anda pada formulir di samping (atau bawah) untuk mendapatkan <strong>pembebasan biaya pendaftaran formulir (Rp 0)</strong>.
-            </p>
-          </div>
-        </div>
-      </div>
-
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <!-- Kolom Kiri: Rincian Tagihan & Pembayaran (Col 7) -->
         <div class="lg:col-span-7 space-y-4">
@@ -393,9 +386,12 @@
             </div>
 
             <!-- Total Nominal Tagihan -->
-            <div class="pt-3 border-t border-slate-100">
+            <div class="pt-3 border-t border-slate-100 space-y-1.5">
+              <div v-if="nextUnpaidInstallment" class="flex justify-between items-center text-[11px] text-slate-500">
+                <span>Pembayaran Cicilan Termin Ke-{{ nextUnpaidInstallment.term }} (Total UKT: Rp {{ fullInvoiceAmount.toLocaleString('id-ID') }})</span>
+              </div>
               <div class="flex justify-between items-center">
-                <span class="font-semibold text-slate-800 text-xs">Total Tagihan:</span>
+                <span class="font-semibold text-slate-800 text-xs">{{ nextUnpaidInstallment ? `Tagihan Termin Ke-${nextUnpaidInstallment.term}:` : 'Total Tagihan:' }}</span>
                 <strong class="font-sora font-bold text-lg sm:text-xl text-[#1E3A8A]">
                   Rp {{ currentInvoiceAmount.toLocaleString('id-ID') }}
                 </strong>
@@ -412,7 +408,7 @@
               <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs">
                 <button
                   type="button"
-                  @click="paymentCategoryTab = 'va'"
+                  @click="switchPaymentCategory('va')"
                   class="flex-1 py-1.5 rounded-lg font-semibold text-center transition-all cursor-pointer"
                   :class="paymentCategoryTab === 'va' ? 'bg-white text-[#1E3A8A] shadow-xs' : 'text-slate-600 hover:text-slate-900'"
                 >
@@ -420,7 +416,7 @@
                 </button>
                 <button
                   type="button"
-                  @click="paymentCategoryTab = 'qris'"
+                  @click="switchPaymentCategory('qris')"
                   class="flex-1 py-1.5 rounded-lg font-semibold text-center transition-all cursor-pointer"
                   :class="paymentCategoryTab === 'qris' ? 'bg-white text-[#1E3A8A] shadow-xs' : 'text-slate-600 hover:text-slate-900'"
                 >
@@ -519,7 +515,7 @@
                     <!-- Kotak QR Code Realistis -->
                     <div class="p-2.5 bg-white rounded-xl border border-slate-200/90 shadow-2xs flex items-center justify-center">
                       <img
-                        :src="qrisDataUrl || '/assets/icons/banks/qris-code.svg'"
+                        :src="backendQrImageUrl || qrisDataUrl || '/assets/icons/banks/qris-code.svg'"
                         alt="QRIS Universitas Bakti Tunas Husada"
                         class="w-48 h-48 sm:w-52 sm:h-52 object-contain select-none"
                       />
@@ -577,6 +573,44 @@
                     <li>Periksa kesesuaian total pembayaran sebesar <strong>Rp {{ currentInvoiceAmount.toLocaleString('id-ID') }}</strong>, lalu selesaikan transaksi.</li>
                   </ol>
                 </div>
+              </div>
+
+              <!-- Unggah Bukti Transfer Manual (Opsional jika transfer langsung rekening resmi kampus) -->
+              <div class="border border-dashed border-slate-300 rounded-xl p-3.5 bg-slate-50/70 space-y-2 text-xs">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <div class="font-semibold text-slate-800">Transfer Manual Bank (BSI: 7001234567 a.n. Universitas BTH)</div>
+                    <p class="text-[11px] text-slate-500">
+                      Jika sudah mentransfer secara manual di teller/ATM tanpa Virtual Account, unggah bukti transfer (JPG/PNG/PDF, maks. 5 MB).
+                    </p>
+                  </div>
+                  <label
+                    class="inline-flex items-center justify-center px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold rounded-lg text-[11px] cursor-pointer transition-colors whitespace-nowrap"
+                    :class="{ 'opacity-60 pointer-events-none': isUploadingProof }"
+                  >
+                    <span>{{ isUploadingProof ? 'Mengunggah...' : 'Unggah Bukti Transfer' }}</span>
+                    <input
+                      type="file"
+                      accept=".jpg,.jpeg,.png,.pdf"
+                      class="hidden"
+                      :disabled="isUploadingProof"
+                      @change="handleManualTransferUpload"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <!-- Bantuan Kendala Pembayaran -->
+              <div class="text-[11px] text-slate-500 flex items-center justify-between gap-2 pt-1">
+                <span>Mengalami kendala pembayaran atau verifikasi tagihan?</span>
+                <a
+                  :href="cmsStore.contact.whatsappLink || 'https://api.whatsapp.com/send?phone=6282117100200'"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="font-semibold text-[#1E3A8A] hover:underline whitespace-nowrap"
+                >
+                  Helpdesk WA ({{ cmsStore.contact.whatsapp || '0821-1710-0200' }})
+                </a>
               </div>
 
               <!-- Tombol Cek Status & Simulasi Bayar Berhasil (In-page) -->
@@ -834,24 +868,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Informasi Layanan Pembayaran -->
-          <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5 text-xs text-slate-600 space-y-3 font-sans">
-            <div class="font-semibold text-slate-800">
-              Ketentuan Pembayaran
-            </div>
-            <ul class="space-y-1.5 text-[11px] text-slate-500 list-disc list-inside leading-relaxed">
-              <li>Pembayaran diproses secara otomatis oleh sistem perbankan.</li>
-              <li>Tersedia metode pembayaran QRIS, Virtual Account bank, dan dompet digital.</li>
-              <li>Status pelunasan pembayaran terverifikasi otomatis untuk membuka akses tahapan selanjutnya.</li>
-            </ul>
-            <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-              <span class="text-[11px] text-slate-500">Kanal Transaksi Resmi:</span>
-              <div class="flex items-center gap-1.5">
-                <img src="/assets/icons/banks/duitku.svg" alt="Duitku" class="h-4 w-auto object-contain" />
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -991,20 +1007,21 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { Copy, RefreshCw, ChevronDown, Download, AlertCircle, CheckCircle2, ChevronRight, Zap, Ticket } from 'lucide-vue-next';
+import { Copy, RefreshCw, ChevronDown, Download, AlertCircle, CheckCircle2, ChevronRight, Zap } from 'lucide-vue-next';
 import QRCode from 'qrcode';
 import { useApplicantStore } from '@/stores/applicant';
 import { useAuthStore } from '@/stores/auth';
 import { useReferralStore } from '@/stores/referral';
+import { useCmsStore } from '@/stores/cms';
 import { financeApi } from '@/api/finance';
+import { referralApi } from '@/api/referral';
 import { useToast } from '@/composables/useToast';
-import { useRoute } from 'vue-router';
 
 const emit = defineEmits(['switch-tab']);
-const route = useRoute();
 const applicantStore = useApplicantStore();
 const authStore = useAuthStore();
 const referralStore = useReferralStore();
+const cmsStore = useCmsStore();
 const toast = useToast();
 
 // State In-Page Payment Gateway Native
@@ -1015,6 +1032,7 @@ const copiedType = ref(null);
 const vaBankList = ref([
   {
     code: 'bsi',
+    duitkuCode: 'BV',
     name: 'Bank Syariah Indonesia (BSI)',
     shortName: 'BSI',
     isDefault: true,
@@ -1024,6 +1042,7 @@ const vaBankList = ref([
   },
   {
     code: 'bca',
+    duitkuCode: 'BC',
     name: 'BCA Virtual Account',
     shortName: 'BCA',
     hint: 'Transfer Otomatis 24 Jam',
@@ -1032,6 +1051,7 @@ const vaBankList = ref([
   },
   {
     code: 'mandiri',
+    duitkuCode: 'M2',
     name: 'Mandiri Virtual Account',
     shortName: 'Mandiri',
     hint: 'Livin by Mandiri & ATM',
@@ -1040,6 +1060,7 @@ const vaBankList = ref([
   },
   {
     code: 'bri',
+    duitkuCode: 'BR',
     name: 'BRI Virtual Account (BRIVA)',
     shortName: 'BRI',
     hint: 'BRImo & Seluruh Agen BRILink',
@@ -1048,6 +1069,7 @@ const vaBankList = ref([
   },
   {
     code: 'bni',
+    duitkuCode: 'I1',
     name: 'BNI Virtual Account',
     shortName: 'BNI',
     hint: 'BNI Mobile & ATM',
@@ -1056,6 +1078,7 @@ const vaBankList = ref([
   },
   {
     code: 'cimb',
+    duitkuCode: 'B1',
     name: 'CIMB Niaga Virtual Account',
     shortName: 'CIMB',
     hint: 'OCTO Mobile & CIMB Clicks',
@@ -1090,8 +1113,8 @@ onUnmounted(() => {
   if (cooldownTimer) clearInterval(cooldownTimer);
 });
 
-// Verifikasi kode akurat ke database kemitraan Guru BK (tanpa validasi asal sekolah)
-const handleCheckReferral = () => {
+// Verifikasi kode akurat ke backend / database kemitraan Guru BK
+const handleCheckReferral = async () => {
   if (referralCooldown.value > 0) {
     toast.warning(`Input sedang dibatasi. Mohon tunggu ${referralCooldown.value} detik.`);
     return;
@@ -1103,37 +1126,58 @@ const handleCheckReferral = () => {
   }
 
   isApplyingReferral.value = true;
-  // Cari kode yang akurat di store referal BK
-  const found = referralStore.findReferralByCode(clean);
-
-  if (found) {
-    failedReferralAttempts.value = 0;
-    referralValidationResult.value = {
-      valid: true,
-      code: found.code,
-      partner: found,
-      message: `Kode resmi ${found.code} terverifikasi. Mitra: ${found.picName} – ${found.schoolName}.`,
-    };
-    toast.success(`Kode ${found.code} akurat dan terverifikasi di sistem BK! Silakan konfirmasi untuk menerapkan.`);
-  } else {
-    failedReferralAttempts.value++;
-    const remaining = 3 - failedReferralAttempts.value;
-    if (failedReferralAttempts.value >= 3) {
-      startCooldown(30);
-      referralValidationResult.value = {
-        valid: false,
-        message: 'Kode referal salah 3 kali berturut-turut. Penginputan dikunci sementara selama 30 detik untuk mencegah pengisian asal. Hubungi Guru BK sekolah Anda untuk mendapatkan kode resmi yang akurat.',
-      };
-      toast.error('Batas kesalahan tercapai. Input dikunci selama 30 detik.');
-    } else {
-      referralValidationResult.value = {
-        valid: false,
-        message: `Kode "${clean}" tidak ditemukan di database resmi mitra Guru BK. Mohon pastikan kode yang Anda masukkan akurat sesuai yang diterbitkan oleh Guru BK (Sisa percobaan: ${remaining} kali).`,
-      };
-      toast.error(`Kode referal "${clean}" tidak akurat / tidak terdaftar.`);
+  try {
+    let found = null;
+    try {
+      const apiRes = await referralApi.checkCode(clean);
+      const data = apiRes?.data?.data || apiRes?.data;
+      if (data?.valid) {
+        const localMatch = referralStore.findReferralByCode(clean);
+        found = {
+          code: clean,
+          schoolName: data.institution_name || localMatch?.schoolName || 'Sekolah Mitra PMB',
+          picName: data.pic_name || localMatch?.picName || 'Guru BK Mitra',
+        };
+      }
+    } catch {
+      // Fallback ke store lokal hanya jika endpoint tidak dapat dijangkau
+      found = referralStore.findReferralByCode(clean);
     }
+
+    if (!found) {
+      found = referralStore.findReferralByCode(clean);
+    }
+
+    if (found) {
+      failedReferralAttempts.value = 0;
+      referralValidationResult.value = {
+        valid: true,
+        code: found.code || clean,
+        partner: found,
+        message: `Kode resmi ${found.code || clean} terverifikasi. Mitra: ${found.picName} – ${found.schoolName}.`,
+      };
+      toast.success(`Kode ${found.code || clean} akurat dan terverifikasi di sistem BK! Silakan konfirmasi untuk menerapkan.`);
+    } else {
+      failedReferralAttempts.value++;
+      const remaining = 3 - failedReferralAttempts.value;
+      if (failedReferralAttempts.value >= 3) {
+        startCooldown(30);
+        referralValidationResult.value = {
+          valid: false,
+          message: 'Kode referal salah 3 kali berturut-turut. Penginputan dikunci sementara selama 30 detik untuk mencegah pengisian asal. Hubungi Guru BK sekolah Anda untuk mendapatkan kode resmi yang akurat.',
+        };
+        toast.error('Batas kesalahan tercapai. Input dikunci selama 30 detik.');
+      } else {
+        referralValidationResult.value = {
+          valid: false,
+          message: `Kode "${clean}" tidak ditemukan di database resmi mitra Guru BK. Mohon pastikan kode yang Anda masukkan akurat sesuai yang diterbitkan oleh Guru BK (Sisa percobaan: ${remaining} kali).`,
+        };
+        toast.error(`Kode referal "${clean}" tidak akurat / tidak terdaftar.`);
+      }
+    }
+  } finally {
+    isApplyingReferral.value = false;
   }
-  isApplyingReferral.value = false;
 };
 
 // Batalkan hasil cek
@@ -1142,44 +1186,73 @@ const cancelReferralCheck = () => {
   referralInputCode.value = '';
 };
 
-// Konfirmasi & Terapkan Kode Resmi ke Akun Siswa dan Dashboard Guru BK
-const confirmApplyReferral = () => {
+// Konfirmasi & Terapkan Kode Resmi ke Backend + Akun Siswa dan Dashboard Guru BK
+const confirmApplyReferral = async () => {
   if (!referralValidationResult.value?.valid || !referralValidationResult.value?.partner) return;
   const partner = referralValidationResult.value.partner;
-  const res = applicantStore.applyReferralCode(partner.code);
-  if (res.success) {
-    const regInv = backendInvoices.value.find((i) => i.fee_type === 'registration');
-    if (regInv) {
-      regInv.status = 'paid';
+  const code = referralValidationResult.value.code || partner.code;
+  const appId = applicantStore.state?.admission?.id || null;
+
+  isApplyingReferral.value = true;
+  try {
+    const token = localStorage.getItem('access_token');
+    const isRealSession = token && !token.startsWith('mock_') && !token.startsWith('bk_token_') && !token.startsWith('mkt_token_');
+    if (isRealSession) {
+      try {
+        await referralApi.attachCode(code, true, appId);
+      } catch (apiErr) {
+        const errCode = apiErr?.response?.data?.code;
+        const status = apiErr?.response?.status;
+        if (errCode === 'REFERRAL_LOCKED' || status === 409) {
+          toast.error(apiErr?.response?.data?.message || 'Kode referal sudah terkunci dan tidak dapat diubah lagi.');
+          return;
+        }
+        if (status === 404 || status === 422 || status === 400) {
+          toast.error(apiErr?.response?.data?.message || 'Kode referal tidak valid di server.');
+          return;
+        }
+      }
     }
-    toast.success(`Kode referal ${partner.code} resmi diterapkan! Akun Anda terhubung ke ${partner.picName} (${partner.schoolName}). Biaya formulir lunas.`);
+
+    const res = applicantStore.applyReferralCode(code);
+    if (!res.success && token) {
+      // Tetap sinkronkan state referal lokal bila kode valid dari backend namun belum ada di localStorage browser ini
+      applicantStore.state.referral = {
+        code,
+        picName: partner.picName || 'Guru BK Mitra',
+        schoolName: partner.schoolName || 'Sekolah Mitra PMB',
+        appliedAt: new Date().toISOString(),
+        isApplied: true,
+      };
+    }
+
+    await fetchInvoices();
+    toast.success(`Kode referal ${code} resmi diterapkan! Akun Anda terhubung ke ${partner.picName} (${partner.schoolName}).`);
     referralValidationResult.value = null;
     referralInputCode.value = '';
-  } else {
-    toast.error(res.message || 'Gagal menerapkan kode referal.');
+  } finally {
+    isApplyingReferral.value = false;
   }
 };
 
-const confirmBypassWithReferral = () => {
-  if (applicantStore.state?.referral?.isApplied) {
-    const regInv = backendInvoices.value.find((i) => i.fee_type === 'registration');
-    if (regInv) {
-      regInv.status = 'paid';
+const handleRemoveReferral = async () => {
+  const appId = applicantStore.state?.admission?.id || null;
+  const token = localStorage.getItem('access_token');
+  const isRealSession = token && !token.startsWith('mock_') && !token.startsWith('bk_token_') && !token.startsWith('mkt_token_');
+  if (isRealSession) {
+    try {
+      await referralApi.removeMyReferral(appId);
+    } catch (apiErr) {
+      if (apiErr?.response?.status === 409 || apiErr?.response?.data?.code === 'REFERRAL_LOCKED') {
+        toast.error('Kode referal sudah terverifikasi dan tidak dapat dibatalkan.');
+        return;
+      }
     }
-    toast.success('Mengarahkan ke Seleksi CBT...');
-    emit('switch-tab', 'exam');
-    return;
   }
-  if (!referralValidationResult.value?.valid) return;
-  confirmApplyReferral();
-  if (applicantStore.state?.referral?.isApplied) {
-    emit('switch-tab', 'exam');
-  }
-};
 
-const handleRemoveReferral = () => {
   const res = applicantStore.removeReferralCode();
   if (res.success) {
+    await fetchInvoices();
     toast.info('Kode referal telah dibatalkan.');
     referralInputCode.value = '';
     referralValidationResult.value = null;
@@ -1188,9 +1261,6 @@ const handleRemoveReferral = () => {
 
 const showCancelConfirmModal = ref(false);
 const openInstallmentModal = ref(false);
-const showReceiptModal = ref(false);
-const showDuitkuModal = ref(false);
-const isSimulatingPaid = ref(false);
 
 // Mode Payment Gateway: Real Gateway vs Sandbox Dev / Demo Staging (Skenario A)
 const allowSimulatorByEnv = import.meta.env.VITE_ENABLE_SANDBOX_SIMULATOR === 'true';
@@ -1203,7 +1273,6 @@ const loadPaymentConfig = async () => {
     const res = await financeApi.getPaymentConfig().catch(() => null);
     if (res?.data) {
       paymentConfig.value = res.data;
-      // Aktifkan mode simulasi jika diizinkan oleh ENV (Skenario A) atau backend dev can_simulate
       if (allowSimulatorByEnv || (import.meta.env.DEV && res.data.can_simulate === true)) {
         isDummyMode.value = true;
       } else {
@@ -1223,8 +1292,9 @@ const activeInvoiceId = ref(null);
 const activePaymentId = ref(null);
 const activePaymentData = ref(null);
 const backendVaNumber = ref('');
+const backendQrString = ref('');
+const backendQrImageUrl = ref('');
 const duitkuPaymentUrl = ref('');
-const isInitiatingDuitku = ref(false);
 const isRenewing = ref(false);
 const isCancelling = ref(false);
 const isSubmittingInstallment = ref(false);
@@ -1234,13 +1304,52 @@ const isUploadingProof = ref(false);
 const installmentForm = ref({ terms: 2, reason: '' });
 const backendInvoices = ref([]);
 
-const duitkuMerchantCode = ref('DS35926');
-const duitkuReference = ref('DS35926267H2BNJ38I0QCCLI');
+const getSelectedDirectMethodCode = () => {
+  if (paymentCategoryTab.value === 'qris') return 'NQ';
+  return activeVaBank.value?.duitkuCode || 'BV';
+};
 
-const selectPaymentBank = (bank) => {
+const ensureDirectPaymentForSelectedMethod = async (forceRefresh = false) => {
+  if (!currentInvoice.value?.id || isCurrentInvoicePaid.value || isCurrentInvoiceExpired.value) {
+    return null;
+  }
+  const methodCode = getSelectedDirectMethodCode();
+  try {
+    const res = await financeApi.createDirectPayment(currentInvoice.value.id, methodCode);
+    const pay = res?.data?.data || res?.data;
+    if (pay && pay.payment_id) {
+      activePaymentId.value = pay.payment_id;
+      activePaymentData.value = pay;
+      backendVaNumber.value = pay.va_number || '';
+      backendQrString.value = pay.qr_string || '';
+      backendQrImageUrl.value = pay.qr_image_url || '';
+      if (pay.payment_url) {
+        duitkuPaymentUrl.value = pay.payment_url;
+      }
+      await updateQrisCode();
+      return pay;
+    }
+  } catch (err) {
+    if (!forceRefresh) {
+      console.warn('Direct payment init notice:', err?.response?.data?.message || err?.message);
+    }
+  }
+  return null;
+};
+
+const selectPaymentBank = async (bank) => {
   activeVaBank.value = bank;
   selectedVaBank.value = bank.code;
-  selectVaBank(bank.code);
+  backendVaNumber.value = '';
+  await ensureDirectPaymentForSelectedMethod();
+};
+
+const switchPaymentCategory = async (category) => {
+  paymentCategoryTab.value = category;
+  await ensureDirectPaymentForSelectedMethod();
+  if (category === 'qris') {
+    await updateQrisCode();
+  }
 };
 
 const copyToClipboard = async (text, label) => {
@@ -1304,7 +1413,7 @@ function buildQrisPayload(amount, regNo) {
 }
 
 const updateQrisCode = async () => {
-  const payload = buildQrisPayload(currentInvoiceAmount.value, candidateRegNo.value);
+  const payload = backendQrString.value || buildQrisPayload(currentInvoiceAmount.value, candidateRegNo.value);
   try {
     qrisDataUrl.value = await QRCode.toDataURL(payload, {
       margin: 1,
@@ -1322,60 +1431,12 @@ const updateQrisCode = async () => {
 
 const downloadQrisCode = () => {
   const link = document.createElement('a');
-  link.href = qrisDataUrl.value || '/assets/icons/banks/qris-code.svg';
+  link.href = backendQrImageUrl.value || qrisDataUrl.value || '/assets/icons/banks/qris-code.svg';
   link.download = `QRIS-PMB-BTH-${candidateRegNo.value || 'INVOICE'}.png`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
   toast.success('Kode QRIS berhasil diunduh ke perangkat Anda.');
-};
-
-const duitkuSelectedCategory = ref('qris'); // 'qris' | 'va' | 'ewallet'
-const selectedDuitkuMethod = ref(null);
-
-const duitkuMethodsList = ref([
-  { code: 'NQ', name: 'QRIS', category: 'qris', fee: 0, image: '/assets/icons/banks/qris.svg', badge: 'Semua m-Banking & E-Wallet' },
-  { code: 'SP', name: 'ShopeePay QRIS', category: 'qris', fee: 0, image: '/assets/icons/banks/shopeepay.svg', badge: 'Scan QRIS' },
-  { code: 'BV', name: 'BSI Virtual Account', category: 'va', fee: 0, image: '/assets/icons/banks/bsi.svg', badge: 'Bank Utama BTH' },
-  { code: 'BC', name: 'BCA Virtual Account', category: 'va', fee: 0, image: '/assets/icons/banks/bca.svg', badge: 'Bank Central Asia' },
-  { code: 'M2', name: 'Mandiri Virtual Account', category: 'va', fee: 0, image: '/assets/icons/banks/mandiri.svg', badge: 'Bank Mandiri' },
-  { code: 'BR', name: 'BRI Virtual Account', category: 'va', fee: 0, image: '/assets/icons/banks/bri.svg', badge: 'Bank Rakyat Indonesia' },
-  { code: 'I1', name: 'BNI Virtual Account', category: 'va', fee: 0, image: '/assets/icons/banks/bni.svg', badge: 'Bank Negara Indonesia' },
-  { code: 'B1', name: 'CIMB Niaga Virtual Account', category: 'va', fee: 0, image: '/assets/icons/banks/cimb.svg', badge: 'Bank CIMB Niaga' },
-  { code: 'BT', name: 'Permata Virtual Account', category: 'va', fee: 0, image: 'https://images.duitku.com/hotlink-ok/PERMATA.PNG', badge: 'Bank Permata' },
-  { code: 'VA', name: 'Maybank Virtual Account', category: 'va', fee: 0, image: 'https://images.duitku.com/hotlink-ok/VA.PNG', badge: 'Bank Maybank' },
-  { code: 'A1', name: 'ATM Bersama / Prima', category: 'va', fee: 0, image: 'https://images.duitku.com/hotlink-ok/A1.PNG', badge: 'Transfer Antar Bank' },
-  { code: 'NC', name: 'Bank Neo Commerce', category: 'va', fee: 0, image: 'https://images.duitku.com/hotlink-ok/NC.PNG', badge: 'Bank Neo Commerce' },
-  { code: 'DA', name: 'DANA', category: 'ewallet', fee: 0, image: '/assets/icons/banks/dana.svg', badge: 'Dompet Digital' },
-  { code: 'OV', name: 'OVO', category: 'ewallet', fee: 0, image: '/assets/icons/banks/ovo.svg', badge: 'Dompet Digital' },
-  { code: 'SA', name: 'ShopeePay', category: 'ewallet', fee: 0, image: '/assets/icons/banks/shopeepay.svg', badge: 'Dompet Digital' },
-  { code: 'LA', name: 'LinkAja', category: 'ewallet', fee: 0, image: '/assets/icons/banks/linkaja.svg', badge: 'Dompet Digital' },
-  { code: 'JP', name: 'Jenius Pay', category: 'ewallet', fee: 0, image: 'https://images.duitku.com/hotlink-ok/JP.PNG', badge: 'BTPN Jenius' },
-  { code: 'IR', name: 'Indomaret', category: 'retail', fee: 0, image: 'https://images.duitku.com/hotlink-ok/IR.PNG', badge: 'Gerai Kasir' },
-  { code: 'FT', name: 'Alfamart / POS / Pegadaian', category: 'retail', fee: 0, image: 'https://images.duitku.com/hotlink-ok/RETAIL.PNG', badge: 'Gerai Kasir' },
-]);
-
-// Inisialisasi default metode ke QRIS pertama
-selectedDuitkuMethod.value = duitkuMethodsList.value[0];
-
-const filteredDuitkuMethods = computed(() => {
-  if (duitkuSelectedCategory.value === 'ewallet') {
-    return duitkuMethodsList.value.filter((m) => m.category === 'ewallet' || m.category === 'retail');
-  }
-  return duitkuMethodsList.value.filter((m) => m.category === duitkuSelectedCategory.value);
-});
-
-watch(duitkuSelectedCategory, () => {
-  const currentList = filteredDuitkuMethods.value;
-  if (currentList && currentList.length > 0) {
-    if (!selectedDuitkuMethod.value || !currentList.some((m) => m.code === selectedDuitkuMethod.value.code)) {
-      selectedDuitkuMethod.value = currentList[0];
-    }
-  }
-});
-
-const selectDuitkuMethod = (method) => {
-  selectedDuitkuMethod.value = method;
 };
 
 const candidate = computed(() => applicantStore.state.candidate);
@@ -1399,16 +1460,20 @@ const candidateRegDigits = computed(() => {
   return candidateRegNo.value.replace(/\D/g, '').slice(-5) || '10001';
 });
 
+const isTuitionFeeType = (feeType) => {
+  return ['tuition', 'ukt', 'reregistration'].includes(String(feeType || '').toLowerCase());
+};
+
 // Deteksi Invoice Aktif Berdasarkan selectedInvoiceType
 const currentInvoice = computed(() => {
   if (selectedInvoiceType.value === 'tuition') {
-    return backendInvoices.value.find((i) => i.fee_type === 'tuition' || i.fee_type === 'ukt');
+    return backendInvoices.value.find((i) => isTuitionFeeType(i.fee_type));
   }
   return backendInvoices.value.find((i) => i.fee_type === 'registration');
 });
 
 const hasTuitionInvoice = computed(() => {
-  return backendInvoices.value.some((i) => i.fee_type === 'tuition' || i.fee_type === 'ukt');
+  return backendInvoices.value.some((i) => isTuitionFeeType(i.fee_type));
 });
 
 const currentInvoiceNumber = computed(() => {
@@ -1420,47 +1485,53 @@ const currentInvoiceNumber = computed(() => {
   return regPayment.value?.id || `INV/2026/REG-${candidateRegDigits.value}`;
 });
 
-const currentInvoiceAmount = computed(() => {
+const fullInvoiceAmount = computed(() => {
   if (applicantStore.state?.referral?.isApplied && selectedInvoiceType.value === 'registration') {
     return 0;
   }
-  if (currentInvoice.value?.amount !== undefined) return currentInvoice.value.amount;
+  if (currentInvoice.value?.amount !== undefined && currentInvoice.value?.amount !== null) {
+    return currentInvoice.value.amount;
+  }
   if (selectedInvoiceType.value === 'tuition') {
     return uktPayment.value?.amount || 5000000;
   }
   return regPayment.value?.amount || 250000;
 });
 
+const currentInvoiceAmount = computed(() => {
+  if (
+    selectedInvoiceType.value === 'tuition' &&
+    currentInvoice.value?.payment_scheme === 'installment' &&
+    nextUnpaidInstallment.value?.amount
+  ) {
+    return nextUnpaidInstallment.value.amount;
+  }
+  return fullInvoiceAmount.value;
+});
+
 const isRegPaid = computed(() => {
-  // 1. Jalur Bebas Biaya (Rp 0) atau Kode Referal Kemitraan Sekolah otomatis lunas
+  // 1. Jalur Bebas Biaya (Rp 0) atau Kode Referal Kemitraan Sekolah
   if (applicantStore.isFreeTrack || applicantStore.state?.referral?.isApplied) {
     return true;
   }
   // 2. Prasyarat: Program studi harus sudah ditentukan
   if (!applicantStore.state.admission?.prodi1) return false;
 
-  // 3. Cek status pelunasan di store
+  // 3. Prioritaskan status tagihan backend jika tersedia
+  const inv = backendInvoices.value.find((i) => i.fee_type === 'registration');
+  if (inv) {
+    return inv.status === 'paid' || inv.amount === 0 || inv.payment_scheme === 'free';
+  }
+
+  // 4. Fallback store lokal saat mode offline/tanpa invoice backend
   if (applicantStore.state?.payments?.registrationFee?.status === 'paid') {
     return true;
   }
-
-  // 4. Cek backend invoice jika ada
-  const inv = backendInvoices.value.find((i) => i.fee_type === 'registration');
-  if (inv) {
-    if (inv.status === 'paid' || inv.amount === 0 || inv.payment_scheme === 'free') {
-      return true;
-    }
-    // Jika backend invoice belum paid dan status admission di backend masih awaiting_payment
-    if (applicantStore.state?.admission?.backendStatus === 'awaiting_payment' && applicantStore.state?.payments?.registrationFee?.status !== 'paid') {
-      return false;
-    }
-  }
-  // 5. Sinkronkan dengan getter utama applicantStore
   return applicantStore.isRegPaymentComplete;
 });
 
 const isTuitionPaid = computed(() => {
-  const inv = backendInvoices.value.find((i) => i.fee_type === 'tuition' || i.fee_type === 'ukt');
+  const inv = backendInvoices.value.find((i) => isTuitionFeeType(i.fee_type));
   if (inv) return inv.status === 'paid';
   return applicantStore.isUktPaid;
 });
@@ -1480,9 +1551,19 @@ const isCurrentInvoicePaid = computed(() => {
   return isRegPaid.value;
 });
 
+const isCurrentInvoicePartial = computed(() => {
+  return currentInvoice.value?.status === 'partially_paid' && !isCurrentInvoicePaid.value;
+});
+
 const isCurrentInvoicePending = computed(() => {
   if (currentInvoice.value) {
-    return currentInvoice.value.status === 'pending_confirmation' || activePaymentData.value?.status === 'awaiting_verification';
+    const hasAwaiting = Array.isArray(currentInvoice.value.payments) &&
+      currentInvoice.value.payments.some((p) => p.status === 'awaiting_verification');
+    return (
+      currentInvoice.value.status === 'pending_confirmation' ||
+      activePaymentData.value?.status === 'awaiting_verification' ||
+      hasAwaiting
+    );
   }
   if (selectedInvoiceType.value === 'tuition') {
     return uktPayment.value?.status === 'pending_confirmation';
@@ -1491,10 +1572,11 @@ const isCurrentInvoicePending = computed(() => {
 });
 
 const isCurrentInvoiceExpired = computed(() => {
+  if (applicantStore.isWithdrawn || isCurrentInvoicePaid.value) return false;
   if (currentInvoice.value?.status === 'expired') return true;
   if (currentInvoice.value?.due_date) {
     const due = new Date(currentInvoice.value.due_date).getTime();
-    return due < Date.now() && !isCurrentInvoicePaid.value;
+    return due < Date.now();
   }
   return false;
 });
@@ -1512,49 +1594,29 @@ const currentPaidAtFormatted = computed(() => {
   return 'Telah Diverifikasi Lunas';
 });
 
-const currentReceiptNumber = computed(() => {
-  const typeCode = selectedInvoiceType.value === 'tuition' ? 'UKT' : 'REG';
-  return `KWT-BTH/${typeCode}/${candidateRegDigits.value}`;
-});
-
-const currentDateFormatted = computed(() => {
-  return new Date().toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-});
-
 const displayedVaNumber = computed(() => {
   if (backendVaNumber.value) {
     return backendVaNumber.value;
   }
+  if (!currentInvoice.value?.id) {
+    const regSuffix = candidateRegDigits.value;
+    const prefix = selectedInvoiceType.value === 'tuition' ? '02' : '01';
+    const code = activeVaBank.value?.code || selectedVaBank.value;
+    if (code === 'bsi') return `988 2026 ${prefix} ${regSuffix}`;
+    if (code === 'mandiri') return `88908 2026 ${prefix} ${regSuffix}`;
+    if (code === 'bca') return `39088 2026 ${prefix} ${regSuffix}`;
+    if (code === 'bri') return `12808 2026 ${prefix} ${regSuffix}`;
+    if (code === 'bni') return `98818 2026 ${prefix} ${regSuffix}`;
+    if (code === 'cimb') return `28808 2026 ${prefix} ${regSuffix}`;
+    return `98808 2026 ${prefix} ${regSuffix}`;
+  }
   if (currentInvoice.value?.va_number) return currentInvoice.value.va_number;
-  if (currentInvoice.value?.payments && currentInvoice.value.payments.length > 0) {
-    const p = currentInvoice.value.payments.find((pay) => pay.va_number);
+  if (Array.isArray(currentInvoice.value?.payments) && currentInvoice.value.payments.length > 0) {
+    const p = currentInvoice.value.payments.find((pay) => pay.status === 'pending' && pay.va_number);
     if (p) return p.va_number;
   }
-
-  const regSuffix = candidateRegDigits.value;
-  const prefix = selectedInvoiceType.value === 'tuition' ? '02' : '01';
-  const code = activeVaBank.value?.code || selectedVaBank.value;
-  if (code === 'bsi') {
-    return `988 2026 ${prefix} ${regSuffix}`;
-  } else if (code === 'mandiri') {
-    return `88908 2026 ${prefix} ${regSuffix}`;
-  } else if (code === 'bca') {
-    return `39088 2026 ${prefix} ${regSuffix}`;
-  } else if (code === 'bri') {
-    return `12808 2026 ${prefix} ${regSuffix}`;
-  } else if (code === 'bni') {
-    return `98818 2026 ${prefix} ${regSuffix}`;
-  } else if (code === 'cimb') {
-    return `28808 2026 ${prefix} ${regSuffix}`;
-  }
-  return `98808 2026 ${prefix} ${regSuffix}`;
+  return 'Memuat Nomor Virtual Account...';
 });
-
-const currentActiveVaNumber = displayedVaNumber;
 
 const activeDueDateFormatted = computed(() => {
   if (currentInvoice.value?.due_date) {
@@ -1569,7 +1631,7 @@ const activeDueDateFormatted = computed(() => {
 
 // Cicilan UKT
 const simulatedInstallments = computed(() => {
-  const total = currentInvoiceAmount.value;
+  const total = fullInvoiceAmount.value;
   if (installmentForm.value.terms === 2) {
     return [
       { term: 1, percentage: 50, amount: Math.round(total * 0.5) },
@@ -1583,251 +1645,73 @@ const simulatedInstallments = computed(() => {
   ];
 });
 
-const hasActiveInstallmentPlan = computed(() => {
-  return applicantStore.installmentSchedule && applicantStore.installmentSchedule.length > 0;
+const currentInstallmentRequest = computed(() => {
+  const reqs = currentInvoice.value?.installment_requests;
+  if (!Array.isArray(reqs) || reqs.length === 0) return null;
+  return [...reqs].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))[0];
+});
+
+const isInstallmentRequestPending = computed(() => {
+  return currentInstallmentRequest.value?.status === 'pending';
 });
 
 const activeInstallmentSchedule = computed(() => {
-  return applicantStore.installmentSchedule || [];
+  const raw =
+    Array.isArray(currentInvoice.value?.installments) && currentInvoice.value.installments.length > 0
+      ? currentInvoice.value.installments
+      : applicantStore.installmentSchedule || [];
+  const totalAmt = fullInvoiceAmount.value || raw.reduce((sum, x) => sum + (Number(x.amount) || 0), 0) || 1;
+  return [...raw]
+    .sort((a, b) => (a.term_no || a.term_number || a.term || 0) - (b.term_no || b.term_number || b.term || 0))
+    .map((item, idx) => {
+      const term = item.term ?? item.term_number ?? item.term_no ?? idx + 1;
+      const amount = Number(item.amount) || 0;
+      const percentage = item.percentage ?? Math.round((amount / totalAmt) * 100);
+      const rawDate = item.dueDate || item.due_date;
+      const dueDate = rawDate
+        ? (typeof rawDate === 'string' && !rawDate.includes('T')
+            ? rawDate
+            : new Date(rawDate).toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              }))
+        : '-';
+      const isPaid = typeof item.isPaid === 'boolean' ? item.isPaid : item.status === 'paid';
+      return {
+        ...item,
+        term,
+        amount,
+        percentage,
+        dueDate,
+        isPaid,
+      };
+    });
+});
+
+const nextUnpaidInstallment = computed(() => {
+  return activeInstallmentSchedule.value.find((item) => !item.isPaid) || null;
+});
+
+const hasActiveInstallmentPlan = computed(() => {
+  return activeInstallmentSchedule.value.length > 0;
 });
 
 const installmentStatusLabel = computed(() => {
+  const st = currentInstallmentRequest.value?.status;
+  if (st === 'pending') return 'Menunggu Verifikasi Bagian Keuangan';
+  if (st === 'rejected') return 'Pengajuan Cicilan Ditolak';
   return 'Disetujui oleh Bagian Keuangan';
 });
 
 const installmentStatusColor = computed(() => {
+  const st = currentInstallmentRequest.value?.status;
+  if (st === 'pending') return 'text-amber-700 font-semibold';
+  if (st === 'rejected') return 'text-rose-700 font-semibold';
   return 'text-emerald-700 font-semibold';
 });
 
 // Aksi Operasional
-const selectVaBank = async (bankCode) => {
-  selectedVaBank.value = bankCode;
-  if (currentInvoice.value?.id && !isCurrentInvoicePaid.value) {
-    try {
-      const res = await financeApi.payInvoice(currentInvoice.value.id, {
-        method: 'virtual_account',
-        channel: bankCode,
-      });
-      if (res?.data?.data) {
-        const pay = res.data.data;
-        activePaymentId.value = pay.id;
-        activePaymentData.value = pay;
-        if (pay.va_number) {
-          backendVaNumber.value = pay.va_number;
-        }
-      }
-    } catch (err) {
-      console.warn('API pay invoice notice:', err?.message);
-    }
-  }
-};
-
-const triggerDuitkuPopup = (refCode) => {
-  const popCallbacks = {
-    defaultLanguage: 'id',
-    successEvent: function(result) {
-      handleDuitkuSuccess(result);
-    },
-    pendingEvent: function() {
-      toast.info('Menunggu penyelesaian pembayaran.');
-    },
-    errorEvent: function(err) {
-      console.warn('Duitku popup notice:', err);
-      toast.error('Terjadi kendala pada jendela pembayaran.');
-    },
-    closeEvent: function() {
-      console.log('Jendela pembayaran Duitku ditutup');
-      checkPaymentStatus(false);
-    },
-  };
-
-  if (window.duitku && typeof window.duitku.checkout === 'function') {
-    try {
-      window.duitku.checkout(refCode, popCallbacks);
-      return true;
-    } catch (e) {
-      console.warn('window.duitku.checkout notice:', e);
-    }
-  }
-
-  if (window.checkout && typeof window.checkout.process === 'function') {
-    try {
-      window.checkout.process(refCode, popCallbacks);
-      return true;
-    } catch (e) {
-      console.warn('window.checkout.process notice:', e);
-    }
-  }
-
-  return false;
-};
-
-const initiateDuitkuPayment = async () => {
-  if (selectedInvoiceType.value === 'registration' && !applicantStore.state.admission?.prodi1) {
-    toast.warning('Pilihan Program Studi belum ditentukan. Silakan tentukan program studi Anda terlebih dahulu di menu Jalur Pendaftaran.');
-    emit('switch-tab', 'admission');
-    return;
-  }
-
-  isInitiatingDuitku.value = true;
-  startAutoPolling();
-
-  try {
-    let refCode = duitkuReference.value || 'DS35926267H2BNJ38I0QCCLI';
-    let payUrl = `https://app-sandbox.duitku.com/redirect_checkout?reference=${refCode}`;
-
-    if (currentInvoice.value?.id) {
-      const res = await financeApi.payInvoice(currentInvoice.value.id, {
-        method: 'online_gateway',
-        channel: 'duitku',
-      }).catch((err) => {
-        console.warn('Finance payInvoice notice:', err?.message);
-        return null;
-      });
-
-      if (res?.data?.data) {
-        const pay = res.data.data;
-        activePaymentId.value = pay.id;
-        activePaymentData.value = pay;
-        if (pay.provider_ref) {
-          refCode = pay.provider_ref;
-        }
-        if (pay.payment_url) {
-          payUrl = pay.payment_url;
-        }
-        if (pay.va_number) {
-          backendVaNumber.value = pay.va_number;
-        }
-      }
-    }
-
-    duitkuReference.value = refCode;
-    duitkuPaymentUrl.value = payUrl;
-
-    // Panggil SATU popup resmi bawaan Duitku
-    const triggered = triggerDuitkuPopup(refCode);
-    if (!triggered) {
-      if (payUrl) {
-        window.open(payUrl, '_blank');
-        toast.info('Halaman pembayaran dibuka di jendela baru.');
-      } else {
-        toast.error('Gagal memuat sistem pembayaran. Silakan coba beberapa saat lagi.');
-      }
-    }
-  } catch (err) {
-    console.warn('initiateDuitkuPayment error:', err);
-    toast.error('Terjadi kendala saat menyiapkan pembayaran.');
-  } finally {
-    isInitiatingDuitku.value = false;
-  }
-};
-
-const handleDuitkuSuccess = async (result) => {
-  stopAutoPolling();
-  stopDummyAutoConfirmTimer();
-
-  const methodName = 'Pembayaran Online (Duitku)';
-
-  if (selectedInvoiceType.value === 'registration') {
-    applicantStore.payRegFee(methodName);
-  } else {
-    applicantStore.payUktFee(methodName);
-  }
-
-  if (activePaymentId.value) {
-    await financeApi.simulatePaymentPaid(activePaymentId.value).catch(() => null);
-  }
-
-  await fetchInvoices();
-  toast.success('Pembayaran berhasil diverifikasi lunas.');
-  if (selectedInvoiceType.value === 'registration') {
-    emit('switch-tab', 'exam');
-  }
-};
-
-const checkPaymentStatusFromModal = async () => {
-  await checkPaymentStatus(false);
-  if (isCurrentInvoicePaid.value) {
-    showDuitkuModal.value = false;
-  }
-};
-
-const loadDuitkuMethods = async () => {
-  try {
-    const res = await financeApi.getPaymentMethods(currentInvoiceAmount.value).catch(() => null);
-    if (res?.data?.data && Array.isArray(res.data.data)) {
-      const mapped = res.data.data.map((item) => {
-        let cat = 'va';
-        const code = item.paymentMethod || item.code;
-        let name = item.paymentName || item.name;
-        if (code === 'NQ') {
-          name = 'QRIS';
-        } else {
-          name = name.replace(/standar bi/gi, '').replace(/h2h/gi, '').replace(/e-wallet/gi, '').trim();
-        }
-        if (code === 'NQ' || code === 'SP' || name.toLowerCase().includes('qris')) {
-          cat = 'qris';
-        } else if (['DA', 'OV', 'SA', 'LA', 'JP'].includes(code) || name.toLowerCase().includes('wallet')) {
-          cat = 'ewallet';
-        } else if (['IR', 'FT'].includes(code) || name.toLowerCase().includes('retail') || name.toLowerCase().includes('indomaret')) {
-          cat = 'retail';
-        } else if (['VC', 'DN'].includes(code)) {
-          cat = 'retail';
-        }
-
-        let badge = 'Transfer Virtual Account';
-        if (code === 'NQ') badge = 'Semua m-Banking & E-Wallet';
-        else if (code === 'SP') badge = 'Scan QRIS';
-        else if (code === 'BV') badge = 'Bank Utama BTH';
-        else if (cat === 'ewallet') badge = 'Dompet Digital';
-        else if (cat === 'retail') badge = 'Gerai Kasir';
-
-        const localBrandLogos = {
-          NQ: '/assets/icons/banks/qris.svg',
-          SP: '/assets/icons/banks/shopeepay.svg',
-          BV: '/assets/icons/banks/bsi.svg',
-          BC: '/assets/icons/banks/bca.svg',
-          M2: '/assets/icons/banks/mandiri.svg',
-          MV: '/assets/icons/banks/mandiri.svg',
-          BR: '/assets/icons/banks/bri.svg',
-          I1: '/assets/icons/banks/bni.svg',
-          B1: '/assets/icons/banks/cimb.svg',
-          DA: '/assets/icons/banks/dana.svg',
-          OV: '/assets/icons/banks/ovo.svg',
-          SA: '/assets/icons/banks/shopeepay.svg',
-          LA: '/assets/icons/banks/linkaja.svg',
-        };
-
-        return {
-          code,
-          name,
-          category: cat,
-          fee: item.totalFee || 0,
-          image: localBrandLogos[code] || item.paymentImage || item.image || `https://images.duitku.com/hotlink-ok/${code}.PNG`,
-          badge,
-        };
-      });
-      if (mapped.length > 0) {
-        duitkuMethodsList.value = mapped;
-      }
-    }
-  } catch (err) {
-    console.warn('loadDuitkuMethods notice:', err);
-  }
-};
-
-const openDuitkuWindow = () => {
-  if (duitkuPaymentUrl.value && !duitkuPaymentUrl.value.includes('.local')) {
-    const win = window.open(duitkuPaymentUrl.value, '_blank', 'width=800,height=700');
-    if (!win) {
-      showDuitkuModal.value = true;
-      toast.warning('Jendela baru browser diblokir. Halaman pembayaran ditampilkan melalui dialog portal.');
-    }
-  } else {
-    showDuitkuModal.value = true;
-  }
-};
-
 const handleRenewInvoice = async () => {
   if (!currentInvoice.value?.id) return;
   isRenewing.value = true;
@@ -1835,6 +1719,7 @@ const handleRenewInvoice = async () => {
     await applicantStore.renewInvoice(currentInvoice.value.id);
     toast.success('Tagihan berhasil diperbarui dengan batas jatuh tempo baru.');
     await fetchInvoices();
+    await ensureDirectPaymentForSelectedMethod();
   } catch (err) {
     toast.error('Gagal memperbarui tagihan: ' + (err?.response?.data?.message || err.message));
   } finally {
@@ -1852,6 +1737,8 @@ const submitInstallmentApplication = async () => {
       reason: installmentForm.value.reason,
     });
     openInstallmentModal.value = false;
+    installmentForm.value.reason = '';
+    await fetchInvoices();
     toast.success('Permohonan cicilan UKT berhasil diajukan dan sedang ditinjau tim keuangan.');
   } catch (err) {
     toast.error('Gagal mengajukan cicilan: ' + (err?.response?.data?.message || err.message));
@@ -1860,17 +1747,47 @@ const submitInstallmentApplication = async () => {
   }
 };
 
-const copyText = async (text, label) => {
-  try {
-    await navigator.clipboard.writeText(text);
-    toast.success(`${label} (${text}) berhasil disalin.`);
-  } catch {
-    toast.info(`${label} (${text}) siap digunakan.`);
+const syncActiveInvoicePaymentState = () => {
+  const inv = currentInvoice.value;
+  if (!inv) {
+    activePaymentId.value = null;
+    activePaymentData.value = null;
+    backendVaNumber.value = '';
+    backendQrString.value = '';
+    backendQrImageUrl.value = '';
+    return;
   }
-};
 
-const printReceipt = () => {
-  window.print();
+  activeInvoiceId.value = inv.id;
+  const payments = Array.isArray(inv.payments) ? inv.payments : [];
+  const pendingPay = [...payments]
+    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+    .find((p) => p.status === 'pending' || p.status === 'awaiting_verification');
+
+  if (pendingPay) {
+    activePaymentId.value = pendingPay.id;
+    activePaymentData.value = pendingPay;
+    backendVaNumber.value = pendingPay.va_number || '';
+    backendQrString.value = pendingPay.qr_string || '';
+    if (pendingPay.method === 'qris' && !pendingPay.va_number) {
+      paymentCategoryTab.value = 'qris';
+    }
+    const matchedBank = vaBankList.value.find(
+      (b) =>
+        b.code === String(pendingPay.channel || '').toLowerCase() ||
+        b.duitkuCode === String(pendingPay.method_code || '').toUpperCase()
+    );
+    if (matchedBank) {
+      activeVaBank.value = matchedBank;
+      selectedVaBank.value = matchedBank.code;
+    }
+  } else {
+    activePaymentId.value = null;
+    activePaymentData.value = null;
+    backendVaNumber.value = '';
+    backendQrString.value = '';
+    backendQrImageUrl.value = '';
+  }
 };
 
 const fetchInvoices = async () => {
@@ -1879,17 +1796,11 @@ const fetchInvoices = async () => {
     const res = await financeApi.getMyInvoices();
     if (res?.data?.data && Array.isArray(res.data.data)) {
       backendInvoices.value = res.data.data;
-      const regInv = backendInvoices.value.find((i) => i.fee_type === 'registration');
-      if (regInv) {
-        activeInvoiceId.value = regInv.id;
-        // Jaga agar status tidak tertimpa jika sudah tercatat lunas di store
-        if (applicantStore.state?.payments?.registrationFee?.status === 'paid') {
-          regInv.status = 'paid';
-        }
-      }
-      const uktInv = backendInvoices.value.find((i) => i.fee_type === 'tuition' || i.fee_type === 'ukt');
-      if (uktInv && applicantStore.state?.payments?.uktFee?.status === 'paid') {
-        uktInv.status = 'paid';
+      syncActiveInvoicePaymentState();
+
+      const uktInv = backendInvoices.value.find((i) => isTuitionFeeType(i.fee_type));
+      if (uktInv?.id) {
+        await applicantStore.fetchInstallments(uktInv.id);
       }
     }
   } catch (err) {
@@ -1908,50 +1819,7 @@ const stopDummyAutoConfirmTimer = () => {
   }
 };
 
-const startDummyAutoConfirmTimer = () => {
-  stopDummyAutoConfirmTimer();
-  // Di mode sandbox dev, pengujian pelunasan dilakukan secara manual melalui tombol "Simulasikan Bayar (Webhook)"
-};
-
-const isSimulatingWebhook = ref(false);
-
-// Memicu webhook simulasi pelunasan (Sandbox Mode)
-const triggerSandboxWebhookSimulation = async () => {
-  // 1. Validasi Prasyarat: Calon mahasiswa harus sudah menentukan Program Studi di Langkah 2
-  if (selectedInvoiceType.value === 'registration' && !applicantStore.state.admission?.prodi1) {
-    toast.warning('Pilihan Program Studi belum ditentukan. Silakan pilih program studi Anda terlebih dahulu di menu Jalur Pendaftaran.');
-    emit('switch-tab', 'admission');
-    return;
-  }
-
-  isSimulatingWebhook.value = true;
-  try {
-    // Sedikit jeda visual halus (600ms) agar simulasi webhook terasa seperti request jaringan riil
-    await new Promise((resolve) => setTimeout(resolve, 600));
-
-    await executeConfirmPaid('Simulasi Webhook Sandbox');
-    toast.success('⚡ Webhook pembayaran bank berhasil diproses! Tagihan pendaftaran resmi LUNAS dan sesi Ujian CBT Anda telah aktif.');
-  } finally {
-    isSimulatingWebhook.value = false;
-  }
-};
-
-const executeConfirmPaid = async (sourceLabel = 'Simulasi Duitku Dummy') => {
-  stopDummyAutoConfirmTimer();
-  stopAutoPolling();
-
-  // Validasi prasyarat prodi
-  if (selectedInvoiceType.value === 'registration' && !applicantStore.state.admission?.prodi1) {
-    toast.warning('Pilihan Program Studi belum ditentukan. Silakan tentukan program studi Anda terlebih dahulu di menu Jalur Pendaftaran.');
-    emit('switch-tab', 'admission');
-    return;
-  }
-
-  const methodName = paymentCategoryTab.value === 'va'
-    ? `Virtual Account ${activeVaBank.value?.shortName || 'BSI'}`
-    : 'QRIS Duitku';
-
-  // 1. Catat lunas di store calon mahasiswa & aktifkan form_open
+const syncPaidToApplicantStore = (methodName) => {
   if (selectedInvoiceType.value === 'registration') {
     applicantStore.payRegFee(methodName);
     if (applicantStore.state?.admission) {
@@ -1961,41 +1829,92 @@ const executeConfirmPaid = async (sourceLabel = 'Simulasi Duitku Dummy') => {
   } else {
     applicantStore.payUktFee(methodName);
   }
+};
 
-  // 2. Tandai tagihan lokal di backendInvoices
-  const invType = selectedInvoiceType.value === 'registration' ? 'registration' : 'tuition';
-  const targetInv = backendInvoices.value.find(
-    (i) => i.fee_type === invType || (invType === 'tuition' && i.fee_type === 'ukt')
-  );
-  if (targetInv) {
-    targetInv.status = 'paid';
+const isSimulatingWebhook = ref(false);
+
+// Memicu webhook simulasi pelunasan (Sandbox Mode)
+const triggerSandboxWebhookSimulation = async () => {
+  if (selectedInvoiceType.value === 'registration' && !applicantStore.state.admission?.prodi1) {
+    toast.warning('Pilihan Program Studi belum ditentukan. Silakan pilih program studi Anda terlebih dahulu di menu Jalur Pendaftaran.');
+    emit('switch-tab', 'admission');
+    return;
   }
 
-  // 3. Sinkronkan dengan backend development bila terhubung
+  isSimulatingWebhook.value = true;
   try {
-    if (!activePaymentId.value && currentInvoice.value?.id) {
-      const pRes = await financeApi.payInvoice(currentInvoice.value.id, {
-        method: paymentCategoryTab.value === 'va' ? 'virtual_account' : 'online_gateway',
-        channel: paymentCategoryTab.value === 'va' ? selectedVaBank.value : 'qris',
-      }).catch(() => null);
-      if (pRes?.data?.data?.id) {
-        activePaymentId.value = pRes.data.data.id;
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    const ok = await executeConfirmPaid();
+    if (ok) {
+      if (isCurrentInvoicePaid.value) {
+        toast.success('⚡ Webhook pembayaran bank berhasil diproses! Tagihan resmi LUNAS.');
+      } else if (isCurrentInvoicePartial.value) {
+        toast.success('⚡ Pembayaran termin cicilan berhasil diproses! Sisa termin berikutnya telah diperbarui.');
+      } else {
+        toast.success('⚡ Pembayaran simulasi diproses.');
       }
     }
+  } finally {
+    isSimulatingWebhook.value = false;
+  }
+};
 
-    if (activePaymentId.value) {
-      await financeApi.simulatePaymentPaid(activePaymentId.value).catch(() => null);
+const executeConfirmPaid = async () => {
+  stopDummyAutoConfirmTimer();
+  stopAutoPolling();
+
+  if (selectedInvoiceType.value === 'registration' && !applicantStore.state.admission?.prodi1) {
+    toast.warning('Pilihan Program Studi belum ditentukan. Silakan tentukan program studi Anda terlebih dahulu di menu Jalur Pendaftaran.');
+    emit('switch-tab', 'admission');
+    return false;
+  }
+
+  const methodName = paymentCategoryTab.value === 'va'
+    ? `Virtual Account ${activeVaBank.value?.shortName || 'BSI'}`
+    : 'QRIS Duitku';
+
+  // Jika tagihan backend tersedia, wajib proses lewat backend secara riil tanpa fallback sukses palsu
+  if (currentInvoice.value?.id) {
+    try {
+      if (!activePaymentId.value) {
+        const directPay = await ensureDirectPaymentForSelectedMethod();
+        if (!directPay?.payment_id) {
+          const pRes = await financeApi.payInvoice(currentInvoice.value.id, {
+            method: paymentCategoryTab.value === 'va' ? 'virtual_account' : 'online_gateway',
+            channel: paymentCategoryTab.value === 'va' ? selectedVaBank.value : 'qris',
+          });
+          if (pRes?.data?.data?.id) {
+            activePaymentId.value = pRes.data.data.id;
+          }
+        }
+      }
+
+      if (!activePaymentId.value) {
+        toast.error('Gagal menginisialisasi transaksi pembayaran ke server.');
+        return false;
+      }
+
+      await financeApi.simulatePaymentPaid(activePaymentId.value);
+      await fetchInvoices();
+      await applicantStore.syncFromBackend().catch(() => null);
+
+      if (isCurrentInvoicePaid.value) {
+        syncPaidToApplicantStore(methodName);
+      } else if (isCurrentInvoicePartial.value) {
+        // Siapkan payment VA/QRIS untuk termin cicilan berikutnya bila belum lunas penuh
+        await ensureDirectPaymentForSelectedMethod(true);
+      }
+      return true;
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Gagal memproses simulasi pembayaran di server.';
+      toast.error(msg);
+      return false;
     }
-  } catch (err) {
-    console.warn('executeConfirmPaid sync notice:', err?.message);
   }
 
-  // Pastikan targetInv tetap paid
-  if (targetInv) {
-    targetInv.status = 'paid';
-  }
-
-  showDuitkuModal.value = false;
+  // Fallback lokal murni (hanya bila mode offline tanpa invoice backend)
+  syncPaidToApplicantStore(methodName);
+  return true;
 };
 
 const startAutoPolling = () => {
@@ -2055,8 +1974,8 @@ const checkPaymentStatus = async (isSilent = false) => {
         .getPaymentStatus(currentInvoice.value.id, activePaymentId.value)
         .catch(() => null);
 
-      if (statusRes?.data?.data) {
-        const pStatus = statusRes.data.data;
+      const pStatus = statusRes?.data?.data || statusRes?.data;
+      if (pStatus) {
         if (pStatus.is_paid || pStatus.status === 'success') {
           isConfirmedPaid = true;
         } else if (pStatus.status === 'awaiting_verification') {
@@ -2068,13 +1987,22 @@ const checkPaymentStatus = async (isSilent = false) => {
     await fetchInvoices();
 
     if (isCurrentInvoicePaid.value || isConfirmedPaid) {
-      await executeConfirmPaid('Verifikasi Status Gateway');
+      const methodName = paymentCategoryTab.value === 'va'
+        ? `Virtual Account ${activeVaBank.value?.shortName || 'BSI'}`
+        : 'QRIS Duitku';
+      syncPaidToApplicantStore(methodName);
+      stopAutoPolling();
+      await applicantStore.syncFromBackend().catch(() => null);
       if (!isSilent) {
         toast.success('Pembayaran telah terverifikasi lunas oleh sistem perbankan.');
       }
+    } else if (isCurrentInvoicePartial.value) {
+      if (!isSilent) {
+        toast.info('Pembayaran termin cicilan tercatat. Silakan selesaikan termin berikutnya sesuai jadwal.');
+      }
     } else if (isCurrentInvoicePending.value || isAwaiting) {
       if (!isSilent) {
-        toast.info('Status pembayaran sedang dalam antrean verifikasi perbankan.');
+        toast.info('Status pembayaran sedang dalam antrean verifikasi perbankan / tim keuangan.');
       }
     } else {
       if (!isSilent) {
@@ -2085,7 +2013,7 @@ const checkPaymentStatus = async (isSilent = false) => {
         }
       }
     }
-  } catch (err) {
+  } catch {
     if (!isSilent) {
       toast.info('Status pembayaran sedang disinkronkan dengan gateway.');
     }
@@ -2107,7 +2035,7 @@ const handleManualTransferUpload = async (event) => {
   try {
     if (currentInvoice.value?.id) {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('proof', file);
       const res = await financeApi.payWithManualTransfer(currentInvoice.value.id, formData);
       if (res?.data?.data) {
         activePaymentId.value = res.data.data.id;
@@ -2125,6 +2053,7 @@ const handleManualTransferUpload = async (event) => {
     toast.error(err?.response?.data?.message || 'Gagal mengunggah bukti transfer. Silakan periksa koneksi internet Anda.');
   } finally {
     isUploadingProof.value = false;
+    if (event?.target) event.target.value = '';
   }
 };
 
@@ -2150,10 +2079,15 @@ watch(isCurrentInvoicePaid, (newVal) => {
   }
 });
 
-watch(selectedInvoiceType, () => {
-  if (!isCurrentInvoicePaid.value) {
+watch(selectedInvoiceType, async () => {
+  syncActiveInvoicePaymentState();
+  if (!isCurrentInvoicePaid.value && !isCurrentInvoiceExpired.value) {
+    if (!activePaymentId.value && currentInvoice.value?.id) {
+      await ensureDirectPaymentForSelectedMethod();
+    }
     startAutoPolling();
   }
+  await updateQrisCode();
 });
 
 watch([currentInvoiceAmount, candidateRegNo, selectedInvoiceType], () => {
@@ -2163,14 +2097,17 @@ watch([currentInvoiceAmount, candidateRegNo, selectedInvoiceType], () => {
 onMounted(async () => {
   await fetchInvoices();
   await loadPaymentConfig();
-  await loadDuitkuMethods();
-  await updateQrisCode();
   if (applicantStore.isResultPassed && hasTuitionInvoice.value) {
     selectedInvoiceType.value = 'tuition';
   }
-  if (!isCurrentInvoicePaid.value) {
+  syncActiveInvoicePaymentState();
+  if (!isCurrentInvoicePaid.value && !isCurrentInvoiceExpired.value) {
+    if (!activePaymentId.value && currentInvoice.value?.id) {
+      await ensureDirectPaymentForSelectedMethod();
+    }
     startAutoPolling();
   }
+  await updateQrisCode();
   window.addEventListener('focus', handleWindowFocus);
 });
 

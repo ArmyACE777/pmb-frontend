@@ -18,6 +18,16 @@ export const financeApi = {
     return apiClient.post(`/invoices/me/${invoiceId}/pay`, payload);
   },
 
+  async createDirectPayment(invoiceId, paymentMethod) {
+    return apiClient.post(`/invoices/${invoiceId}/payments`, {
+      payment_method: paymentMethod,
+    });
+  },
+
+  async getDirectPaymentDetail(paymentId) {
+    return apiClient.get(`/payments/${paymentId}`);
+  },
+
   async payWithManualTransfer(invoiceId, formData) {
     return apiClient.post(`/invoices/me/${invoiceId}/manual-transfer`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -40,11 +50,6 @@ export const financeApi = {
 
   async getPaymentMethods(amount = 250000) {
     return apiClient.get(`/finance/payment-methods?amount=${amount}`).catch(() => apiClient.get(`/payment-methods?amount=${amount}`));
-  },
-
-  // CR-002: Pembatalan tagihan sebelum pembayaran
-  async cancelInvoice(invoiceId) {
-    return apiClient.post(`/invoices/me/${invoiceId}/cancel`);
   },
 
   async requestInstallment(invoiceId, payload) {

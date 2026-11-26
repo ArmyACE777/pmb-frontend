@@ -168,22 +168,49 @@ export const DEFAULT_CMS_DATA = {
 
 const STORAGE_KEY = 'bth_pmb_cms_v1';
 
+/**
+ * Normalisasi nomor WhatsApp (08xx -> 628xx) dan hasilkan tautan API WhatsApp resmi.
+ */
+export function buildWhatsappLink(
+  rawPhone,
+  message = 'Halo Helpdesk PMB BTH, saya ingin bertanya mengenai pendaftaran.'
+) {
+  const digits = String(rawPhone || '').replace(/[^0-9]/g, '');
+  if (!digits) return DEFAULT_CMS_DATA.contact.whatsappLink;
+  const international = digits.startsWith('0') ? '62' + digits.slice(1) : digits;
+  return `https://api.whatsapp.com/send?phone=${international}&text=${encodeURIComponent(message)}`;
+}
+
+function normalizeContactPayload(currentContact, nextContact) {
+  const merged = { ...currentContact, ...(nextContact || {}) };
+  if (
+    nextContact?.whatsapp &&
+    (!nextContact.whatsappLink || nextContact.whatsapp !== currentContact?.whatsapp)
+  ) {
+    merged.whatsappLink = buildWhatsappLink(nextContact.whatsapp);
+  } else if (!merged.whatsappLink && merged.whatsapp) {
+    merged.whatsappLink = buildWhatsappLink(merged.whatsapp);
+  }
+  return merged;
+}
+
 export const useCmsStore = defineStore('cms', () => {
+  const mergeWithDefaults = (parsed = {}) => ({
+    identity: { ...DEFAULT_CMS_DATA.identity, ...(parsed.identity || {}) },
+    contact: normalizeContactPayload(DEFAULT_CMS_DATA.contact, parsed.contact),
+    announcement: { ...DEFAULT_CMS_DATA.announcement, ...(parsed.announcement || {}) },
+    socialMedia: { ...DEFAULT_CMS_DATA.socialMedia, ...(parsed.socialMedia || {}) },
+    links: { ...DEFAULT_CMS_DATA.links, ...(parsed.links || {}) },
+    faqs: Array.isArray(parsed.faqs) && parsed.faqs.length > 0 ? parsed.faqs : DEFAULT_CMS_DATA.faqs,
+    tracks: Array.isArray(parsed.tracks) && parsed.tracks.length > 0 ? parsed.tracks : DEFAULT_CMS_DATA.tracks,
+    studyPrograms: Array.isArray(parsed.studyPrograms) && parsed.studyPrograms.length > 0 ? parsed.studyPrograms : DEFAULT_CMS_DATA.studyPrograms,
+  });
+
   const loadCmsData = () => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const parsed = JSON.parse(saved);
-        return {
-          identity: { ...DEFAULT_CMS_DATA.identity, ...(parsed.identity || {}) },
-          contact: { ...DEFAULT_CMS_DATA.contact, ...(parsed.contact || {}) },
-          announcement: { ...DEFAULT_CMS_DATA.announcement, ...(parsed.announcement || {}) },
-          socialMedia: { ...DEFAULT_CMS_DATA.socialMedia, ...(parsed.socialMedia || {}) },
-          links: { ...DEFAULT_CMS_DATA.links, ...(parsed.links || {}) },
-          faqs: Array.isArray(parsed.faqs) && parsed.faqs.length > 0 ? parsed.faqs : DEFAULT_CMS_DATA.faqs,
-          tracks: Array.isArray(parsed.tracks) && parsed.tracks.length > 0 ? parsed.tracks : DEFAULT_CMS_DATA.tracks,
-          studyPrograms: Array.isArray(parsed.studyPrograms) && parsed.studyPrograms.length > 0 ? parsed.studyPrograms : DEFAULT_CMS_DATA.studyPrograms,
-        };
+        return mergeWithDefaults(JSON.parse(saved));
       }
     } catch (e) {
       console.warn('Gagal memuat data CMS dari storage:', e);
@@ -192,6 +219,43 @@ export const useCmsStore = defineStore('cms', () => {
   };
 
   const state = ref(loadCmsData());
+
+  const pushDevSharedSync = (val) => {
+    if (import.meta.env.DEV && typeof fetch === 'function') {
+      fetch('/api/cms-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(val),
+      }).catch(() => {});
+    }
+  };
+
+  const pullDevSharedSync = async () => {
+    if (!import.meta.env.DEV || typeof fetch !== 'function') return;
+    try {
+      const res = await fetch('/api/cms-sync');
+      if (!res.ok) return;
+      const remote = await res.json();
+      if (remote && (remote.identity || remote.contact || remote.links)) {
+        state.value = mergeWithDefaults(remote);
+      }
+    } catch {
+      // Abaikan bila middleware sync dev tidak tersedia
+    }
+  };
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', (ev) => {
+      if (ev.key === STORAGE_KEY && ev.newValue) {
+        try {
+          state.value = mergeWithDefaults(JSON.parse(ev.newValue));
+        } catch {}
+      }
+    });
+    if (import.meta.env.DEV) {
+      pullDevSharedSync();
+    }
+  }
 
   // Otomatis sinkronkan perubahan ke localStorage
   watch(
@@ -257,7 +321,12 @@ export const useCmsStore = defineStore('cms', () => {
    */
   const updateSection = (section, payload) => {
     if (state.value[section]) {
-      state.value[section] = { ...state.value[section], ...payload };
+      if (section === 'contact') {
+        state.value.contact = normalizeContactPayload(state.value.contact, payload);
+      } else {
+        state.value[section] = { ...state.value[section], ...payload };
+      }
+      pushDevSharedSync(state.value);
     }
   };
 
@@ -269,9 +338,9 @@ export const useCmsStore = defineStore('cms', () => {
     if (mergedLinks.onboardingWaGroup) {
       mergedLinks.officialWaGroup = mergedLinks.onboardingWaGroup;
     }
-    state.value = {
+    const nextState = {
       identity: { ...state.value.identity, ...(newCms.identity || {}) },
-      contact: { ...state.value.contact, ...(newCms.contact || {}) },
+      contact: normalizeContactPayload(state.value.contact, newCms.contact),
       announcement: { ...state.value.announcement, ...(newCms.announcement || {}) },
       socialMedia: { ...state.value.socialMedia, ...(newCms.socialMedia || {}) },
       links: mergedLinks,
@@ -279,6 +348,8 @@ export const useCmsStore = defineStore('cms', () => {
       tracks: Array.isArray(newCms.tracks) ? newCms.tracks : (state.value.tracks || DEFAULT_CMS_DATA.tracks),
       studyPrograms: Array.isArray(newCms.studyPrograms) ? newCms.studyPrograms : (state.value.studyPrograms || DEFAULT_CMS_DATA.studyPrograms),
     };
+    state.value = nextState;
+    pushDevSharedSync(nextState);
   };
 
   /**

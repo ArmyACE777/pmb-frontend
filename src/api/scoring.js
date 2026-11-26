@@ -5,14 +5,6 @@ import { apiClient } from './client';
  * Mengelola penilaian ujian CBT, nilai wawancara dosen penguji, dan perankingan seleksi
  */
 export const scoringApi = {
-  async getScores(params = {}) {
-    return apiClient.get('/scoring/admin/scores', { params });
-  },
-
-  async submitScore(payload) {
-    return apiClient.post('/scoring/admin/scores', payload);
-  },
-
   async getComponents(params = {}) {
     return apiClient.get('/scoring/admin/components', { params });
   },
@@ -21,8 +13,12 @@ export const scoringApi = {
     return apiClient.post('/scoring/admin/components', payload);
   },
 
-  async getExaminerScores() {
-    return apiClient.get('/scoring/examiner/scores');
+  async getParticipantScores(applicationId) {
+    return apiClient.get(`/scoring/examiner/scores/${applicationId}`);
+  },
+
+  async getRecap(params = {}) {
+    return apiClient.get('/scoring/program/recap', { params });
   },
 
   async submitExaminerScore(applicationId, payload) {

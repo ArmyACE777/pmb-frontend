@@ -7,11 +7,17 @@ export const referralApi = {
   },
 
   // Camaba
-  async getMyReferral() {
-    return apiClient.get('/referral/me');
+  async getMyReferral(applicationId = null) {
+    const params = applicationId ? { application_id: applicationId } : {};
+    return apiClient.get('/referral/me', { params });
   },
-  async attachCode(code) {
-    return apiClient.put('/referral/me', { code });
+  async attachCode(code, consent = true, applicationId = null) {
+    const params = applicationId ? { application_id: applicationId } : {};
+    return apiClient.put('/referral/me', { code, consent }, { params });
+  },
+  async removeMyReferral(applicationId = null) {
+    const params = applicationId ? { application_id: applicationId } : {};
+    return apiClient.delete('/referral/me', { params });
   },
 
   // Partner (Guru BK)

@@ -131,9 +131,6 @@ apiClient.interceptors.response.use(
           .catch((err) => Promise.reject(err));
       }
 
-      originalRequest._retry = true;
-      isRefreshing = true;
-
       const refreshToken = localStorage.getItem('refresh_token');
       if (!refreshToken) {
         if (!isPartnerOrMockSession && !isExemptPath) {
@@ -144,6 +141,9 @@ apiClient.interceptors.response.use(
         }
         return Promise.reject(error);
       }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
         const response = await axios.post(`${getApiBaseUrl()}/auth/refresh`, {

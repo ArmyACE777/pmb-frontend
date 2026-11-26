@@ -13,7 +13,11 @@ export const nimApi = {
     return apiClient.get('/nim/admin/issuances', { params });
   },
 
+  async previewNim(payload) {
+    return apiClient.post('/nim/admin/preview', payload);
+  },
+
   async generateNim(payload) {
-    return apiClient.post('/nim/admin/issuances/generate', payload);
+    return apiClient.post('/nim/admin/generate', payload);
   },
 };

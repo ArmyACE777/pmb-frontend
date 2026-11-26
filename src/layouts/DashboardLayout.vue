@@ -525,11 +525,9 @@ import {
   FileText,
   ClipboardCheck,
   GraduationCap,
-  ChevronDown,
   LogOut,
   HelpCircle,
   Bell,
-  Shield,
   Lock,
   BookOpen
 } from 'lucide-vue-next';
@@ -691,8 +689,8 @@ const notifications = computed(() => {
   }
 
   list.push({
-    title: 'Informasi Pendaftaran PMB 2026/2027',
-    desc: 'Selamat datang di Portal PMB Universitas BTH. Lengkapi biodata, unggah berkas, dan ikuti tahapan seleksi.',
+    title: `Informasi Pendaftaran PMB ${cmsStore.identity.academicYear || '2026/2027'}`,
+    desc: `Selamat datang di Portal PMB ${cmsStore.identity.shortName || 'Universitas BTH'}. Lengkapi biodata, unggah berkas, dan ikuti tahapan seleksi.`,
     time: 'Pengumuman',
     isRead: readNotificationIndices.value.has('welcome'),
     key: 'welcome',
@@ -700,7 +698,7 @@ const notifications = computed(() => {
 
   list.push({
     title: 'Sekretariat & Pusat Bantuan PMB',
-    desc: 'Bantuan pendaftaran dan validasi berkas dapat ditanyakan via WhatsApp 0821-1710-0200.',
+    desc: `Bantuan pendaftaran dan validasi berkas dapat ditanyakan via WhatsApp ${cmsStore.contact.whatsapp || '0821-1710-0200'}.`,
     time: 'Layanan Kampus',
     isRead: true,
     key: 'helpdesk',

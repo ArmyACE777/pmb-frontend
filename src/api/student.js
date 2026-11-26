@@ -31,7 +31,15 @@ export const studentApi = {
     return apiClient.get('/student/admin/students', { params });
   },
 
-  async verifyReregistration(id, payload) {
-    return apiClient.post(`/student/admin/students/${id}/verify`, payload);
+  async getEnrolment(params = {}) {
+    return apiClient.get('/student/admin/enrolment', { params });
+  },
+
+  async issueNimManual(studentId) {
+    return apiClient.post(`/student/admin/students/${studentId}/issue-nim`);
+  },
+
+  async issueNimBatch(payload = {}) {
+    return apiClient.post('/student/admin/nim/batch', payload);
   },
 };

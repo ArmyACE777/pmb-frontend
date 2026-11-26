@@ -414,63 +414,17 @@
               </span>
             </div>
 
-            <!-- Ringkasan Berkas Persyaratan Jalur yang Dipilih -->
-            <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-2 animate-fadeIn">
-              <div class="flex items-center justify-between gap-2 pb-1.5 border-b border-slate-200/70">
-                <div class="flex items-center gap-1.5 font-semibold text-slate-800 text-xs font-sora">
-                  <FileText class="w-3.5 h-3.5 text-[#1E3A8A]" />
-                  <span>Kebutuhan Berkas Pendaftaran:</span>
-                </div>
-                <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-50 text-[#1E3A8A] border border-blue-200">
-                  {{ 5 + currentTrackSpecificDocs.length }} Total Berkas (5 Pokok + {{ currentTrackSpecificDocs.length }} Khusus Jalur)
+            <!-- Ringkasan Singkat Kebutuhan Berkas Jalur -->
+            <div class="text-[11px] text-slate-600 pt-1">
+              <span>Syarat unggahan pada tahap Berkas: </span>
+              <strong class="text-slate-800">5 berkas pokok</strong>
+              <template v-if="currentTrackSpecificDocs.length > 0">
+                <span> + </span>
+                <strong class="text-[#1E3A8A]">{{ currentTrackSpecificDocs.length }} berkas khusus jalur</strong>
+                <span class="text-slate-500">
+                  ({{ currentTrackSpecificDocs.map((d) => d.title || d.name).join(', ') }})
                 </span>
-              </div>
-
-              <!-- Jika Memiliki Berkas Khusus Jalur -->
-              <div v-if="currentTrackSpecificDocs.length > 0" class="space-y-2 pt-0.5">
-                <p class="text-[11px] text-slate-500 font-sans">
-                  Selain 5 berkas pokok (Ijazah/SKL, KTP, KK, Pas Foto, Surat Sehat), jalur ini mewajibkan berkas pendukung spesifik:
-                </p>
-                <div class="grid grid-cols-1 gap-1.5">
-                  <div
-                    v-for="doc in currentTrackSpecificDocs"
-                    :key="doc.id"
-                    class="p-2.5 bg-white rounded-lg border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-[11px]"
-                  >
-                    <div class="flex items-center gap-2">
-                      <span class="font-semibold text-slate-800">{{ doc.title || doc.name }}</span>
-                      <span
-                        class="text-[10px] px-1.5 py-0.2 rounded font-semibold"
-                        :class="(doc.required ?? doc.isRequired) ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-600 border border-slate-200'"
-                      >
-                        {{ (doc.required ?? doc.isRequired) ? 'Wajib' : 'Pendukung' }}
-                      </span>
-                    </div>
-                    <span class="text-[10px] text-slate-500 font-sans">Format: PDF atau JPG/PNG (Maks. 2 MB)</span>
-                  </div>
-                </div>
-
-                <!-- Tombol Navigasi Cepat Langsung ke Halaman Berkas -->
-                <div class="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-slate-200/70">
-                  <span class="text-[11px] text-slate-600 font-sans">
-                    Seluruh berkas khusus ini diunggah pada <strong>Halaman Berkas</strong>.
-                  </span>
-                  <button
-                    type="button"
-                    @click="goToDocumentModule"
-                    class="px-3.5 py-1.5 bg-[#1E3A8A] hover:bg-[#172554] text-white text-[11px] font-semibold rounded-lg shadow-2xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer self-start sm:self-auto"
-                  >
-                    <Upload class="w-3.5 h-3.5" />
-                    <span>Buka Halaman Berkas & Unggah</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Jika Jalur Reguler / Hanya Berkas Pokok -->
-              <div v-else class="text-[11px] text-slate-600 flex items-center gap-2 py-0.5">
-                <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Jalur ini hanya memerlukan <strong>5 Berkas Pokok Standar</strong> tanpa dokumen tambahan khusus.</span>
-              </div>
+              </template>.
             </div>
           </div>
         </div>
@@ -572,20 +526,6 @@
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- Panduan Pemilihan Jalur PMB (Tips & Ketentuan Ringkas) -->
-        <div class="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 text-xs text-slate-600 space-y-2 font-sans">
-          <div class="flex items-center gap-2 font-bold text-slate-800 font-sora">
-            <HelpCircle class="w-4 h-4 text-[#1E3A8A] shrink-0" />
-            <span>Ketentuan Pemilihan Jalur & Program Studi:</span>
-          </div>
-          <ul class="space-y-1.5 text-[11px] text-slate-500 pl-6 list-disc leading-relaxed">
-            <li><strong>Program Studi Pilihan Utama:</strong> Prioritas alokasi kursi seleksi utama calon mahasiswa baru.</li>
-            <li><strong>Program Studi Pilihan Kedua:</strong> Alternatif otomatis jika kuota pada pilihan utama telah terpenuhi (tanpa biaya pendaftaran tambahan).</li>
-            <li><strong>Jalur Bebas Tes (Prestasi / Rapor):</strong> Kelulusan dievaluasi berdasarkan nilai rapor semester 1–5 atau sertifikat prestasi tanpa perlu mengikuti ujian CBT.</li>
-            <li><strong>Perubahan Pilihan:</strong> Sebelum pembayaran formulir dilakukan, Anda dapat bebas mengganti pilihan atau mengosongkan pilihan. Setelah lunas, perubahan jalur dapat diajukan via tombol <em>Ajukan Pindah Jalur</em>.</li>
-          </ul>
         </div>
       </div>
 
@@ -1188,19 +1128,14 @@ import {
   Loader2,
   CheckCircle2,
   Clock,
-  Download,
-  FileText,
   AlertCircle,
   AlertTriangle,
   Lock,
   X,
   UserX,
-  CreditCard,
-  Check,
-  HelpCircle,
-  Upload
+  CreditCard
 } from 'lucide-vue-next';
-import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { useApplicantStore, getTrackSpecificDocuments } from '@/stores/applicant';
 import { useOrganizationStore } from '@/stores/organization';
 import { useCmsStore } from '@/stores/cms';
@@ -1613,18 +1548,6 @@ watch(
     }
   }
 );
-
-const goToDocumentModule = () => {
-  if (admissionForm.value.track) {
-    if (applicantStore.state.admission && !applicantStore.isAdmissionLocked) {
-      applicantStore.state.admission.track = admissionForm.value.track;
-    }
-    if (applicantStore.syncDocumentsForTrack) {
-      applicantStore.syncDocumentsForTrack(admissionForm.value.track);
-    }
-  }
-  emit('switch-tab', 'documents');
-};
 
 const currentTrackDetails = computed(() => {
   return trackList.value.find((t) => t.name === admissionForm.value.track) || trackList.value[0];

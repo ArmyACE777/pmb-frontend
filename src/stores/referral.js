@@ -264,8 +264,27 @@ export const useReferralStore = defineStore('referral', () => {
       // offline / quiet fallback
     }
 
-    // Sinkronisasikan kode referal resmi dari backend database PMB
+    // Sinkronisasikan kode referal resmi dari backend hanya untuk sesi admin/keuangan yang terautentikasi
     try {
+      const token = localStorage.getItem('access_token');
+      const isSynthetic =
+        !token ||
+        token.startsWith('bk_token_') ||
+        token.startsWith('mkt_token_') ||
+        token.startsWith('mock_');
+      const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+      const roles = Array.isArray(storedUser?.roles)
+        ? storedUser.roles
+        : storedUser?.role
+          ? [storedUser.role]
+          : [];
+      const canReadAdminReferrals = roles.some((r) =>
+        ['superadmin', 'admin_pmb', 'keuangan'].includes(r)
+      );
+      if (isSynthetic || !canReadAdminReferrals) {
+        return;
+      }
+
       const adminCodesRes = await referralApi.getAdminCodes().catch(() => null);
       const backendCodes = adminCodesRes?.data?.data || adminCodesRes?.data;
       if (Array.isArray(backendCodes) && backendCodes.length > 0) {
@@ -331,7 +350,6 @@ export const useReferralStore = defineStore('referral', () => {
     });
     // Saat pengguna berpindah tab atau fokus kembali ke window ini (termasuk InPrivate)
     window.addEventListener('focus', () => {
-      syncFromSharedServer();
       reloadFromStorage();
     });
   }

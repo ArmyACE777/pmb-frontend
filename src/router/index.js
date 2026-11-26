@@ -45,6 +45,12 @@ const router = createRouter({
       component: () => import('@/views/ResetPasswordView.vue'),
       meta: { requiresAuth: false },
     },
+    {
+      path: '/panduan',
+      name: 'applicant-guide',
+      component: () => import('@/views/ApplicantGuideView.vue'),
+      meta: { requiresAuth: false },
+    },
     // Redirect /bk/login ke Satu Pintu /login
     {
       path: '/bk/login',
@@ -84,12 +90,12 @@ const router = createRouter({
       component: () => import('@/views/AdminDashboardView.vue'),
       meta: { requiresAuth: true, adminOnly: true },
     },
-    // 4. Rancangan CMS Terpisah / Content Studio (Arsitektur Mandiri)
+    // 4. Rancangan CMS Terpisah / Content Studio (Khusus Admin PMB)
     {
       path: '/cms',
       name: 'cms-portal',
       component: () => import('@/views/CmsPortalView.vue'),
-      meta: { requiresAuth: false },
+      meta: { requiresAuth: true, adminOnly: true },
     },
     {
       path: '/:pathMatch(.*)*',
